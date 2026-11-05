@@ -308,7 +308,7 @@
       "copy": {
         "title": "Your analytics choice",
         "body": "May we use Google Analytics, Microsoft Clarity, Ahrefs and Shipsolo/Plausible to understand visits and improve the site? Clarity records masked page interactions. Your poster files and account details are excluded.",
-        "helper": "You can use the free tool either way. Change your choice in Cookie settings."
+        "helper": "You can use the free tool either way. Change your choice in Cookie settings. Withdrawing acceptance reloads open PosterTiler tabs; download your work first."
       },
       "actions": [
         {"label": "Accept analytics", "target": "action:allow-analytics"},

@@ -35,7 +35,7 @@ Cookie lifetimes can be shortened by browser settings or deletion. Removing a br
 
 Open **Cookie settings** in the footer to review or change the stored preference. Rejecting analytics does not affect image selection, settings, local processing, PDF downloads or Google sign-in. A previous GA4-only preference is not reused as consent for the expanded provider list.
 
-Before a choice or after rejection, these tags and measurements are blocked. Withdrawal saves rejection, stops application events, requests denied Clarity storage consent, removes analytics cookies under our control and reloads the page to unload third-party listeners. Other tabs respond to the changed stored preference. Withdrawal does not automatically erase earlier data held by a provider or delete third-party cookies outside our domain.
+Before a choice or after rejection, these tags and measurements are blocked. Withdrawal saves rejection, stops application events, requests denied Clarity storage consent, removes analytics cookies under our control and reloads the page to unload third-party listeners. Other active PosterTiler tabs with analytics also reload in response to the changed stored preference. Download work you want to keep before withdrawing: a reload discards unsaved editor state. Withdrawal does not automatically erase earlier data held by a provider or delete third-party cookies outside our domain.
 
 You can clear localStorage and cookies through your browser. Clearing storage removes the saved preference and may cause the site to ask again when analytics is enabled.
 
