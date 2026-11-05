@@ -38,7 +38,7 @@ for (const route of [...appRouteSpecs, { id: '404', path: '/404', title: 'Page n
     .replace(/<meta name="description" content="[^"]*"\s*\/>/, `<meta name="description" content="${esc(description)}" />`)
     .replace(/<meta name="robots" content="[^"]*"\s*\/>/, `<meta name="robots" content="${indexable ? 'index,follow' : 'noindex,nofollow'}" />`)
     .replace('<div id="root"></div>', `<div id="root">${render(route.path)}</div>`);
-  const verification = [['google-site-verification', env.VITE_GOOGLE_SITE_VERIFICATION], ['msvalidate.01', env.VITE_BING_SITE_VERIFICATION]]
+  const verification = [['google-site-verification', env.VITE_GOOGLE_SITE_VERIFICATION], ['msvalidate.01', env.VITE_BING_SITE_VERIFICATION], ['ahrefs-site-verification', env.VITE_AHREFS_SITE_VERIFICATION]]
     .filter(([, value]) => value).map(([name, value]) => `<meta name="${name}" content="${esc(value)}" />`).join('\n');
   html = html.replace('</head>', `<link rel="canonical" href="${esc(canonical)}" />
 <meta property="og:type" content="${guide ? 'article' : 'website'}" /><meta property="og:title" content="${esc(title)}" />
