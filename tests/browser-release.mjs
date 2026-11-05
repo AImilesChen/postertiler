@@ -40,7 +40,7 @@ try {
   });
   await check('PDF.js module preview, fonts and vector tiling work under the release CSP', async () => {
     await page.goto(origin+'/tools/pdf-poster-printer',{waitUntil:'networkidle'}); await page.locator('input[type=file]').setInputFiles('tests/fixtures/vector-source.pdf');
-    await page.locator('.preview-canvas canvas').waitFor(); const pdf = await download('Download Tiled PDF','tiled-pdf'); assert.equal(pdf.getPageCount(),14);
+    await page.locator('.preview-artboard').waitFor(); const pdf = await download('Download Tiled PDF','tiled-pdf'); assert.equal(pdf.getPageCount(),14);
   });
   await check('No browser errors or external requests occur in release workflows', async () => { assert.deepEqual(errors,[]); assert.deepEqual(external,[]); });
 } catch(e) { checks.push({name:'failure',result:'failed',message:e.message}); await page.screenshot({path:`${root}/failure.png`,fullPage:true}); process.exitCode=1; console.error(e); }

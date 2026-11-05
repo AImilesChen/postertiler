@@ -29,7 +29,7 @@ try {
   await check('Subject bounds produce a proportional 180 cm canvas and a real PDF', async () => {
     await go('/tools/life-size-poster-maker'); assert.equal(await button('Download Printable PDF').isDisabled(), true); await upload();
     await input('Left bound').fill('25'); await input('Right bound').fill('75'); await input('Top bound').fill('10'); await input('Bottom bound').fill('90');
-    await apply('Apply Subject Bounds'); await page.locator('.preview-canvas canvas').waitFor();
+    await apply('Apply Subject Bounds'); await page.locator('.preview-artboard').waitFor();
     assert.ok((await page.locator('.preview-summary').innerText()).includes('180.0 cm'));
     const count = Number(await page.locator('.metrics dd').nth(1).innerText());
     const pdf = await download('life-size-180cm'); assert.equal(pdf.getPageCount(), count); assert.equal(count > 4, true);

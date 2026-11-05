@@ -25,6 +25,9 @@ function usePdfPreview(file, pageIndex) {
   }, [file]);
   const ready = source && typeof source === 'object' ? source.ready : null;
   const [previewResult, setPreviewResult] = useState(null);
+  // A completed preview owns its URL until it is replaced. Rapid page/range
+  // changes can reuse the same completed page while a new render is pending.
+  useEffect(() => () => { if (previewResult?.url) URL.revokeObjectURL(previewResult.url); }, [previewResult]);
   useEffect(() => {
     const pdf = document.current; if (!file || !pdf) { setPreviewResult(null); return; }
     let alive = true, renderTask, objectUrl; setLoading(true); setError('');
@@ -38,7 +41,7 @@ function usePdfPreview(file, pageIndex) {
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png')); if (!blob || !alive) return;
       objectUrl = URL.createObjectURL(blob); setPreviewResult({ file, pageIndex, url: objectUrl }); setLoading(false); canvas.width = canvas.height = 1; page.cleanup();
     })().catch(() => { if (alive) { setError('This page could not be previewed. Try another source page or re-save the PDF.'); setLoading(false); } });
-    return () => { alive = false; renderTask?.cancel(); if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    return () => { alive = false; renderTask?.cancel(); };
   }, [file, pageIndex, ready]);
   const url = previewResult?.file === file && previewResult.pageIndex === pageIndex ? previewResult.url : null;
   return { source: url, error, loading };

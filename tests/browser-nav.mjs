@@ -47,11 +47,11 @@ try {
     await page.keyboard.press('ArrowDown');await menu(page).waitFor();await page.getByRole('heading',{name:'Free Block Poster Maker',exact:true}).click();assert.equal(await menu(page).count(),0);
   });
   await check('Failed header logout can retry; successful logout preserves the selected poster',async()=>{
-    await page.locator('input[type=file]').setInputFiles('tests/fixtures/grid.jpg');await page.locator('.preview-canvas canvas').waitFor();
+    await page.locator('input[type=file]').setInputFiles('tests/fixtures/grid.jpg');await page.locator('.preview-artboard').waitFor();
     failLogout=true;await trigger(page).click();await menu(page).getByRole('menuitem',{name:'Sign out',exact:true}).click();
     await page.getByRole('alert').filter({hasText:'Could not sign out.'}).waitFor();assert.equal(await trigger(page).count(),1);
     failLogout=false;await menu(page).getByRole('menuitem',{name:'Sign out',exact:true}).click();await nav(page).getByRole('link',{name:'Sign in',exact:true}).waitFor();
-    assert.equal(await page.locator('.preview-canvas canvas').count(),1);assert.equal(new URL(page.url()).pathname,'/');
+    assert.equal(await page.locator('.preview-artboard').count(),1);assert.equal(new URL(page.url()).pathname,'/');
     assert.equal(await page.getByRole('heading',{name:'Your poster preview',exact:true}).count(),0);
   });
   await check('Account page and header share one session request and both update after sign-out',async()=>{

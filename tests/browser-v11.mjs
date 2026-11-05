@@ -75,7 +75,7 @@ try {
     const doc = await download('Download Combined PDF', 'images-retry-48mp'); assert.equal(doc.getPageCount(), 2);
   });
   await check('PDF preflight and rendered previews support CropBox, rotation and UserUnit', async () => {
-    await go('/tools/pdf-poster-printer'); await uploadPdf(); await page.locator('.preview-canvas canvas').waitFor();
+    await go('/tools/pdf-poster-printer'); await uploadPdf(); await page.locator('.preview-artboard').waitFor();
     assert.ok((await page.locator('.source-page-summary').innerText()).includes('26.0 × 18.0 cm'));
     assert.ok((await page.locator('.source-page-summary').innerText()).includes('30.0 × 20.0 cm'));
     await page.getByRole('combobox', { name: 'Preview source page', exact: true }).selectOption('1');
@@ -130,7 +130,7 @@ try {
       await page.setViewportSize({ width, height: 844 });
       await go('/tools/image-to-pdf'); await page.locator('input[type=file]').setInputFiles({ name: longName, mimeType: 'image/jpeg', buffer: grid }); await page.getByRole('button', { name: 'Preview page 1', exact: true }).waitFor();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); await shot(`images-${width}`);
-      await go('/tools/pdf-poster-printer'); await uploadPdf(); await page.locator('.preview-canvas canvas').waitFor();
+      await go('/tools/pdf-poster-printer'); await uploadPdf(); await page.locator('.preview-artboard').waitFor();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); await shot(`pdf-${width}`);
       await go('/compare/rasterbator-alternative'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); assert.ok(await page.getByRole('link', { name: 'Rasterbator.io official homepage', exact: true }).count()); await shot(`compare-${width}`);
     }

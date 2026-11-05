@@ -16,6 +16,7 @@ const content = (doc, page) => {
 };
 for (const [name, settings] of [
   ['A-a4', DEFAULTS],
+  ['A-a4-10mm-margins', { ...DEFAULTS, margin: 10 }],
   ['B-letter-exact', { ...DEFAULTS, paper: 'US Letter', margin: 6.35, overlap: 6.35, mode: 'exact', width: 400, height: 500, placement: 'fill' }],
   ['C-zero-overlap', { ...DEFAULTS, overlap: 0, mode: 'exact', width: 400, height: 574 }],
   ['framed-grid', { ...DEFAULTS, layoutMode: 'framed', gap: 10 }],

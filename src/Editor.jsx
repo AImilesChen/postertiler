@@ -91,7 +91,7 @@ export default function Editor({ calculator = false }) {
     <NumberInput label="Printer margins" value={settings.margin} onChange={v => update('margin', v)} unit="mm" />
     <label className="check"><input type="checkbox" checked={!!settings.separateMargins} onChange={e => update('separateMargins', e.target.checked)} />Set margins separately</label>
     {settings.separateMargins && <div className="field-pair">{['Top', 'Right', 'Bottom', 'Left'].map(side => <NumberInput key={side} label={`${side} margin`} value={settings[`margin${side}`] ?? settings.margin} unit="mm" onChange={v => update(`margin${side}`, v)} />)}</div>}
-    <small>Leave space for the edges your printer cannot print. Check your printer settings if you are unsure.</small>
+    <small>White space on each edge of every sheet, not a gap in the finished poster. Trim or cover these margins during assembly. Check the minimum margins your printer supports.</small>
   </>;
   const sizeControls = <>
     <Field label="Set size by"><div className="segmented"><button aria-pressed={settings.mode === 'sheets'} onClick={() => change(s => ({ ...s, mode: 'sheets', columns: g.error ? 2 : g.columns, rows: g.error ? 2 : g.rows }))}>Sheets</button><button disabled={settings.layoutMode === 'framed'} aria-pressed={settings.mode === 'exact'} onClick={() => change(s => {

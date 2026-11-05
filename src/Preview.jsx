@@ -1,67 +1,106 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Minus, Plus, CornersOut, X, ImageSquare } from '@phosphor-icons/react';
-import { geometry, imagePlacement, pagePlans, sizeText } from './geometry';
+import { geometry, imagePlacement, sizeText } from './geometry';
+import { previewPlan } from './engine/preview.ts';
 import { loadImage } from './export';
+import './preview.css';
+
 export default function Preview({ source, settings, empty = false, pixels = { width: 1, height: 1 }, layoutOnly = false }) {
-  const canvas = useRef(), root = useRef(), opener = useRef();
-  const [tab, setTab] = useState('sheets'), [zoom, setZoom] = useState(60), [full, setFull] = useState(false), [error, setError] = useState('');
-  const g = geometry(settings);
+  const root = useRef(), stage = useRef(), opener = useRef(), tabs = useRef([]);
+  const [tab, setTab] = useState(layoutOnly ? 'sheets' : 'original');
+  const [zoom, setZoom] = useState(100), [full, setFull] = useState(false);
+  const [dimensions, setDimensions] = useState(null), [failedSource, setFailedSource] = useState(null);
+  const [viewport, setViewport] = useState({ width: 600, height: 588 });
+  const id = useId().replace(/:/g, ''), g = geometry(settings);
+  const ready = layoutOnly || (source && dimensions?.source === source);
+  const error = source && failedSource === source ? 'The preview could not be shown. Choose the image again.' : '';
   useEffect(() => {
-    if (empty || g.error || tab !== 'sheets') return;
-    let alive = true, image, observer;
-    const draw = () => {
-      const c = canvas.current; if (!c || !alive) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2), w = c.clientWidth, h = c.clientHeight;
-      c.width = w * dpr; c.height = h * dpr;
-      const ctx = c.getContext('2d'); if (!ctx) return;
-      ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
-      const gap = g.count > 25 ? 3 : 8;
-      const scale = Math.max(.001, Math.min((w - 36 - gap * (g.columns - 1)) / (g.columns * g.pw), (h - 32 - gap * (g.rows - 1)) / (g.rows * g.ph))) * zoom / 60;
-      const ox = (w - (g.columns * g.pw * scale + gap * (g.columns - 1))) / 2;
-      const oy = (h - (g.rows * g.ph * scale + gap * (g.rows - 1))) / 2;
-      const placement = image ? imagePlacement(g, image.naturalWidth, image.naturalHeight, settings.placement) : null;
-      for (const p of pagePlans(g)) {
-        const x = ox + p.col * (g.pw * scale + gap), y = oy + p.row * (g.ph * scale + gap);
-        ctx.fillStyle = '#fff'; ctx.fillRect(x, y, g.pw * scale, g.ph * scale);
-        ctx.strokeStyle = '#c8c8c8'; ctx.lineWidth = .7; ctx.strokeRect(x, y, g.pw * scale, g.ph * scale);
-        const left = x + g.margins.left * scale, top = y + g.margins.top * scale;
-        if (placement && !layoutOnly) {
-          ctx.save(); ctx.beginPath(); ctx.rect(left, top, p.width * scale, p.height * scale); ctx.clip();
-          ctx.drawImage(image, left + (placement.x - p.x) * scale, top + (placement.y - p.y) * scale, placement.width * scale, placement.height * scale); ctx.restore();
-        }
-        if (settings.cutGuides || layoutOnly) {
-          ctx.save(); ctx.strokeStyle = '#777'; ctx.lineWidth = .5; ctx.setLineDash([2, 2]);
-          ctx.strokeRect(left, top, p.width * scale, p.height * scale); ctx.restore();
-        }
-        if (settings.labels) {
-          ctx.fillStyle = '#111'; ctx.font = `${Math.max(3, 2.5 * scale)}px Arial`;
-          ctx.fillText(p.label, left + scale, top + (g.printableH + 3.3) * scale);
-        }
-      }
-    };
-    (async () => {
-      try {
-        if (!layoutOnly && source) image = await loadImage(source);
-        if (!alive) return; setError(''); draw(); observer = new ResizeObserver(draw); if (canvas.current) observer.observe(canvas.current);
-      } catch { if (alive) setError('The preview could not be shown. Choose the image again.'); }
-    })();
-    return () => { alive = false; observer?.disconnect(); };
-  }, [source, settings, zoom, tab, full, empty, layoutOnly]);
+    let alive = true;
+    if (source && !layoutOnly) loadImage(source).then(image => {
+      if (alive) { setDimensions({ source, width: image.naturalWidth, height: image.naturalHeight }); setFailedSource(null); }
+    }).catch(() => { if (alive) setFailedSource(source); });
+    return () => { alive = false; };
+  }, [source, layoutOnly]);
+  useEffect(() => {
+    const node = stage.current;
+    const measure = () => { if (node) setViewport({ width: node.clientWidth, height: node.clientHeight }); };
+    measure(); const observer = new ResizeObserver(measure); if (node) observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (!full) return;
-    const close = e => { if (e.key === 'Escape') setFull(false); };
-    document.addEventListener('keydown', close); const old = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    root.current?.querySelector('button')?.focus();
-    return () => { document.body.style.overflow = old; document.removeEventListener('keydown', close); opener.current?.focus(); };
+    const close = e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setFull(false); }
+      if (e.key === 'Tab') {
+        e.stopPropagation();
+        const controls = [...root.current.querySelectorAll('button:not(:disabled):not([tabindex="-1"]),[role="tabpanel"]')];
+        const first = controls[0], last = controls.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener('keydown', close, true);
+    const old = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    root.current?.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+    return () => { document.body.style.overflow = old; document.removeEventListener('keydown', close, true); opener.current?.focus(); };
   }, [full]);
-  const ppi = !empty && !layoutOnly && !g.error ? imagePlacement(g, pixels.width, pixels.height, settings.placement).ppi : 0;
-  return <div ref={root} className={`preview-wrap ${full ? 'fullscreen' : ''}`} role={full ? 'dialog' : undefined} aria-modal={full || undefined} aria-label={full ? 'Poster preview' : undefined}>
+  useEffect(() => { if (stage.current) { stage.current.scrollLeft = 0; stage.current.scrollTop = 0; } }, [tab, source]);
+
+  const plan = !g.error ? previewPlan(g, dimensions?.source === source ? dimensions : pixels, settings.placement) : null;
+  const sheets = tab === 'sheets', bounds = sheets ? plan?.paperBounds : plan?.canvas;
+  // Zoom is relative to the fitted view, never a physical print-scale setting.
+  const fitScale = bounds ? Math.max(.001, Math.min((viewport.width - 86) / bounds.width, (viewport.height - 82) / bounds.height)) : 1;
+  const factor = zoom / 100, scale = fitScale * factor;
+  const left = 28 / fitScale, top = 24 / fitScale, right = 10 / fitScale, bottom = 10 / fitScale;
+  const frameW = bounds ? (bounds.width + left + right) * scale : 0;
+  const frameH = bounds ? (bounds.height + top + bottom) * scale : 0;
+  const viewBox = bounds ? `${bounds.x - left} ${bounds.y - top} ${bounds.width + left + right} ${bounds.height + top + bottom}` : '';
+  const ppi = !empty && !layoutOnly && !g.error && pixels.width > 0 ? imagePlacement(g, pixels.width, pixels.height, settings.placement).ppi : 0;
+  const zoomTo = value => setZoom(Math.max(25, Math.min(300, value)));
+  const tabKeys = (e, index) => {
+    let next;
+    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) next = 1 - index;
+    if (e.key === 'Home') next = 0;
+    if (e.key === 'End') next = 1;
+    if (next !== undefined) { e.preventDefault(); setTab(next ? 'sheets' : 'original'); tabs.current[next]?.focus(); }
+  };
+  return <div ref={root} className={`preview-wrap ${full ? 'fullscreen' : ''}`} role={full ? 'dialog' : undefined} aria-modal={full || undefined} data-preview-dialog={full || undefined} aria-label={full ? 'Poster preview' : undefined}>
     <div className="preview-box"><div className="preview-toolbar"><div className="tabs" role="tablist" aria-label="Preview view">
-      {['original', 'sheets'].map(t => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>{t === 'original' ? 'Original' : 'Printed Sheets'}</button>)}
-    </div><div className="zoom"><button className="icon-button" aria-label="Zoom out" disabled={empty} onClick={() => setZoom(Math.max(20, zoom - 10))}><Minus size={18} /></button><button className="fit-zoom" aria-label="Fit preview" onClick={() => setZoom(60)}>{zoom}%</button><button className="icon-button" aria-label="Zoom in" disabled={empty} onClick={() => setZoom(Math.min(140, zoom + 10))}><Plus size={18} /></button><button ref={opener} className="icon-button" aria-label={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>{full ? <X size={18} /> : <CornersOut size={18} />}</button></div></div>
-    <div className="preview-canvas">{empty ? <div className="empty-preview"><ImageSquare size={50} weight="thin" /><h3>Your poster preview</h3><p>Choose an image to see your poster here.</p></div> : g.error || error ? <p role="alert">{g.error || error}</p> : tab === 'original' ? layoutOnly ? <p>Choose an image in the poster maker to see its placement.</p> : <img className="original-image" src={source} alt="Original selected image" /> : <canvas ref={canvas} role="img" aria-label={`Poster preview: ${g.columns} columns by ${g.rows} rows. Finished size ${sizeText(g, settings.unit)}.`} />}</div>
+      {['original', 'sheets'].map((value, index) => <button key={value} ref={node => { tabs.current[index] = node; }} id={`${id}-tab-${value}`} role="tab" aria-selected={tab === value} aria-controls={`${id}-panel`} tabIndex={tab === value ? 0 : -1} onKeyDown={e => tabKeys(e, index)} onClick={() => setTab(value)}>{value === 'original' ? 'Original' : 'Printed Sheets'}</button>)}
+    </div><div className="zoom"><button className="icon-button" aria-label="Zoom out" disabled={empty || !!g.error || zoom <= 25} onClick={() => zoomTo(zoom - 25)}><Minus size={18} /></button><button className="fit-zoom" aria-label="Fit preview" title="Reset to fit the preview" disabled={empty || !!g.error} onClick={() => setZoom(100)}>{zoom}%</button><button className="icon-button" aria-label="Zoom in" disabled={empty || !!g.error || zoom >= 300} onClick={() => zoomTo(zoom + 25)}><Plus size={18} /></button><button ref={opener} className="icon-button" aria-label={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>{full ? <X size={18} /> : <CornersOut size={18} />}</button></div></div>
+    <div ref={stage} className="preview-canvas poster-preview-stage" id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} tabIndex={0} aria-label="Poster preview; scroll to inspect when zoomed">
+      {empty ? <div className="empty-preview"><ImageSquare size={50} weight="thin" /><h3>Your poster preview</h3><p>Choose an image to see your poster here.</p></div> : g.error || error ? <p role="alert">{g.error || error}</p> : !ready ? <p role="status">Preparing preview…</p> : !sheets && layoutOnly ? <p>Choose an image in the poster maker to see its placement.</p> : <div className="preview-scroll-space" style={{ width: frameW + 48, height: frameH + 48 }}>
+        <div className="preview-artboard" data-view={tab} style={{ width: frameW, height: frameH }}>
+          {!sheets && <div className="poster-image-surface" style={{ left: left * scale, top: top * scale, width: g.width * scale, height: g.height * scale }}>
+            <img className="original-image" src={source} alt="Original selected image" draggable="false" style={{ left: plan.placement.x * scale, top: plan.placement.y * scale, width: plan.placement.width * scale, height: plan.placement.height * scale }} />
+          </div>}
+          <svg className="poster-plan-overlay" viewBox={viewBox} role="img" aria-label={`${sheets ? 'Sheet layout' : 'Assembled poster with page divisions'}: ${g.columns} columns by ${g.rows} rows. Finished size ${sizeText(g, settings.unit)}.`}>
+            <defs><pattern id={`${id}-overlap`} width={6 / fitScale} height={6 / fitScale} patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="#b6ccdf" /><path d={`M0 ${6 / fitScale}L${6 / fitScale} 0`} stroke="#698aa5" strokeWidth={.7 / fitScale} /></pattern></defs>
+            {sheets ? <>
+              <g className="preview-paper-shapes" fill="#fff">{plan.pages.map(page => <rect key={page.label} {...page.paper} />)}</g>
+              <g className="preview-image-areas" fill="#d4e3ef">{plan.pages.map(page => page.image && <rect key={page.label} {...page.image} />)}</g>
+              <g className="preview-overlap-areas" fill={`url(#${id}-overlap)`}>{plan.overlaps.map((rect, index) => <rect key={index} {...rect} />)}</g>
+              <g className="preview-paper-outlines" fill="none" stroke="#8a9ba9" strokeWidth={.7 / fitScale}>{plan.pages.map(page => <rect key={page.label} {...page.paper} />)}</g>
+              {settings.cutGuides && <g fill="none" stroke="#71889b" strokeDasharray={`${3 / fitScale} ${3 / fitScale}`} strokeWidth={.6 / fitScale}>{plan.pages.map(page => <rect key={page.label} x={page.x} y={page.y} width={page.width} height={page.height} />)}</g>}
+              <rect className="preview-finished-edge" {...plan.canvas} fill="none" stroke="#b91c2b" strokeWidth={1.7 / fitScale} />
+            </> : <>
+              <g className="preview-panel-gaps" fill="#f8f8f8">{plan.gaps.map((rect, index) => <rect key={index} {...rect} />)}</g>
+              {!g.framed && <g className="preview-page-divisions" fill="none">{[...plan.columns.slice(1).map(column => <path key={`c-${column.label}`} d={`M${column.start} 0V${g.height}`} />), ...plan.rows.slice(1).map(row => <path key={`r-${row.label}`} d={`M0 ${row.start}H${g.width}`} />)].map(line => <g key={line.key}><g stroke="#fff" strokeOpacity=".7" strokeWidth={1.7 / fitScale}>{line}</g><g stroke="#27313a" strokeOpacity=".5" strokeWidth={.55 / fitScale}>{line}</g></g>)}</g>}
+              <rect {...plan.canvas} fill="none" stroke="#222" strokeOpacity=".35" strokeWidth={.7 / fitScale} />
+            </>}
+            <g className="preview-axis-labels" fill="#46545e" fontFamily="Arial, sans-serif" fontSize={11 / fitScale} textAnchor="middle">
+              {plan.columns.map(column => <text key={column.label} x={column.center} y={bounds.y - 9 / fitScale}>{column.label}</text>)}
+              {plan.rows.map(row => <text key={row.label} x={bounds.x - 14 / fitScale} y={row.center} dominantBaseline="middle">{row.label}</text>)}
+            </g>
+          </svg>
+        </div>
+      </div>}
+    </div>
+    {!empty && !g.error && sheets && <ul className="preview-legend" aria-label="Sheet layout legend"><li><i className="legend-sheet" />Sheet</li><li><i className="legend-image" />Image area</li><li><i className="legend-overlap" />Overlap</li><li><i className="legend-edge" />Finished poster edge</li></ul>}
     <div className="preview-summary"><span>{empty ? 'Your poster preview' : `${g.columns} × ${g.rows} sheets`}</span><span>{!empty && !g.error && sizeText(g, settings.unit)}</span></div></div>
-    <p className="print-hint">Print at Actual Size / 100%. Turn off Fit to page.</p>
+    {!empty && !g.error && <p className="preview-explanation">{sheets ? 'Assembly map: sheets are shown in their joining positions. Trim or cover printer margins; hatched areas repeat on adjacent sheets.' : g.framed ? 'Finished panel arrangement. The visible gaps are intentional mounting spaces.' : 'Finished poster with page divisions. Printer margins are removed during assembly; the lines are not blank gaps.'}</p>}
+    <p className="print-hint">Print at Actual Size / 100%. Turn off Fit to page. Preview zoom does not change the PDF.</p>
+    {zoom > 100 && !empty && <p className="print-hint">Scroll inside the preview to inspect the enlarged poster. Click the percentage to fit it again.</p>}
     {g.framed && <p className="print-hint">Framed Grid: mount trimmed panels with {g.gap} mm gaps. Finished dimensions include those gaps; image strips in the gaps are not printed.</p>}
     {ppi > 0 && <p className="print-hint">Estimated resolution: {Math.round(ppi)} PPI · Source quality and viewing distance also matter.{ppi < 100 && ' This image may look soft at this size.'}</p>}
   </div>;
