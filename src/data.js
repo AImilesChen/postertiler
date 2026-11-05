@@ -75,3 +75,4 @@ export const stateSpecs = [
 ].map(([id,message,tone,step])=>({id,message,tone,step,stage:['permission','cloud-queued','cloud-failed','signed-out','credits-empty','refund-pending'].includes(id)?'V2':'V1'}));
 
 export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone'].includes(route.id));
+export const appRouteSpecs = [...routeSpecs, { id: 'account', path: '/account', stage: 'Auth', title: 'Your account', kind: 'account', private: true }];

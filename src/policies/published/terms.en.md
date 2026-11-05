@@ -1,6 +1,6 @@
 # Terms of Use
 
-Effective date: 4 November 2026
+Effective date: 5 November 2026
 
 ## The service and operator
 
@@ -9,6 +9,10 @@ PosterTiler is operated by **mileschen**, an individual based in **Mainland Chin
 PosterTiler provides browser-based image tiling, poster-size calculation, image-to-PDF merging, PDF page tiling, life-size scaling and halftone effects. You download the files and print, cut and assemble the sheets yourself. We do not supply a physical printed poster.
 
 The current local tools and ordinary poster PDF exports are free, have no watermark and require no account. Any future paid capability will be clearly identified and priced before purchase. Ordinary local poster exports will remain free.
+
+## Optional sign-in
+
+Google sign-in is optional. Use an account you are authorized to use and protect access to it. Signing in provides a basic profile and a browser session; it does not purchase processing credits, create a paid order or upload your files. This release does not keep a permanent account database. You can sign out on the Account page; other browsers have their own sessions. All current free tools remain available without sign-in.
 
 ## Your content and permissions
 

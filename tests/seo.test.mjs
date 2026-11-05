@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
-import { routeSpecs } from '../src/data.js';
+import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
 test('20 released routes have unique titles, descriptions, canonical and real prerendered content', async () => {
@@ -16,7 +16,7 @@ test('20 released routes have unique titles, descriptions, canonical and real pr
     const schema = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]); assert.ok(schema['@type']);
     for (const match of html.matchAll(/href="(\/[^"#?]*)(?:[?#][^"]*)?"/g)) {
       const target = match[1]; if (target.startsWith('/assets/')) { await access('dist' + target); continue; }
-      assert.ok(routeSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
+      assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
   assert.equal(titles.size, 20); assert.equal(descriptions.size, 20);

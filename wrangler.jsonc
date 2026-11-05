@@ -1,15 +1,23 @@
 {
   "name": "postertiler",
+  "main": "server/worker.mjs",
   "compatibility_date": "2026-11-04",
   "workers_dev": false,
   "preview_urls": false,
+  "dev": { "ip": "127.0.0.1", "port": 4181, "host": "127.0.0.1:4181" },
   "routes": [
     { "pattern": "postertiler.com", "custom_domain": true }
   ],
   "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/account", "/account/*", "/account.html"],
     "directory": "./dist",
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
+  },
+  "vars": {
+    "AUTH_ORIGIN": "https://postertiler.com",
+    "GOOGLE_CLIENT_ID": "125964364837-is10t52c9eqj7vo0momtk0l99a497jp2.apps.googleusercontent.com"
   },
   "observability": {
     "enabled": false

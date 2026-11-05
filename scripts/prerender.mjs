@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { loadEnv } from 'vite';
-import { routeSpecs, guides } from '../src/data.js';
+import { routeSpecs, appRouteSpecs, guides } from '../src/data.js';
 import { render } from '../.ssr/entry-server.js';
 const env = { ...loadEnv('production', process.cwd(), ''), ...process.env };
 const origin = 'https://postertiler.com';
@@ -25,12 +25,12 @@ const descriptions = {
   cookies: 'Understand optional analytics and local cookie preferences in PosterTiler. Rejecting analytics does not affect free PDF export.',
 };
 const manifest = [];
-for (const route of [...routeSpecs, { id: '404', path: '/404', title: 'Page not found', kind: '404' }]) {
+for (const route of [...appRouteSpecs, { id: '404', path: '/404', title: 'Page not found', kind: '404' }]) {
   const guide = guides.find(g => route.path === `/guides/${g.slug}`);
   const title = route.id === 'home' ? 'Free Block Poster Maker – Print Large Posters | PosterTiler' : `${route.title} | PosterTiler`;
   const description = descriptions[route.id] || guide?.intro || 'Return to the PosterTiler poster maker and printing guides.';
   const canonical = origin + (route.path === '/' ? '/' : route.path);
-  const indexable = indexing && route.id !== '404';
+  const indexable = indexing && route.id !== '404' && !route.private;
   const schema = route.id === 'home' ? { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'PosterTiler', url: canonical, applicationCategory: 'DesignApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } } :
     guide ? { '@context': 'https://schema.org', '@type': 'Article', headline: guide.title, description, mainEntityOfPage: canonical } :
     { '@context': 'https://schema.org', '@type': 'WebPage', name: route.title, description, url: canonical };
@@ -47,10 +47,10 @@ for (const route of [...routeSpecs, { id: '404', path: '/404', title: 'Page not 
 ${verification}<script type="application/ld+json">${JSON.stringify(schema).replaceAll('<', '\\u003c')}</script></head>`);
   const file = route.path === '/' ? 'dist/index.html' : `dist${route.path}.html`;
   await mkdir(file.slice(0, file.lastIndexOf('/')), { recursive: true }); await writeFile(file, html);
-  manifest.push({ path: route.path, title, description, canonical, indexable, file });
+  manifest.push({ path: route.path, title, description, canonical, indexable, private: !!route.private, file });
 }
 await writeFile('dist/robots.txt', indexing ? `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n` : 'User-agent: *\nDisallow: /\n');
-await writeFile('dist/sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${manifest.filter(r => r.path !== '/404').map(r => `<url><loc>${r.canonical}</loc></url>`).join('')}</urlset>`);
+await writeFile('dist/sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${manifest.filter(r => r.path !== '/404' && !r.private).map(r => `<url><loc>${r.canonical}</loc></url>`).join('')}</urlset>`);
 await mkdir('verification', { recursive: true });
 await writeFile('verification/routes.json', JSON.stringify(manifest, null, 2));
 // This copied design-only image is replaced with an actual app screenshot during browser verification.

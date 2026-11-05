@@ -1,6 +1,6 @@
 # Cookie and Analytics Policy
 
-Effective date: 4 November 2026
+Effective date: 5 November 2026
 
 PosterTiler is operated by **mileschen**, an individual based in **Mainland China**. Contact **[support@postertiler.com](mailto:support@postertiler.com)** with privacy questions.
 
@@ -11,6 +11,10 @@ The free tools process selected images and PDFs in your browser. Their source fi
 | Storage | Identifier | Purpose | Lifetime | Provider |
 |---|---|---|---|---|
 | localStorage | `postertiler-analytics-consent-v1` | Remember a choice made through Cookie settings | 180 days after the latest choice, or until you clear it | PosterTiler |
+| HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-oauth` | Protect a Google sign-in attempt with state, nonce and PKCE | Up to 10 minutes; removed when the callback is handled | PosterTiler |
+| HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-session` | Hold the encrypted basic profile for the sign-in you requested | Up to 7 days, or until sign-out or browser deletion | PosterTiler |
+
+The sign-in cookies are necessary for the optional login you request and are separate from analytics consent. They are created when you start or complete sign-in, not when you use an anonymous free tool. Blocking these cookies prevents sign-in; the free tools remain available. Google may use its own cookies on Google's authentication pages under its own policies. We do not load a Google sign-in tracking script on the anonymous tool pages.
 
 The current release has no configured Google Analytics 4 ID, loads no GA4 tag and sends no GA4 measurement requests. It does not use advertising or session-recording tags. Cloudflare delivers and protects the site and may use infrastructure cookies when its security features require them; these are separate from Google analytics and do not contain your selected poster files. See [Cloudflare's cookie explanation](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/).
 

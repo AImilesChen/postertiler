@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Effective date: 4 November 2026
+Effective date: 5 November 2026
 
 ## Operator and contact
 
@@ -15,6 +15,14 @@ This includes image poster tiling, multi-image PDF merging, PDF page tiling, sub
 Source files and working previews are held temporarily by the open page, rather than saved to persistent browser storage by the application. Closing or reloading the page discards the working state. Downloaded files remain wherever you save them; we cannot delete your own copies.
 
 PDF tiling reuses source page content and resources. It is not a PDF sanitization service. Remove private information and unwanted content before using or sharing a source file. Sending an attachment to support is a separate, voluntary disclosure to us.
+
+## Optional Google sign-in
+
+You can choose to sign in with Google. We request only your basic identity information: Google's account identifier, verified email address and display name. Google authenticates you under its own [Privacy Policy](https://policies.google.com/privacy). We do not receive your Google password or request access to Gmail, Drive, contacts or calendars.
+
+Our Cloudflare Worker uses this information to verify your identity and maintain your requested sign-in. The current version does not create a permanent account database or save Google access or refresh tokens. Your basic profile is held in an encrypted, HttpOnly first-party session cookie for up to 7 days, then expires. Signing out removes the session cookie on that browser. Other browsers have separate sessions. A temporary security cookie for an authentication attempt expires after 10 minutes and is removed when the callback is handled.
+
+Signing in does not upload your poster files or enable analytics. You can use all free tools without signing in. Clearing the session cookie removes the profile stored by this release on that browser; downloaded files, support correspondence, Google's own records and hosting/security records are separate. See the [Cookie Policy](/cookies). The legal basis, where applicable, is providing the sign-in you request, together with our legitimate interests in authenticating securely and preventing misuse.
 
 ## Website delivery and security
 
@@ -54,4 +62,4 @@ Rights and exceptions depend on the circumstances and applicable law. You may al
 
 This is a general-purpose printing tool. Minors should use it with the involvement and permission of a parent, guardian or responsible educator as required by applicable law. The tool does not request dates of birth or children's profiles. Contact us if a child's personal information has been included in support correspondence and needs attention.
 
-We will update this policy when the service or data practices change and show the effective date above. Future accounts, paid cloud processing and AI image services will have appropriate disclosures before they become available.
+We will update this policy when the service or data practices change and show the effective date above. Future permanent account records, payments, cloud processing and AI image services will have appropriate disclosures before they become available.

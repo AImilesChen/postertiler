@@ -157,7 +157,7 @@ try {
     }
   });
   await check('Unknown, design and later-stage URLs return HTTP 404', async () => {
-    for (const route of ['/_design', '/pricing', '/account', '/unknown-page']) { const response = await page.goto(origin + route); assert.equal(response.status(), 404); }
+    for (const route of ['/_design', '/pricing', '/unknown-page']) { const response = await page.goto(origin + route); assert.equal(response.status(), 404); }
   });
   await check('Unconfigured analytics, local file handling and rejection send no external requests', async () => {
     await goto(); await page.getByRole('button', { name: 'Cookie settings', exact: true }).click();

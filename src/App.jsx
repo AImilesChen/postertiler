@@ -3,13 +3,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ArrowLeft, ArrowRight, ArrowSquareOut, CaretDown, CaretUp, UploadSimple, Plus, Minus, CornersOut, X, List, CheckCircle, WarningCircle, ImageSquare, ArrowCounterClockwise, LockSimple } from '@phosphor-icons/react';
 import { DEFAULTS, geometry, sizeText, MM_PER_UNIT, rowLabel } from './geometry';
-import { samples, imagePath, guides, routeSpecs, stateSpecs } from './data';
+import { samples, imagePath, guides, routeSpecs, appRouteSpecs, stateSpecs } from './data';
 import { makePoster, saveBlob, calibration, assembly, loadImage } from './export';
 import homepageCopy from './homepage-copy.json';
 import Editor from './Editor';
 import ImageToPdf from './ImageToPdf';
 import PdfPoster from './PdfPoster';
 import CreativePoster from './CreativePoster';
+import Account from './Account';
 import { ToolsIndex, ComparePage } from './Tools';
 import Preview from './Preview';
 import { guideHelp } from './guide-help';
@@ -17,7 +18,7 @@ import { B, Field, NumberInput, Alert } from './ui';
 import { ANALYTICS_ENABLED, applyConsent, readConsent } from './analytics';
 const block = id => homepageCopy.blocks.find(b=>b.id===id)?.copy || {};
 const ip = { size:18, weight:'regular', 'aria-hidden':true };
-function Nav(){const [open,setOpen]=useState(false),[tools,setTools]=useState(false);return <header className="site-header"><div className="nav-inner"><a className="brand" href="/" aria-label="PosterTiler home"><img src="/assets/brand/postertiler-wordmark.png?v=1.1" alt="PosterTiler"/></a><button className="mobile-menu icon-button" aria-expanded={open} aria-label={open?'Close navigation':'Open navigation'} onClick={()=>setOpen(!open)}>{open?<X {...ip}/>:<List {...ip}/>}</button><nav className={open?'open':''} aria-label="Main navigation"><a href="/#poster-editor">Make a Poster</a><a href="/gallery">Gallery</a><div className="tools-menu" onKeyDown={e=>{if(e.key==='Escape')setTools(false);}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setTools(false);}}><button aria-expanded={tools} onClick={()=>setTools(!tools)}>Tools</button>{tools&&<div className="menu-popover"><a href="/tools">All Tools</a><a href="/tools/poster-size-calculator">Poster Size Calculator</a><a href="/tools/image-to-pdf">Image to PDF</a><a href="/tools/pdf-poster-printer">PDF Poster Printer</a><a href="/tools/life-size-poster-maker">Life Size Poster Maker</a><a href="/tools/halftone-poster-maker">Halftone Poster Maker</a></div>}</div><a href="/guides">Printing Guides</a></nav></div></header>;}
+function Nav(){const [open,setOpen]=useState(false),[tools,setTools]=useState(false);return <header className="site-header"><div className="nav-inner"><a className="brand" href="/" aria-label="PosterTiler home"><img src="/assets/brand/postertiler-wordmark.png?v=1.1" alt="PosterTiler"/></a><button className="mobile-menu icon-button" aria-expanded={open} aria-label={open?'Close navigation':'Open navigation'} onClick={()=>setOpen(!open)}>{open?<X {...ip}/>:<List {...ip}/>}</button><nav className={open?'open':''} aria-label="Main navigation"><a href="/#poster-editor">Make a Poster</a><a href="/gallery">Gallery</a><div className="tools-menu" onKeyDown={e=>{if(e.key==='Escape')setTools(false);}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setTools(false);}}><button aria-expanded={tools} onClick={()=>setTools(!tools)}>Tools</button>{tools&&<div className="menu-popover"><a href="/tools">All Tools</a><a href="/tools/poster-size-calculator">Poster Size Calculator</a><a href="/tools/image-to-pdf">Image to PDF</a><a href="/tools/pdf-poster-printer">PDF Poster Printer</a><a href="/tools/life-size-poster-maker">Life Size Poster Maker</a><a href="/tools/halftone-poster-maker">Halftone Poster Maker</a></div>}</div><a href="/guides">Printing Guides</a><a href="/account" className="account-nav">Account</a></nav></div></header>;}
 function CookieChoice({onClose}) {
  const choose=choice=>{applyConsent(choice);onClose();};
  return <div className="modal-scrim"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="cookie-title"><button className="dialog-close" data-dismiss aria-label="Close cookie settings" onClick={onClose}><X {...ip}/></button><h2 id="cookie-title">Your analytics choice</h2><p>{block('cookie-choice').body}</p><p className="muted">{block('cookie-choice').helper}</p>{!ANALYTICS_ENABLED&&<p>Analytics is not enabled for this release. The free poster tool works without it.</p>}<p className="micro">Current choice: {readConsent()||'not selected'}. A saved choice expires after 180 days.</p><div className="button-row"><B secondary onClick={()=>choose('rejected')}>Reject analytics</B><B secondary disabled={!ANALYTICS_ENABLED} onClick={()=>choose('accepted')}>Accept analytics</B></div><a href="/cookies">Cookie details</a></section></div>;
@@ -33,6 +34,7 @@ function Markdown({text}){return <ReactMarkdown remarkPlugins={[remarkGfm]} comp
 function Policy({route}){return <main className="policy-layout"><PageIntro eyebrow="POSTERTILER" title={route.title}/><article className="prose"><Markdown text={policyRaw[`./policies/published/${route.id}.en.md`]||'## Review required\nFinal product facts are required before publication.'}/></article></main>;}
 function GuideDirectory(){const [search,setSearch]=useState('');const filtered=guides.filter(g=>(g.title+' '+g.category).toLowerCase().includes(search.toLowerCase()));return <><Field label="Find a printing guide"><input type="search" placeholder="Search paper, scale or assembly" value={search} onChange={e=>setSearch(e.target.value)}/></Field><div className="guide-list">{filtered.map((g,i)=><a key={g.slug} href={'/guides/'+g.slug}><span>0{i+1}</span><div><small>{g.category}</small><h2>{g.title}</h2><p>{g.intro}</p></div><ArrowRight size={22}/></a>)}{!filtered.length&&<Alert>No guides match that search. Try paper, scale or assembly.</Alert>}</div></>;}
 function OtherPage({route}) {
+ if(route.kind==='account')return <Account/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;
  if(route.kind==='image-pdf')return <ImageToPdf/>;
  if(route.kind==='pdf-poster')return <PdfPoster/>;
@@ -47,7 +49,7 @@ function useDialogKeyboard(){useEffect(()=>{let active=null,previous=null;const 
 export function App({pathname}={}) {
  useDialogKeyboard();
  const path=(pathname||(typeof location==='undefined'?'/':location.pathname)).replace(/\/$/,'')||'/';
- const route=routeSpecs.find(r=>r.path===path);
+ const route=appRouteSpecs.find(r=>r.path===path);
  useEffect(()=>{document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;},[path]);
  return <><Nav/><div id="main-content" tabIndex={-1}>{path==='/'?<Home/>:route?<OtherPage route={route}/>:<main><PageIntro eyebrow="404" title="This page is not here">Return to the poster maker or printing guides.</PageIntro><a className="button" href="/">Make a Poster</a></main>}</div><Footer/></>;
 }
