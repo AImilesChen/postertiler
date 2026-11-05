@@ -92,6 +92,7 @@ test('both prices must match actual Stripe test amount, currency and one-time se
     const f = fixture(t); const result = await f.checkout(sku); assert.equal(result.response.status,200);
     const call=f.calls.find(c=>c.params); assert.deepEqual(call.params.line_items,[{price:TEST_CATALOG[sku].price,quantity:1}]);
     assert.equal(call.params.mode,'payment'); assert.equal(call.params.customer_email,undefined); assert.equal(call.params.allow_promotion_codes,false);
+    assert.equal(call.params.payment_method_types,undefined);assert.deepEqual(call.params.allowed_payment_method_types,['card']);
     assert.match(call.params.success_url,/^https:\/\/postertiler.com\/account\?billing_order=/);
   }
   const plan=TEST_CATALOG.single;

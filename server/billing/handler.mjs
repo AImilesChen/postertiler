@@ -122,7 +122,7 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (!order.session_id && Date.now() - order.created_at > 23 * 3600000) return json({ error: 'request_expired' }, 409);
       operation = 'stripe_checkout';
       const session = order.session_id ? await stripe.checkout.sessions.retrieve(order.session_id) : await stripe.checkout.sessions.create({
-        mode: 'payment', line_items: [{ price: order.price_id, quantity: 1 }], payment_method_types: ['card'],
+        mode: 'payment', line_items: [{ price: order.price_id, quantity: 1 }], allowed_payment_method_types: ['card'],
         client_reference_id: order.user_key, metadata: { order_id: order.id, sku: order.sku, price_version: order.price_version },
         payment_intent_data: { metadata: { order_id: order.id } },
         success_url: `${origin(env)}/account?billing_order=${order.id}`, cancel_url: `${origin(env)}/account?billing_canceled=1`,
