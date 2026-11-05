@@ -39,7 +39,9 @@ The Worker handles `/api/*` and private account responses; ordinary tool assets 
 
 For local Worker development, copy `.dev.vars.example` to `.dev.vars` and use separate local credentials, or leave sign-in unavailable. Run `npx wrangler dev --port 4181`; the example local origin is `http://127.0.0.1:4181`. Unit tests use generated signing keys and a fixture provider; `node tests/browser-auth.mjs` tests UI states with explicitly mocked responses, not a real Google account.
 
-The public domain is `postertiler.com`. GA4, Search Console and Bing verification configuration is intentionally blank until post-launch setup. `.env.example` contains the supported public variables.
+The public domain is `postertiler.com`. `src/tracking-config.json` contains public GA4, Clarity, Ahrefs Web Analytics, Shipsolo/Plausible and Bing verification identifiers; `build:release` applies them. These are browser tag identifiers, not server API credentials. A normal local build keeps optional analytics unconfigured. `.env.example` lists available overrides.
+
+All four visitor providers require explicit analytics acceptance. Account/API/unknown paths and nonproduction hosts are excluded. Clarity masks file editors, previews and account navigation. Tags that inspect their own URLs/referrers are excluded on parameterized or unsafe contexts; GA4 uses explicit sanitized page fields. Withdrawal clears controlled analytics cookies and reloads the page. The expanded provider list uses a new consent version, so a former GA4-only acceptance is not reused. GSC uses existing DNS ownership verification; Bing uses the public meta verification tag.
 
 ## Limits and evidence
 

@@ -1,5 +1,8 @@
 import { spawnSync } from 'node:child_process';
-const env = { ...process.env, VITE_PUBLIC_INDEXING: 'true' };
+import { readFileSync } from 'node:fs';
+// These are public browser tag identifiers, not API credentials.
+const publicTracking = JSON.parse(readFileSync(new URL('../src/tracking-config.json', import.meta.url), 'utf8'));
+const env = { ...publicTracking, ...process.env, VITE_PUBLIC_INDEXING: 'true' };
 for (const args of [
   ['scripts/check-release.mjs'], ['scripts/prepare-pdfjs.mjs'],
   ['node_modules/vite/bin/vite.js', 'build'],

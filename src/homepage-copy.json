@@ -307,7 +307,7 @@
       "stage": "V1_RECOMMENDED_BEHAVIOR",
       "copy": {
         "title": "Your analytics choice",
-        "body": "May we use optional analytics to understand site visits and improve the poster tool? Your selected image is not sent to analytics.",
+        "body": "May we use Google Analytics, Microsoft Clarity, Ahrefs and Shipsolo/Plausible to understand visits and improve the site? Clarity records masked page interactions. Your poster files and account details are excluded.",
         "helper": "You can use the free tool either way. Change your choice in Cookie settings."
       },
       "actions": [

@@ -32,11 +32,19 @@ The poster application does not operate an additional visitor database, image ar
 
 ## Browser storage and analytics
 
-Google Analytics 4 is not configured or enabled in this release. No GA4 tag, measurement request or Google analytics cookie is loaded. Google Search Console and Bing Webmaster Tools are planned for reviewing public search visibility after launch; they do not receive your private poster files.
+We offer optional visitor analytics through **Google Analytics 4**, **Microsoft Clarity**, **Ahrefs Web Analytics**, and **Shipsolo's hosted Plausible service** at `plausible.shipsolo.io`. We load these services only after you accept analytics. Before a choice, after refusal, and on the account page, the application does not load their tags or send their visitor measurements. Refusing analytics does not affect the free tools or sign-in.
 
-If you make a choice in Cookie settings, the application saves that preference in localStorage for 180 days. You can remove it through your browser or change it in the footer. The free tools work without analytics permission. See the [Cookie Policy](/cookies).
+GA4 measures visits and allowlisted actions such as starting a poster, completing settings, preparing a PDF, cancellation and errors. Events use public page paths and limited settings such as paper type and sheet count. PDF preparation is not evidence of saving, printing or successfully assembling it. We do not set an analytics user ID or send your Google profile. Google advertising storage, advertising personalization and Google signals are disabled in our tag configuration. See [Google's privacy information](https://policies.google.com/privacy).
 
-Before enabling visitor analytics, we will update the relevant disclosures and settings. The existing analytics controls require your acceptance before any analytics code loads.
+Clarity provides masked interaction recordings and heatmaps to help understand navigation and layout problems. The file editors, previews and account navigation are explicitly masked, including their images and displayed file details. We do not identify you to Clarity. Its advertising-storage consent is denied. See [Microsoft's privacy statement](https://privacy.microsoft.com/privacystatement) and [Clarity's masking explanation](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-masking).
+
+Ahrefs and Shipsolo/Plausible provide aggregated traffic and event reports. Our integration does not use their services to store poster files or persistent application accounts. They receive technical request information, public page locations and permitted interaction events; the providers process network metadata such as IP address and browser information under their own practices. See [Ahrefs Web Analytics data information](https://help.ahrefs.com/en/articles/10247870-about-ahrefs-web-analytics). Shipsolo operates the supplied Plausible endpoint; this is distinct from Plausible's own cloud hosting.
+
+Tags that independently read page addresses and referrers are omitted on parameterized addresses and contexts we cannot safely classify. All visitor tags are excluded from account, API and unknown/private paths. Tool events do not include images, PDFs, original file names, Google identity information, support messages, private object URLs or download tokens. The Clarity masking and these exclusions are separate from your ability to use the local tools.
+
+If you make a choice in Cookie settings, the application saves that preference in localStorage for 180 days. You can remove it through your browser or change it in the footer. An older GA4-only choice does not authorize the newly added providers. Withdrawal removes analytics cookies under our control and reloads the page to unload third-party code; it does not erase information already held by a provider. Provider-side report and recording retention follows the relevant account settings and service practices; contact us about deletion requests. See the [Cookie Policy](/cookies).
+
+Google Search Console and Bing Webmaster Tools are used for public-page verification, Sitemap submission and search visibility reports. Their verification records do not install visitor recordings or upload your poster files. A verified site or accepted Sitemap does not guarantee search indexing or rankings.
 
 ## Support email
 
@@ -48,9 +56,9 @@ Support correspondence has no automatic expiry in the mailbox. It remains until 
 
 ## Purposes, locations and legal bases
 
-We use information to deliver and secure the website, answer messages you initiate and comply with applicable obligations. Where EEA or UK data-protection rules apply, the relevant grounds are our legitimate interests in operating and protecting the website and responding to requested support, performance of a requested service where applicable, and compliance with legal obligations. Optional analytics, if introduced, will require consent under the approach described above.
+We use information to deliver and secure the website, answer messages you initiate and comply with applicable obligations. Where EEA or UK data-protection rules apply, the relevant grounds are our legitimate interests in operating and protecting the website and responding to requested support, performance of a requested service where applicable, and compliance with legal obligations. The optional visitor analytics described above uses your consent, which you can withdraw.
 
-The operator is in Mainland China and Cloudflare operates internationally. Website and support information may be processed outside your country. Cloudflare describes its processing and relevant transfer safeguards in its [Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/). This does not change the local processing of files you select in the free tools.
+The operator is in Mainland China and Cloudflare and the analytics providers operate internationally. Website, optional analytics and support information may be processed outside your country. Cloudflare describes its processing and relevant transfer safeguards in its [Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/); the analytics providers describe their practices in the linked information. This does not change the local processing of files you select in the free tools.
 
 ## Your rights and choices
 

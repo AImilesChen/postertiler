@@ -70,7 +70,7 @@ export default function CreativePoster({ kind }) {
   const auxiliary = async type => { try { await (type === 'assembly' ? assembly(settings) : calibration(settings)); } catch { setError('The guide could not be prepared. Check your settings.'); } };
   const shown = result?.url || (life ? null : original);
   return <main><div className="page-intro"><small>FREE LOCAL TOOL</small><h1>{life ? 'Life Size Poster Maker' : 'Halftone Poster Maker'}</h1><p>{life ? 'Select the subject bounds, set its physical height and print it over ordinary sheets.' : 'Make dot screens, black-and-white dithering or a CMYK-style screen, then download a tiled poster PDF.'}</p></div>
-    <div className="document-editor creative-editor"><section className="document-controls"><fieldset disabled={busy}>
+    <div className="document-editor creative-editor" data-clarity-mask="true"><section className="document-controls"><fieldset disabled={busy}>
       <h2>01 Choose an image</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!busy) choose([...e.dataTransfer.files]); }}><UploadSimple size={28} /><p>JPG, PNG or WebP · processed in your browser</p><B secondary onClick={() => input.current.click()}>Choose Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) choose([...e.target.files]); e.target.value = ''; }} /></div><button className="underlined" onClick={example}>Try an example</button>
       {file && <p className="file-label">{file.name} · {pixels.width} × {pixels.height} px</p>}<small>Up to 32 MB, 24 megapixels and 100 output sheets. Capacity depends on your device.</small>
       <h2>02 {life ? 'Select and measure' : 'Choose an effect'}</h2>

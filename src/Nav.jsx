@@ -52,7 +52,7 @@ export default function Nav() {
           {panel === 'tools' && <div className="menu-popover">{tools.map(([label,path]) => <a key={path} href={path}>{label}</a>)}</div>}
         </div><a href="/guides">Printing Guides</a>
       </div>
-      <div className="nav-auth">
+      <div className="nav-auth" data-clarity-mask="true">
         {!auth.user ? <a ref={signIn} className="nav-sign-in" href="/account"><UserCircle size={19} aria-hidden="true"/><span>Sign in</span></a> :
           <div className="nav-user-menu" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPanel(current => current === 'account' ? null : current); }}>
             <button ref={accountButton} className="nav-user-trigger" aria-label={`Account menu for ${displayName}`} aria-expanded={panel === 'account'} aria-controls="account-menu" aria-haspopup="menu"

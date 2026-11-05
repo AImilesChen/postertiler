@@ -85,7 +85,7 @@ export default function PdfPoster() {
     } catch { setError('This guide could not be prepared. Check the settings and try again.'); }
   };
   return <main><div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>PDF Poster Printer</h1><p>Split a PDF over ordinary sheets at its intended physical size. Keep existing text and vector paths in the exported PDF.</p></div>
-    <div className="document-tool"><section className="document-controls" aria-label="PDF poster settings"><fieldset disabled={busy}>
+    <div className="document-tool" data-clarity-mask="true"><section className="document-controls" aria-label="PDF poster settings"><fieldset disabled={busy}>
       <h2>01 Choose a PDF</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={28} /><p>Drop a PDF here</p><B onClick={() => input.current.click()}>Choose PDF</B><input ref={input} hidden type="file" accept="application/pdf,.pdf" onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>Local processing. Up to 64 MB / 100 source pages / 100 output sheets. Source images above 24 MP, encrypted PDFs and optional layers are not supported.</small>
       {file && <p className="file-label">{file.name} · {info.pages.length} source page{info.pages.length === 1 ? '' : 's'}</p>}
       <Field label="Source pages"><input value={range} disabled={!info} onChange={e => { invalidate(); setRange(e.target.value); }} placeholder="1, 3-5" /></Field><small>Use comma-separated pages and ascending ranges. Repeated page numbers are included once.</small>

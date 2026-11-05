@@ -85,7 +85,7 @@ export default function ImageToPdf() {
     } catch (e) { setStatus(e.message === 'canceled' ? 'canceled' : 'failed'); if (e.message !== 'canceled') setError(e.message); trackEvent(e.message === 'canceled' ? 'pdf_canceled' : 'pdf_failed', { tool: 'image_pdf' }); }
   };
   return <main><div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>Image to PDF</h1><p>Combine multiple images into one PDF. Arrange the pages, rotate each image and choose your paper.</p></div>
-    <div className="document-tool"><section className="document-controls" aria-label="Image to PDF settings"><fieldset disabled={busy}>
+    <div className="document-tool" data-clarity-mask="true"><section className="document-controls" aria-label="Image to PDF settings"><fieldset disabled={busy}>
       <h2>01 Choose images</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (e.dataTransfer.files.length) read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={28} /><p>Drop JPG, PNG or WebP images here</p><B onClick={() => input.current.click()}>Choose Images</B><input ref={input} hidden type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => { read(Array.from(e.target.files)); e.target.value = ''; }} /></div>
       <small>Up to 20 images, 64 MB and 48 MP combined. Each image: up to 32 MB / 24 MP / 12,000 px per side. Device capacity can be lower.</small>
       <ol className="image-order-list" aria-label="PDF image order">{items.map((item, index) => <li key={item.id} draggable onDragStart={e => e.dataTransfer.setData('text/plain', item.id)} onDragOver={e => e.preventDefault()} onDrop={e => {
