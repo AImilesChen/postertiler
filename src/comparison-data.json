@@ -1,0 +1,57 @@
+{
+  "date": "4 November 2026",
+  "method": "PosterTiler is checked using its local production build. Source-page statements are recorded separately from browser and exported-file observations. The image fixture is our generated 800 \u00d7 1000 pixel grid.jpg; the PDF fixture contains generated text and vector shapes.",
+  "rows": [
+    {
+      "topic": "Free local poster export",
+      "ours": "Available, without an account or watermark.",
+      "ourEvidence": "Verified local browser export.",
+      "theirs": "Advertises free local processing, no account and no watermark.",
+      "theirEvidence": "Official homepage, checked 4 November 2026.",
+      "sourceUrl": "https://rasterbator.io/"
+    },
+    {
+      "topic": "Output PDF checks",
+      "ours": "A4/Letter page boxes, exact canvas clipping, retained vector objects and embedded fonts checked.",
+      "ourEvidence": "Generated-file checks and independent PDF renderer comparison.",
+      "theirs": "An output PDF was not obtained in this browser test run.",
+      "theirEvidence": "Export remains unverified; automated navigation and file-loading attempts did not complete."
+    },
+    {
+      "topic": "Image and PDF workflows",
+      "ours": "Image tiling, multi-image PDF and vector PDF tiling.",
+      "ourEvidence": "V1.1 local implementation and output checks.",
+      "theirs": "The poster editor accepts images or a PDF.",
+      "theirEvidence": "Observed file-picker controls; individual formats not exhaustively tested.",
+      "sourceUrl": "https://rasterbator.io/"
+    },
+    {
+      "topic": "Published local limits",
+      "ours": "Images: 32 MB / 24 MP / 100 poster sheets. PDF: 64 MB / 100 source pages / 100 output sheets.",
+      "ourEvidence": "Application safety guards; device capacity can be lower.",
+      "theirs": "Lists 100 MiB, 100 MP and up to 2,500 poster pages.",
+      "theirEvidence": "Homepage claims; maxima not independently tested.",
+      "sourceUrl": "https://rasterbator.io/"
+    },
+    {
+      "topic": "Cloud processing",
+      "ours": "Planned for a later release; no paid checkout is enabled.",
+      "ourEvidence": "Current release scope.",
+      "theirs": "Lists USD 1.99 for one credit and USD 5.99 for five, before tax.",
+      "theirEvidence": "Official displayed prices; no payment or cloud test.",
+      "sourceUrl": "https://rasterbator.io/"
+    }
+  ],
+  "observations": [
+    "File processing and screenshot/PDF checks describe the tested local setup, not a promise about every browser or printer.",
+    "Rasterbator.io browser navigation repeatedly timed out in this environment. Its published capabilities are kept separate from our output-file checks; this run does not establish a head-to-head print result.",
+    "The PosterTiler renderer check compares source PDF pages with virtually reassembled output sheets. It does not measure paper emerging from a real printer."
+  ],
+  "sources": [
+    {
+      "title": "Rasterbator.io official homepage",
+      "url": "https://rasterbator.io/",
+      "scope": "Stated free workflow, input controls, limits and cloud prices."
+    }
+  ]
+}

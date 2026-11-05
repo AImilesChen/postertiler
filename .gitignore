@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.ssr/
+.wrangler/
+verification/
+public/pdfjs/
+.env
+.env.local
+.env.*.local
+.dev.vars
+.dev.vars.*
+*.log

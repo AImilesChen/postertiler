@@ -1,0 +1,379 @@
+{
+  "version": "1.0",
+  "language": "en",
+  "route": "/",
+  "status": "DESIGN_DRAFT",
+  "release": "V1",
+  "seo": {
+    "title": "Free Block Poster Maker – Print Large Posters | PosterTiler",
+    "description": "Turn your image into a giant poster. Split it across A4 or Letter pages, download a free PDF, and assemble your poster at home.",
+    "canonicalTarget": "https://postertiler.com/",
+    "primaryIntent": "Make a printable poster from one image using multiple sheets.",
+    "primaryKeyword": "block poster maker",
+    "h1Block": "hero"
+  },
+  "blocks": [
+    {
+      "id": "navigation",
+      "stage": "V1",
+      "copy": {"brand": "PosterTiler", "mobileMenuLabel": "Open navigation", "mobileMenuCloseLabel": "Close navigation"},
+      "actions": [
+        {"label": "Make a Poster", "target": "#poster-editor"},
+        {"label": "Gallery", "target": "/gallery"},
+        {"label": "Tools", "target": "menu:available-tools"},
+        {"label": "Printing Guides", "target": "/guides"}
+      ],
+      "menuItems": [{"label": "Poster Size Calculator", "target": "/tools/poster-size-calculator"}]
+    },
+    {
+      "id": "hero",
+      "stage": "V1",
+      "headingLevel": 1,
+      "copy": {
+        "heading": "Free Block Poster Maker",
+        "subheading": "Turn one image into a large poster you can print on A4 or Letter paper and assemble at home.",
+        "trustPoints": ["Free PDF downloads", "No watermark", "No sign-up"]
+      },
+      "primaryActionRef": "editor.upload"
+    },
+    {
+      "id": "editor.upload",
+      "stage": "V1",
+      "step": "01",
+      "copy": {
+        "title": "Upload",
+        "prompt": "Drop an image here",
+        "alternative": "or choose a file from your device",
+        "formats": "JPG, PNG or WebP. You can also paste an image.",
+        "localProcessing": "Your image stays in your browser while you make your poster.",
+        "privacyLink": "Privacy details",
+        "examplesPrompt": "Or try an example",
+        "selectedImage": "Image selected",
+        "imageDimensions": "{{pixelWidth}} × {{pixelHeight}} px",
+        "imageRights": "Use an image you own or have permission to print."
+      },
+      "actions": [
+        {"label": "Upload Image", "target": "action:choose-image"},
+        {"label": "Change image", "target": "action:replace-image", "when": "image-selected"},
+        {"label": "Privacy details", "target": "/privacy"}
+      ]
+    },
+    {
+      "id": "editor.paper",
+      "stage": "V1",
+      "step": "02",
+      "copy": {
+        "title": "Paper Settings",
+        "intro": "Choose the paper you will print on.",
+        "paperSizeLabel": "Paper size",
+        "paperOptions": ["A4", "US Letter"],
+        "orientationLabel": "Orientation",
+        "orientationOptions": ["Automatic", "Portrait", "Landscape"],
+        "unitsLabel": "Units",
+        "unitOptions": ["mm", "cm", "in"],
+        "marginsLabel": "Printer margins",
+        "marginSides": ["Top", "Right", "Bottom", "Left"],
+        "marginHelp": "Leave space for the edges your printer cannot print. Check your printer settings if you are unsure."
+      },
+      "actions": [
+        {"label": "Back", "target": "step:upload"},
+        {"label": "Continue", "target": "step:poster-size"}
+      ]
+    },
+    {
+      "id": "editor.size",
+      "stage": "V1",
+      "step": "03",
+      "copy": {
+        "title": "Poster Size",
+        "intro": "Choose a sheet layout or enter the finished dimensions.",
+        "sheetsMode": "Size by Sheets",
+        "exactMode": "Exact Poster Size",
+        "columnsLabel": "Sheets across",
+        "rowsLabel": "Sheets down",
+        "widthLabel": "Width",
+        "heightLabel": "Height",
+        "lockLabel": "Lock aspect ratio",
+        "fitModeLabel": "Image placement",
+        "fitOption": "Fit",
+        "fitHelp": "Keep the whole image. Blank space may remain inside the poster.",
+        "fillOption": "Fill",
+        "fillHelp": "Fill the poster. Image edges may be cropped in the preview.",
+        "finishedSizeLabel": "Finished size",
+        "finishedSizeValue": "{{width}} × {{height}} {{unit}}",
+        "canvasHelp": "Finished size includes any blank space inside the poster, but not the printer margins.",
+        "sheetCountLabel": "Poster sheets",
+        "sheetCountValue": "{{sheetCount}}",
+        "cropReminder": "Check the preview before you continue."
+      },
+      "actions": [
+        {"label": "Back", "target": "step:paper-settings"},
+        {"label": "Continue", "target": "step:print-options"}
+      ]
+    },
+    {
+      "id": "editor.print",
+      "stage": "V1",
+      "step": "04",
+      "copy": {
+        "title": "Print Options",
+        "intro": "Set up the guides you will use to trim and join the sheets.",
+        "overlapLabel": "Overlap",
+        "overlapHelp": "Repeat part of the image on neighboring sheets to help line them up.",
+        "zeroOverlapHelp": "With no overlap, trim the edges and join the sheets edge to edge.",
+        "cutGuidesLabel": "Cut guides",
+        "pageLabelsLabel": "Page labels",
+        "pageOrderLabel": "Page order",
+        "pageOrderDefault": "Left to right, top to bottom",
+        "pageLabelsHelp": "Letters mark rows and numbers mark columns, such as A1, A2 and B1.",
+        "assemblyMapLabel": "Assembly map",
+        "scaleReminder": "Print at Actual Size / 100%. Turn off Fit to page."
+      },
+      "actions": [
+        {"label": "Back", "target": "step:poster-size"},
+        {"label": "Continue", "target": "step:download"}
+      ]
+    },
+    {
+      "id": "editor.download",
+      "stage": "V1",
+      "step": "05",
+      "copy": {
+        "title": "Download PDF",
+        "intro": "Review your poster, then download the pages to print.",
+        "finishedSizeLabel": "Finished size",
+        "finishedSizeValue": "{{width}} × {{height}} {{unit}}",
+        "paperLabel": "Paper",
+        "paperValue": "{{paperSize}} · {{orientation}}",
+        "layoutLabel": "Layout",
+        "layoutValue": "{{columns}} across × {{rows}} down",
+        "posterPagesLabel": "Poster PDF pages",
+        "posterPagesValue": "{{posterPageCount}}",
+        "overlapLabel": "Overlap",
+        "overlapValue": "{{overlap}} {{unit}}",
+        "freeNote": "Free export. No watermark. No sign-up.",
+        "printInstruction": "Choose matching paper in your printer settings. Print at Actual Size / 100% and turn off Fit to page.",
+        "calibrationHelp": "Print the calibration page and measure its scale before printing all the poster sheets.",
+        "guideNote": "Calibration and assembly downloads are separate from the poster PDF."
+      },
+      "actions": [
+        {"label": "Back", "target": "step:print-options"},
+        {"label": "Download Printable PDF", "target": "action:export-local-pdf"},
+        {"label": "Download calibration page", "target": "action:download-calibration"},
+        {"label": "Download assembly guide", "target": "action:download-assembly-guide"}
+      ]
+    },
+    {
+      "id": "preview",
+      "stage": "V1",
+      "copy": {
+        "title": "Your poster preview",
+        "empty": "Choose an image to see your poster here.",
+        "originalTab": "Original",
+        "sheetsTab": "Printed Sheets",
+        "finishedSize": "Finished size: {{width}} × {{height}} {{unit}}",
+        "sheetSummary": "{{columns}} across × {{rows}} down",
+        "ppi": "Estimated resolution: {{ppi}} PPI",
+        "overlapLegend": "Overlap area",
+        "cutLineLegend": "Cut guide",
+        "accessibleSummary": "Poster preview: {{columns}} columns by {{rows}} rows. Finished size {{width}} by {{height}} {{unit}}."
+      },
+      "actions": [
+        {"label": "Original", "target": "preview:original"},
+        {"label": "Printed Sheets", "target": "preview:printed-sheets"},
+        {"label": "Zoom in", "target": "preview:zoom-in"},
+        {"label": "Zoom out", "target": "preview:zoom-out"},
+        {"label": "Fit preview", "target": "preview:fit"},
+        {"label": "Full screen", "target": "preview:full-screen"},
+        {"label": "Exit full screen", "target": "preview:exit-full-screen"}
+      ]
+    },
+    {
+      "id": "how-it-works",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "From one image to a poster on your wall",
+        "intro": "Use your home printer to make a poster larger than a single sheet.",
+        "items": [
+          {"title": "Choose your image", "body": "Select a photo, illustration or other image you have permission to print."},
+          {"title": "Set up your poster", "body": "Choose your paper, finished size and overlap. Check the sheet layout in the preview."},
+          {"title": "Download, print and assemble", "body": "Download the PDF, print at 100%, then follow the page labels and guides to join the sheets."}
+        ]
+      }
+    },
+    {
+      "id": "gallery-featured",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "See how the sheets come together",
+        "body": "Explore example posters and start with their paper and size settings.",
+        "cardSize": "{{width}} × {{height}} {{unit}}",
+        "cardPaper": "{{sheetCount}} {{sheetNoun}} · {{paperSize}}",
+        "originalLabel": "Original image",
+        "sheetsLabel": "Sheet layout",
+        "exampleNotice": "Example poster layouts"
+      },
+      "actions": [
+        {"label": "Try This Poster", "target": "preset:apply-and-open-editor"},
+        {"label": "Browse the Gallery", "target": "/gallery"}
+      ]
+    },
+    {
+      "id": "size-calculator",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "Work out your poster size",
+        "body": "See how paper size, margins and overlap affect the finished dimensions and number of sheets. Start with measurements or a sheet layout—no image needed."
+      },
+      "actions": [{"label": "Open Poster Size Calculator", "target": "/tools/poster-size-calculator"}]
+    },
+    {
+      "id": "printing-notes",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "Check the scale before you print",
+        "body": "Match the printer's paper size to your PDF. Select Actual Size / 100% and turn off Fit to page.",
+        "calibration": "Print the calibration page first and measure the scale. If it does not match, adjust your print settings before printing the whole poster.",
+        "assembly": "Use the assembly map and page labels to place each sheet. Follow the guides to trim and align the overlapping edges."
+      },
+      "actions": [
+        {"label": "Download calibration page", "target": "action:download-calibration"},
+        {"label": "Read the printing guide", "target": "guide:actual-size"}
+      ]
+    },
+    {
+      "id": "guides-featured",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "A little help from image to wall",
+        "intro": "Follow the guides for setup, image quality and assembly.",
+        "items": [
+          {"title": "How to Make a Block Poster", "body": "Choose your image, set the size and prepare your printable pages.", "target": "guide:make-block-poster"},
+          {"title": "How to Assemble a Tiled Poster", "body": "Use the labels, trim guides and overlap to join your sheets.", "target": "guide:assemble-tiled-poster"},
+          {"title": "What Image Resolution Do I Need for a Large Poster?", "body": "Understand how image pixels and poster size affect the printed result.", "target": "guide:image-resolution"}
+        ]
+      },
+      "actions": [{"label": "Browse Printing Guides", "target": "/guides"}]
+    },
+    {
+      "id": "faq",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {
+        "heading": "Questions before you print?",
+        "items": [
+          {"question": "Is PosterTiler free?", "answer": "Yes. Basic poster PDF exports are free and will stay free. There is no watermark and no account requirement."},
+          {"question": "Do I need an account?", "answer": "No. You can select an image, set up your poster and download an ordinary poster PDF without signing up."},
+          {"question": "Are my images uploaded?", "answer": "Not in the free browser-based tool. Your selected image is processed locally. Optional website analytics are separate and are explained in our Privacy Policy.", "linkLabel": "Read the Privacy Policy", "target": "/privacy"},
+          {"question": "What paper sizes can I use?", "answer": "You can use A4 or US Letter paper in portrait or landscape orientation. Choose the same paper size in the tool and in your printer settings."},
+          {"question": "Can I choose an exact poster size?", "answer": "Yes. Enter the finished width and height, or choose how many sheets to use. Fit keeps the whole image with possible blank space; Fill fills the poster and may crop image edges."},
+          {"question": "Why does my image look blurry when enlarged?", "answer": "A larger poster spreads the same image pixels over a bigger area. Try a smaller size or a higher-resolution source image. The estimated PPI helps you judge the setup; it does not guarantee print quality."},
+          {"question": "Which print settings should I use?", "answer": "Use Actual Size / 100% and turn off Fit to page. Match the paper size to the PDF and print the calibration page first to check the scale."},
+          {"question": "How do I join the printed sheets?", "answer": "Use the assembly map and page labels to arrange the sheets. Follow the trim and overlap guides to align the image, then secure the joins. The assembly guide explains the layout."}
+        ]
+      }
+    },
+    {
+      "id": "final-action",
+      "stage": "V1",
+      "headingLevel": 2,
+      "copy": {"heading": "Make room for a bigger picture.", "body": "Choose an image and plan your poster.", "note": "Free poster PDF. No watermark. No sign-up."},
+      "actions": [
+        {"label": "Upload Image", "target": "action:focus-editor-and-choose-image", "when": "no-image-selected"},
+        {"label": "Back to your poster", "target": "action:focus-existing-editor", "when": "image-selected"}
+      ]
+    },
+    {
+      "id": "footer",
+      "stage": "V1",
+      "copy": {"brand": "PosterTiler", "tagline": "Turn one image into a poster you can print at home.", "copyright": "© {{year}} PosterTiler"},
+      "actions": [
+        {"label": "FAQ", "target": "#faq"},
+        {"label": "About", "target": "/about"},
+        {"label": "Privacy", "target": "/privacy"},
+        {"label": "Terms", "target": "/terms"},
+        {"label": "Contact", "target": "/contact"},
+        {"label": "Cookie Policy", "target": "/cookies"},
+        {"label": "Cookie settings", "target": "action:open-cookie-settings"}
+      ]
+    },
+    {
+      "id": "cookie-choice",
+      "stage": "V1_RECOMMENDED_BEHAVIOR",
+      "copy": {
+        "title": "Your analytics choice",
+        "body": "May we use optional analytics to understand site visits and improve the poster tool? Your selected image is not sent to analytics.",
+        "helper": "You can use the free tool either way. Change your choice in Cookie settings."
+      },
+      "actions": [
+        {"label": "Accept analytics", "target": "action:allow-analytics"},
+        {"label": "Reject analytics", "target": "action:reject-analytics"},
+        {"label": "Privacy details", "target": "/privacy"}
+      ]
+    }
+  ],
+  "editorStates": [
+    {"id": "image-reading", "copy": {"message": "Reading your image…"}},
+    {"id": "choose-image-first", "copy": {"message": "Choose an image to continue."}},
+    {"id": "unsupported-type", "copy": {"message": "Choose a JPG, PNG or WebP image."}},
+    {"id": "multiple-files", "copy": {"message": "Choose one image to make a poster."}},
+    {"id": "unreadable-image", "copy": {"message": "We could not read this image. Try another JPG, PNG or WebP file."}},
+    {"id": "input-memory-limit", "copy": {"message": "This image could not be opened on this device. Try a smaller file."}},
+    {"id": "verified-input-limit", "copy": {"message": "This image exceeds the supported {{limitType}} of {{limitValue}}. Choose a file within this limit."}},
+    {"id": "positive-dimensions-required", "copy": {"message": "Enter a width and height greater than zero."}},
+    {"id": "whole-sheet-count-required", "copy": {"message": "Enter a whole number of at least 1 for each sheet count."}},
+    {"id": "invalid-margins", "copy": {"message": "These margins leave no printable area. Reduce them or choose a larger paper size."}},
+    {"id": "invalid-overlap", "copy": {"message": "Enter an overlap of zero or more, smaller than the printable width and height."}},
+    {"id": "low-resolution", "copy": {"title": "This image may look soft at this size", "message": "Try a smaller poster or choose a higher-resolution image."}},
+    {"id": "exporting", "copy": {"title": "Preparing your PDF…", "progress": "Preparing page {{currentPage}} of {{totalPages}}", "cancel": "Cancel"}},
+    {"id": "export-ready", "copy": {"title": "Your PDF is ready", "message": "Print at Actual Size / 100%, then follow the assembly guide to join the sheets.", "repeatDownload": "Download again"}},
+    {"id": "export-canceled", "copy": {"message": "PDF preparation canceled. Your image and settings are still here.", "retry": "Prepare PDF again"}},
+    {"id": "export-failed", "copy": {"title": "The PDF could not be prepared", "message": "Try again. If it still fails, reduce the poster size or choose a smaller image.", "retry": "Try again", "changeImage": "Change image"}},
+    {"id": "reset-settings", "copy": {"title": "Reset print settings?", "message": "Your image will stay selected.", "confirm": "Reset settings", "cancel": "Keep settings"}},
+    {"id": "cookie-preference-saved", "copy": {"message": "Your analytics choice has been saved."}}
+  ],
+  "futureBlocks": [
+    {
+      "id": "future.cloud-processing",
+      "stage": "V2_CONDITIONAL_NOT_FOR_V1",
+      "copy": {
+        "heading": "Extra processing capacity when you need it",
+        "body": "Choose cloud processing when your device cannot complete a supported export. Review the file limits and upload details before you continue.",
+        "freeBoundary": "Ordinary local poster PDFs stay free, with no watermark.",
+        "singleName": "One cloud export",
+        "singlePrice": "$1.99",
+        "singleUnit": "One-time payment",
+        "packName": "Five cloud exports",
+        "packPrice": "$5.99",
+        "packUnit": "About $1.20 per export",
+        "paymentNote": "Prices are in USD before tax. Checkout shows applicable taxes and the total before you pay. No subscription.",
+        "uploadChoice": "Cloud processing uploads your selected image to our processing service. Review how your file is handled before you choose to upload."
+      },
+      "actions": [
+        {"label": "Review cloud export", "target": "future-action:open-cloud-quote"},
+        {"label": "Get 5 exports", "target": "future-action:review-five-export-pack"},
+        {"label": "Processing and refund details", "target": "/refunds"}
+      ]
+    }
+  ],
+  "dynamicBindings": {
+    "width,height,unit": "Shared geometry model, display-only unit formatting; no new rounding in copy.",
+    "columns,rows,sheetCount,posterPageCount": "Actual tiled output layout; separate auxiliary guide downloads from poster pages.",
+    "paperSize,orientation,overlap": "Confirmed current print settings.",
+    "pixelWidth,pixelHeight,ppi": "Decoded source metadata and actual image scale; PPI is an estimate, not a quality guarantee.",
+    "currentPage,totalPages": "Actual export progress; use the indeterminate message if page progress is unavailable.",
+    "limitType,limitValue": "Only a verified, enforced limit; never fill with an invented file or pixel maximum.",
+    "sheetNoun": "Use sheet for 1, sheets otherwise.",
+    "year": "Current copyright year at rendering."
+  },
+  "conditionalCopy": {
+    "a3PaperOption": {"label": "A3", "stage": "ONLY_IF_CONFIRMED_SUPPORTED"},
+    "futurePricingNavigation": {"label": "Pricing", "target": "/pricing", "stage": "ONLY_WHEN_PAID_FEATURES_ARE_AVAILABLE"},
+    "toolsIndexTarget": {"label": "Tools", "target": "/tools", "stage": "V1_1_WITH_REAL_TOOLS_INDEX"}
+  }
+}

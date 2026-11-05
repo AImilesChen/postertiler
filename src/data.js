@@ -1,0 +1,77 @@
+export const samples = [
+  { id: 'alpine', title: 'Alpine reflections', category: 'Landscape', image: 'alpine-lake.png', columns: 2, rows: 2 },
+  { id: 'botanical', title: 'Botanical study', category: 'Art', image: 'botanical-study.png', columns: 2, rows: 3 },
+  { id: 'coast', title: 'Quiet coast', category: 'Landscape', image: 'quiet-coast.png', columns: 3, rows: 2 },
+  { id: 'geometry', title: 'Colour and form', category: 'Art', image: 'colour-and-form.png', columns: 2, rows: 2 },
+  { id: 'map', title: 'An imaginary archipelago', category: 'Maps', image: 'imaginary-archipelago.png', columns: 3, rows: 2 },
+  { id: 'event', title: 'A celebration in colour', category: 'Events', image: 'celebration.png', columns: 2, rows: 3 },
+  { id: 'portrait', title: 'Studio movement', category: 'People', image: 'studio-movement.png', columns: 2, rows: 3 },
+  { id: 'forest', title: 'Morning in the forest', category: 'Landscape', image: 'morning-forest.png', columns: 3, rows: 3 }
+];
+export const imagePath = name => `/assets/images/${name}`;
+export const guides = [
+  { slug: 'how-to-make-a-block-poster', title: 'How to Make a Block Poster', category: 'Getting started', intro: 'Turn one image into a poster made from ordinary printer paper.', steps: [['Choose an image', 'Use a JPG, PNG or WebP image you own or have permission to print. Choose a higher-resolution source for a larger poster.'], ['Set paper and size', 'Match the paper you will use. Leave room for the edges your printer cannot print, then choose a sheet layout or exact finished dimensions.'], ['Review the sheets', 'Switch between Original and Printed Sheets. Fit keeps the whole image; Fill crops the edges to cover the poster.'], ['Check the scale', 'Download the separate calibration page. Print at Actual Size / 100%, turn off Fit to page, and measure the 100 mm reference line.'], ['Print and assemble', 'Download the poster and assembly guide. Use the page labels to arrange the sheets, trim the indicated edges, and align the overlaps.']] },
+  { slug: 'how-to-print-an-image-on-multiple-pages', title: 'How to Print an Image on Multiple Pages', category: 'Paper & size', intro: 'Split a single picture over A4 or US Letter sheets without changing its proportions.', steps: [['Choose a sheet layout', 'In Poster Size, select Size by Sheets. Set how many pages to use across and down.'], ['Check the finished dimensions', 'The finished canvas excludes printer margins and counts each overlap only once. Blank space inside a Fit layout is part of the canvas.'], ['Export the PDF', 'Use the same paper and orientation in the tool and printer dialog.'], ['Print a test first', 'Start with the calibration page and one adjoining pair. Check scale and overlap before printing every sheet.']] },
+  { slug: 'how-to-print-a-pdf-at-actual-size', title: 'How to Print a PDF at Actual Size', category: 'Printing', intro: 'A correct PDF still needs the correct printer settings.', steps: [['Match the paper', 'Select the same A4 or US Letter size and orientation used for the exported PDF.'], ['Use Actual Size / 100%', 'Turn off Fit to page, Shrink oversized pages and automatic scaling. Print-dialog names vary.'], ['Measure the calibration line', 'Print the separate calibration page and measure its 100 mm line with a ruler. If it differs, adjust the settings before printing the poster.'], ['Confirm your printer margins', 'Check that content near the printable edge is visible. Increase the margins if your printer clips it.']] },
+  { slug: 'how-to-assemble-a-tiled-poster', title: 'How to Assemble a Tiled Poster', category: 'Assembly', intro: 'Use the assembly map, page labels and repeated image edges to line up your print.', steps: [['Lay out the sheets', 'Letters identify rows and numbers identify columns. A1 is the top-left page; arrange left to right, then top to bottom.'], ['Trim the joining edges', 'At internal joins, trim the left white margin of the right-hand sheet and the top white margin of the lower sheet. Check the guide for your actual layout.'], ['Match the overlap', 'Overlay the repeated image strip until the picture aligns. With zero overlap, join trimmed edges directly and tape the back.'], ['Secure and finish', 'Tape or mount the joins, then trim the outside to the finished canvas boundary. Keep the assembly map until finished.']] },
+  { slug: 'image-resolution-for-large-posters', title: 'What Image Resolution Do I Need for a Large Poster?', category: 'Image quality', intro: 'The same pixels cover a larger physical area when you enlarge an image.', steps: [['Start with the original', 'Choose the highest-resolution source available. A compressed screenshot may show visible softness when enlarged.'], ['Review estimated PPI', 'PPI depends on the decoded image pixels and the physical size of the scaled image, not the number of sheets.'], ['Consider viewing distance', 'A poster viewed from across a room can look different from one examined close up. PPI is guidance, not a print-quality guarantee.'], ['Test an important area', 'Print a representative page at 100% before committing to the whole poster. Choose a smaller poster or better source if needed.']] }
+];
+const designRouteSpecs = [
+  ['home','/','V1','Free Block Poster Maker','editor'],
+  ['gallery','/gallery','V1','Poster Gallery','gallery'],
+  ['calculator','/tools/poster-size-calculator','V1','Poster Size Calculator','calculator'],
+  ['guides','/guides','V1','Printing Guides','guides'],
+  ...guides.map(g => ['guide-'+g.slug,'/guides/'+g.slug,'V1',g.title,'article']),
+  ['about','/about','V1','About PosterTiler','about'],
+  ['privacy','/privacy','V1','Privacy Policy','policy'],
+  ['terms','/terms','V1','Terms of Service','policy'],
+  ['contact','/contact','V1','Contact','contact'],
+  ['cookies','/cookies','V1','Cookie Policy','policy'],
+  ['tools','/tools','V1.1','Tools for a bigger print','tools'],
+  ['image-pdf','/tools/image-to-pdf','V1.1','Image to PDF','image-pdf'],
+  ['pdf-poster','/tools/pdf-poster-printer','V1.1','PDF Poster Printer','pdf-poster'],
+  ['compare','/compare/rasterbator-alternative','V1.1','PosterTiler and Rasterbator','compare'],
+  ['life-size','/tools/life-size-poster-maker','V2','Life Size Poster Maker','life-size'],
+  ['halftone','/tools/halftone-poster-maker','V2','Halftone Poster Maker','halftone'],
+  ['pricing','/pricing','V2','Choose extra processing capacity','pricing'],
+  ['account','/account','V2','Your account','account'],
+  ['payment-success','/payment/success','V2','Payment received','payment'],
+  ['payment-pending','/payment/pending','V2','Confirming your payment','payment'],
+  ['payment-failed','/payment/failed','V2','Payment was not completed','payment'],
+  ['refunds','/refunds','V2','Processing & Refunds','policy'],
+  ['changelog','/changelog','Optional','Changelog','changelog']
+].map(([id,path,stage,title,kind])=>({id,path,stage,title,kind}));
+export const stateSpecs = [
+  ['empty','Choose an image to begin.','info',1],
+  ['reading','Reading your image…','loading',1],
+  ['unsupported','Choose a JPG, PNG or WebP image.','error',1],
+  ['multiple','Choose one image to make a poster.','error',1],
+  ['unreadable','We could not read this image. Try another JPG, PNG or WebP file.','error',1],
+  ['memory','This image could not be opened on this device. Try a smaller file.','error',1],
+  ['paper','Choose the paper you will print on.','info',2],
+  ['size','Choose a sheet layout or enter the finished dimensions.','info',3],
+  ['invalid-size','Enter a width and height greater than zero.','error',3],
+  ['invalid-sheets','Enter a whole number of at least 1 for each sheet count.','error',3],
+  ['invalid-margins','These margins leave no printable area. Reduce them or choose a larger paper size.','error',2],
+  ['invalid-overlap','Enter an overlap of zero or more, smaller than the printable width and height.','error',4],
+  ['low-resolution','This image may look soft at this size. Try a smaller poster or choose a higher-resolution image.','warning',3],
+  ['print','Set up the guides you will use to trim and join the sheets.','info',4],
+  ['download','Review your poster, then download the pages to print.','info',5],
+  ['exporting','Preparing your PDF…','loading',5],
+  ['ready','Your PDF is ready. Print at Actual Size / 100%.','success',5],
+  ['canceled','PDF preparation canceled. Your image and settings are still here.','info',5],
+  ['failed','The PDF could not be prepared. Try again or choose a smaller image.','error',5],
+  ['reset','Reset print settings? Your image will stay selected.','dialog',3],
+  ['cookies','May we use optional analytics to understand site visits and improve the poster tool?','dialog',1],
+  ['cookie-saved','Your analytics choice has been saved.','success',1],
+  ['zero-overlap','With no overlap, trim the edges and join the sheets edge to edge.','info',4],
+  ['crop','Fill crops image edges. Check the preview before you continue.','warning',3],
+  ['permission','Cloud processing uploads your selected image. Review file handling before choosing to upload.','permission',5],
+  ['cloud-queued','Your cloud task is queued. You can leave this screen and return from your account.','loading',5],
+  ['cloud-failed','Processing failed. Your reserved export has been returned.','error',5],
+  ['signed-out','Sign in to view paid orders. Ordinary local poster PDFs do not need an account.','permission',5],
+  ['credits-empty','No cloud exports remain. You can still make ordinary local poster PDFs for free.','warning',5],
+  ['refund-pending','Your refund request is being reviewed. Follow its status in your order details.','loading',5]
+].map(([id,message,tone,step])=>({id,message,tone,step,stage:['permission','cloud-queued','cloud-failed','signed-out','credits-empty','refund-pending'].includes(id)?'V2':'V1'}));
+
+export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone'].includes(route.id));

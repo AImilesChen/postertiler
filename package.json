@@ -1,0 +1,38 @@
+{
+  "name": "postertiler",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4180 --strictPort",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir .ssr && node scripts/prerender.mjs",
+    "preview": "node scripts/serve.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "check:release": "node scripts/check-release.mjs",
+    "predev": "node scripts/prepare-pdfjs.mjs",
+    "prebuild": "node scripts/prepare-pdfjs.mjs",
+    "test:browser:v11": "node tests/browser-v11.mjs",
+    "test:pdf-render": "node scripts/check-vector-render.mjs",
+    "build:release": "node scripts/build-release.mjs",
+    "test:browser:creative": "node tests/browser-creative.mjs"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.5.438",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1"
+  },
+  "devDependencies": {
+    "@pdf-lib/fontkit": "1.1.1",
+    "@vitejs/plugin-react": "5.0.4",
+    "playwright": "1.58.2",
+    "typescript": "~5.9.3",
+    "vite": "6.4.2",
+    "wrangler": "4.94.0"
+  }
+}
