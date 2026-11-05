@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
 import { getSessionUser } from '../auth.mjs';
 import { TEST_CATALOG, validTestPrice } from './catalog.mjs';
-import { BillingStore } from './store.mjs';
+import { BillingStore, ORDER_FILTERS } from './store.mjs';
+import { listingParams } from '../listing.mjs';
 import { cloudReady } from '../cloud/contract.mjs';
 import { CloudStore } from '../cloud/store.mjs';
 
@@ -75,7 +76,7 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
     if (url.pathname !== BASE && !url.pathname.startsWith(BASE + '/')) return null;
     const path = url.pathname.slice(BASE.length);
     const orderPath = path.match(/^\/orders\/([0-9a-f-]+)$/i);
-    if (!['/status','/checkout','/webhook'].includes(path) && !orderPath) return json({ error: 'not_found' }, 404);
+    if (!['/status','/checkout','/webhook','/orders'].includes(path) && !orderPath) return json({ error: 'not_found' }, 404);
     const method = ['/checkout','/webhook'].includes(path) ? 'POST' : 'GET';
     if (request.method !== method) return json({ error: 'method_not_allowed' }, 405, { Allow: method });
     let operation = 'configuration';
@@ -95,6 +96,10 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (env.BILLING_TEST_ENABLED !== 'true' || !ready(env)) return json({ error: 'test_billing_unavailable' }, 503);
       operation = 'database';
       const store = new BillingStore(env.BILLING_TEST_DB), userKey = await ownerKey(user);
+      if(path === '/orders') {
+        const params=listingParams(url,ORDER_FILTERS);if(!params)return json({error:'invalid_request'},400);
+        return json(await store.listPage(userKey,params));
+      }
       if (orderPath) {
         if (!uuid(orderPath[1])) return json({ error: 'not_found' }, 404);
         const row = await store.find(orderPath[1]);

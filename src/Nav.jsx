@@ -50,7 +50,7 @@ export default function Nav() {
         <div className="tools-menu" onKeyDown={event => { if (event.key === 'Escape') setPanel(null); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPanel(current => current === 'tools' ? null : current); }}>
           <button aria-expanded={panel === 'tools'} onClick={() => setPanel(panel === 'tools' ? null : 'tools')}>Tools</button>
           {panel === 'tools' && <div className="menu-popover">{tools.map(([label,path]) => <a key={path} href={path}>{label}</a>)}</div>}
-        </div><a href="/guides">Printing Guides</a>
+        </div><a href="/cloud">Cloud PDF</a><a href="/pricing">Pricing</a><a href="/guides">Printing Guides</a>
       </div>
       <div className="nav-auth" data-clarity-mask="true">
         {!auth.user ? <a ref={signIn} className="nav-sign-in" href="/account"><UserCircle size={19} aria-hidden="true"/><span>Sign in</span></a> :
@@ -64,6 +64,8 @@ export default function Nav() {
               <div className="nav-user-summary"><span>Signed in with Google</span><strong>{auth.user.name || 'Your account'}</strong><p>{auth.user.email}</p></div>
               <div ref={menu} id="account-menu" role="menu" aria-label="Account menu" onKeyDown={keyboard}>
                 <a role="menuitem" href="/account"><UserCircle size={18} aria-hidden="true"/>My account</a>
+                <a role="menuitem" href="/account/tasks">Cloud tasks</a>
+                <a role="menuitem" href="/account/billing">Credits & orders</a>
                 <button role="menuitem" disabled={auth.signingOut} onClick={logout}><SignOut size={18} aria-hidden="true"/>{auth.signingOut ? 'Signing out…' : 'Sign out'}</button>
               </div>
               {error && <p role="alert" className="nav-auth-error">{error}</p>}

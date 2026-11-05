@@ -1,0 +1,41 @@
+import React,{useState} from 'react';
+import { ArrowRight,ArrowClockwise,CheckCircle,Clock,FilePdf,LockSimple,WarningCircle,XCircle } from '@phosphor-icons/react';
+import { Alert,B } from './ui';
+import { CLOUD_API,activeJob,accountRequest,useAccountListing } from './account-data';
+import { geometry,sizeText } from './engine/geometry.ts';
+export const jobMessages={invalid_image:'The image could not be processed. Re-save it as a standard JPG or PNG and start a new task.',unsupported_png:'Use an 8-bit, non-interlaced PNG, or save it as JPG.',unsupported_color:'Convert the JPG to RGB or grayscale first.',animated_image:'Choose a still image instead of an animated PNG.',source_mismatch:'The upload did not match the selected file. Select the original again.',image_too_large:'This image exceeds the supported cloud dimensions.',file_too_large:'This file exceeds the cloud size limit.',invalid_settings:'Check the paper, poster size, margins and overlap.',processing_failed:'Processing failed. Your reserved credit was released.',processing_timeout:'Processing timed out. Your reserved credit was released.',upload_timeout:'The upload window expired. Your reserved credit was released.',credit_revoked:'A payment adjustment removed the reserved credit. No additional credit was used.',retry_unavailable:'Check your available credits and the task expiry before retrying.',source_missing:'The source is no longer available. Your reserved credit was released.',result_expired:'This download has expired. Keep a local copy of downloaded files.',insufficient_credits:'You need an available credit. Get more credits before starting.',task_limit:'Finish or cancel your active task before starting another.'};
+export const cloudMessage = code=>jobMessages[code]||'We could not complete that request. Refresh your tasks before trying again.';
+const jobStates={awaiting_upload:['Waiting for upload','pending',Clock],queued:['Queued','pending',Clock],processing:['Processing','pending',ArrowClockwise],succeeded:['Ready to download','success',CheckCircle],failed:['Failed · credit released','error',WarningCircle],canceled:['Canceled · credit released','neutral',XCircle],expired:['Files expired','neutral',Clock]};
+export const dateTime=value=>new Date(value).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
+export function SandboxNote(){return <div className="sandbox-note"><span>TEST MODE</span><p>Stripe sandbox is active. No real money is charged. Use test payment details only.</p></div>;}
+export function CreditSummary({balance,compact=false}) {
+ return <section className={`credit-summary ${compact?'compact':''}`} aria-label="Your processing credits"><div className="credit-summary-head"><h2>Processing credits</h2><a href="/account/billing">Get more credits <ArrowRight size={15}/></a></div><dl>{[['Available',balance.available,'Ready for your next poster'],['In progress',balance.reserved,'Reserved for active tasks'],['Used',balance.used,'Successful cloud exports']].map(([label,value,help])=><div key={label}><dt>{label}</dt><dd>{value}</dd><small>{help}</small></div>)}</dl>{balance.debt>0&&<Alert>A payment adjustment affects your available balance. Review your orders or contact support before starting another task.</Alert>}</section>;
+}
+export function EmptyTasks(){return <div className="account-empty"><FilePdf size={36} weight="thin"/><h3>Your next big picture starts here</h3><p>Create a cloud poster to see its progress and downloads here.</p><a className="button" href="/cloud">New cloud poster <ArrowRight size={17}/></a></div>;}
+export function TaskCard({job,onChange=()=>{}}) {
+ const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [label,tone,Icon]=jobStates[job.status]||['Status unavailable','neutral',Clock];
+ const g=geometry(job.settings,400);
+ async function action(name){setBusy(true);setError('');try{await accountRequest(`${CLOUD_API}/jobs/${job.id}/${name}`,{method:'POST'});window.dispatchEvent(new Event('cloud-updated'));onChange();}catch(e){setError(cloudMessage(e.message));}finally{setBusy(false);}}
+ return <article className="task-row" aria-label={`${job.page_count}-sheet cloud task`}>
+   <div className="task-file-icon"><FilePdf size={25} weight="light"/></div><div className="task-info"><h3>{job.page_count}-sheet {job.settings.paper} poster</h3><p>{!g.error&&sizeText(g,job.settings.unit)} · {job.settings.orientation} · {dateTime(job.created_at)}</p><span className={`task-status ${tone}`}><Icon size={15}/>{label}</span>
+   {job.status==='awaiting_upload'&&<p className="task-help">Select the same file in the cloud workspace to resume the upload, or cancel to release the credit.</p>}
+   {job.error&&<p className="task-help">{cloudMessage(job.error)}</p>}
+   {job.can_download&&<p className="task-help">Available until {dateTime(job.expires_at)}. Repeat downloads use no credit.</p>}
+   {job.status==='expired'&&<p className="task-help">The temporary files are no longer available. Your task record is kept separately.</p>}
+   {error&&<Alert tone="error">{error}</Alert>}</div><div className="task-actions">
+   {job.can_download&&<><a className="button" href={`${CLOUD_API}/jobs/${job.id}/download`}>Download PDF</a><details><summary>Print guides</summary><a href={`${CLOUD_API}/jobs/${job.id}/assembly`}>Assembly guide</a><a href={`${CLOUD_API}/jobs/${job.id}/calibration`}>Calibration page</a></details></>}
+   {activeJob(job)&&<B secondary disabled={busy} onClick={()=>action('cancel')}>{busy?'Updating…':'Cancel task'}</B>}
+   {job.can_retry&&<B secondary disabled={busy} onClick={()=>action('retry')}>{busy?'Retrying…':'Retry · reserve 1 credit'}</B>}
+   </div></article>;
+}
+export function Pagination({page,total,size=10,onChange}) {const pages=Math.max(1,Math.ceil(total/size));return <nav className="account-pagination" aria-label="Results pages"><span>{total} {total===1?'result':'results'} · Page {page} of {pages}</span><div><B secondary disabled={page===1} onClick={()=>onChange(page-1)}>Previous</B><B secondary disabled={page>=pages} onClick={()=>onChange(page+1)}>Next</B></div></nav>;}
+export function TaskHistory() {
+ const [filter,setFilter]=useState('all'),[page,setPage]=useState(1),[version,setVersion]=useState(0);
+ const state=useAccountListing(CLOUD_API+'/jobs',filter,page,version);
+ React.useEffect(()=>{if(!state.data?.jobs.some(activeJob))return;const timer=setInterval(()=>{if(!document.hidden)setVersion(v=>v+1);},4000);return()=>clearInterval(timer);},[state.data]);
+ return <section className="account-panel" aria-label="Cloud task history"><div className="account-section-heading"><div><h2>Your cloud tasks</h2><p>Progress, results and downloads in one place.</p></div><B secondary onClick={()=>setVersion(v=>v+1)}><ArrowClockwise size={16}/>Refresh tasks</B></div><div className="account-filter"><label>Show tasks<select value={filter} onChange={e=>{setFilter(e.target.value);setPage(1);}}>{[['all','All tasks'],['active','In progress'],['succeeded','Ready to download'],['failed','Failed'],['canceled','Canceled'],['expired','Expired']].map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label><span>Files are available for 24 hours from task creation.</span></div>
+ {state.error?<Alert tone="error">Could not load tasks. Try Refresh tasks again.</Alert>:state.loading&&!state.data?<p role="status">Loading tasks…</p>:state.data&&<div aria-busy={state.loading}>{!state.data.jobs.length?<div className="account-empty"><FilePdf size={32}/><h3>{filter==='all'?'No cloud tasks yet':'No tasks in this view'}</h3><p>{filter==='all'?'Create your first cloud poster to get started.':'Choose another status to see your other tasks.'}</p>{filter==='all'&&<a className="button" href="/cloud">New cloud poster</a>}</div>:state.data.jobs.map(job=><TaskCard key={job.id} job={job} onChange={()=>setVersion(v=>v+1)}/>)}<Pagination page={page} total={state.data.total} size={state.data.page_size} onChange={setPage}/></div>}
+ </section>;
+}
+export function PrivacyNote(){return <div className="account-privacy-note"><LockSimple size={18}/><p>Your local posters stay on your device. Cloud uploads are private and temporary. <a href="/privacy">File privacy</a></p></div>;}

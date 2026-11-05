@@ -1,5 +1,7 @@
 .site-header nav { gap: 28px; }
 .nav-link-group { display: flex; align-items: center; gap: 30px; }
+.nav-link-group { gap:22px; }
+@media(min-width:901px) and (max-width:1200px){.nav-link-group{gap:14px}.site-header nav{gap:16px}.nav-auth{padding-left:14px;min-width:110px}.site-header .brand img{max-width:200px}.nav-link-group>a,.nav-link-group>.tools-menu>button{font-size:12px}}
 .nav-auth { border-left: 1px solid var(--rule); padding-left: 24px; min-width: 132px; }
 .site-header .nav-sign-in { justify-content: center; gap: 8px; padding: 8px 15px; border: 1px solid #b5b5b5; font-size: 14px; font-weight: 600; text-decoration: none; }
 .site-header .nav-sign-in:hover { background: var(--surface); border-color: var(--ink); }
@@ -35,3 +37,4 @@
   .nav-user-trigger > svg { margin-left: auto; }
   .nav-user-popover { position: static; width: 100%; max-width: none; margin-top: 8px; box-shadow: none; }
 }
+@media(min-width:821px) and (max-width:1100px){.site-header nav{gap:12px}.nav-link-group{gap:12px}.site-header .nav-link-group>a,.site-header .nav-link-group .tools-menu>button{font-size:12px}.site-header .brand img{max-width:180px}.nav-auth{padding-left:12px;min-width:100px}}

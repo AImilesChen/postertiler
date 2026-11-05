@@ -1,4 +1,5 @@
 import { BILLING_VERSION } from './catalog.mjs';
+export const ORDER_FILTERS = Object.freeze({all:'1=1',paid:"status='paid'",open:"status IN ('created','pending')",refunded:"status IN ('refunded','partially_refunded')",closed:"status IN ('failed','expired')"});
 
 export class BillingStore {
   constructor(db) { this.db = db; }
@@ -27,6 +28,12 @@ export class BillingStore {
     const result = await this.db.prepare('SELECT id,sku,status,amount,currency,credits,paid,refunded_amount,refunded_credits,created_at FROM billing_test_orders WHERE user_key = ? ORDER BY created_at DESC LIMIT 20').bind(user).all();
     const balance = await this.db.prepare('SELECT COALESCE(SUM(CASE WHEN paid = 1 THEN credits - refunded_credits ELSE 0 END),0) AS credits FROM billing_test_orders WHERE user_key = ?').bind(user).first();
     return { test_credits: Number(balance.credits), orders: result.results };
+  }
+  async listPage(user,params) {
+    const where=ORDER_FILTERS[params.filter];
+    const total=await this.db.prepare(`SELECT COUNT(*) AS total FROM billing_test_orders WHERE user_key=? AND ${where}`).bind(user).first();
+    const rows=await this.db.prepare(`SELECT id,sku,status,amount,currency,credits,paid,refunded_amount,created_at FROM billing_test_orders WHERE user_key=? AND ${where} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`).bind(user,params.limit,params.offset).all();
+    return {orders:rows.results,total:Number(total.total),page:params.page,page_size:params.limit};
   }
   async apply(event, order, session, refundedAmount = null) {
     const now = Date.now();

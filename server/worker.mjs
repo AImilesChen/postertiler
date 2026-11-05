@@ -9,7 +9,8 @@ export default {
       const response = await handleCloud(request, env) || await handleBilling(request, env) || await handleAuth(request, env);
       if (response) return response;
       const asset = await env.ASSETS.fetch(request);
-      if (!new URL(request.url).pathname.startsWith('/account')) return asset;
+      const path = new URL(request.url).pathname;
+      if (!/^\/account(?:\/|\.|$)/.test(path) && !/^\/cloud(?:\/|\.|$)/.test(path)) return asset;
       const headers = new Headers(asset.headers);
       headers.set('Cache-Control', 'private, no-store');
       headers.set('X-Robots-Tag', 'noindex, nofollow');

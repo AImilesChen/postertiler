@@ -72,6 +72,12 @@ test('billing is unavailable without configuration; unrelated API still routes n
   const actual = await worker.fetch(new Request(origin + base + '/status'), {});
   assert.equal(actual.status, 401); assert.equal((await worker.fetch(new Request(origin + '/api/auth/session'), {})).status, 200);
 });
+test('paginated order history is authenticated, owner scoped and validates filters',async t=>{
+ const f=fixture(t);for(let i=0;i<12;i++){assert.equal((await f.checkout()).response.status,200);f.db.exec('UPDATE billing_test_orders SET created_at=created_at-3600001');}
+ const first=await(await f.request('/orders?filter=open&page=1')).json(),second=await(await f.request('/orders?filter=open&page=2')).json();assert.equal(first.total,12);assert.equal(first.orders.length,10);assert.equal(second.orders.length,2);assert.equal(new Set([...first.orders,...second.orders].map(o=>o.id)).size,12);assert.equal((await(await f.request('/orders?filter=paid')).json()).total,0);
+ for(const query of ['filter=unknown','page=0','page=-1','page=1&page=2','owner=another'])assert.equal((await f.request('/orders?'+query)).status,400);
+ const other=createBillingHandler({authenticate:async()=>({id:'different-user'})});const result=await other(new Request(origin+base+'/orders'),f.env);assert.equal((await result.json()).total,0);
+});
 test('live keys and missing webhook/database configuration never create a checkout', async t => {
   for (const [field,value] of [['STRIPE_TEST_SECRET_KEY','sk_live_fixtureOnly'],['STRIPE_TEST_WEBHOOK_SECRET',''],['BILLING_TEST_DB',null]]) {
     const f = fixture(t); f.env[field] = value; assert.equal((await f.checkout()).response.status, 503); assert.equal(f.calls.length, 0);

@@ -18,7 +18,7 @@ PDF tiling reuses source page content and resources. It is not a PDF sanitizatio
 
 ## Optional cloud PDF sandbox and test payments
 
-The Account page offers optional cloud PDF processing with Stripe sandbox credits. No real money is charged in this release. Only the cloud form uploads a file, after you explicitly select the upload-consent checkbox and start the task. Ordinary local tools remain local.
+The Cloud PDF workspace and Account pages offer optional cloud PDF processing with Stripe sandbox credits. No real money is charged in this release. Only the cloud form uploads a file, after you explicitly select the upload-consent checkbox and start the task. Ordinary local tools remain local.
 
 For a cloud task, Cloudflare Workers, Queues, D1 and private R2 storage process the selected JPG or PNG, its byte hash, dimensions and confirmed print settings to produce a PDF. Source files may contain EXIF or other metadata; remove private information before uploading. We remove JPEG metadata segments and PNG ancillary metadata from the embedded output image and respect supported EXIF orientation. This is not a content-sanitization or professional color-proofing service. Files are not public, are not used for AI training or promotion, and no AI provider is called.
 
@@ -44,7 +44,7 @@ The poster application does not operate an additional visitor database or custom
 
 ## Browser storage and analytics
 
-We offer optional visitor analytics through **Google Analytics 4**, **Microsoft Clarity**, **Ahrefs Web Analytics**, and **Shipsolo's hosted Plausible service** at `plausible.shipsolo.io`. We load these services only after you accept analytics. Before a choice, after refusal, and on the account page, the application does not load their tags or send their visitor measurements. Refusing analytics does not affect the free tools or sign-in.
+We offer optional visitor analytics through **Google Analytics 4**, **Microsoft Clarity**, **Ahrefs Web Analytics**, and **Shipsolo's hosted Plausible service** at `plausible.shipsolo.io`. We load these services only after you accept analytics. Before a choice, after refusal, and on account and cloud workspace pages, the application does not load their tags or send their visitor measurements. Refusing analytics does not affect the free tools or sign-in.
 
 GA4 measures visits and allowlisted actions such as starting a poster, completing settings, preparing a PDF, cancellation and errors. Events use public page paths and limited settings such as paper type and sheet count. PDF preparation is not evidence of saving, printing or successfully assembling it. We do not set an analytics user ID or send your Google profile. Google advertising storage, advertising personalization and Google signals are disabled in our tag configuration. See [Google's privacy information](https://policies.google.com/privacy).
 

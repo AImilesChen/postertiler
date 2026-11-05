@@ -5,6 +5,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 const origin='http://127.0.0.1:4180',out='verification/navigation'; await mkdir(out,{recursive:true});
 const browser=await chromium.launch(browserOptions), context=await browser.newContext({viewport:{width:1440,height:1000}}), page=await context.newPage();
 const fixture={id:'fixture-google-sub',name:'Fixture Person',email:'fixture@example.com'};
+await context.route('**/api/cloud/test/**',route=>route.fulfill({json:{enabled:false}}));
+await context.route('**/api/billing/test/status',route=>route.fulfill({json:{mode:'test',enabled:false,orders:[],plans:[]}}));
 let user=null, failLogout=false, sessions=0, holdSession=false, releaseHeld, deferredReady;
 const checks=[],errors=[],external=[];
 context.on('page',p=>p.on('pageerror',e=>errors.push(e.message))); page.on('pageerror',e=>errors.push(e.message));
@@ -40,7 +42,7 @@ try {
   });
   await check('Account menu supports arrows, Home, End, Escape and outside clicks',async()=>{
     await menu(page).getByRole('menuitem',{name:'My account',exact:true}).focus();
-    await page.keyboard.press('ArrowDown');assert.equal(await menu(page).getByRole('menuitem',{name:'Sign out',exact:true}).evaluate(e=>e===document.activeElement),true);
+    await page.keyboard.press('ArrowDown');assert.equal(await menu(page).getByRole('menuitem',{name:'Cloud tasks',exact:true}).evaluate(e=>e===document.activeElement),true);
     await page.keyboard.press('Home');assert.equal(await menu(page).getByRole('menuitem',{name:'My account',exact:true}).evaluate(e=>e===document.activeElement),true);
     await page.keyboard.press('End');await page.keyboard.press('Escape');await menu(page).waitFor({state:'hidden'});
     assert.equal(await trigger(page).evaluate(e=>e===document.activeElement),true);
@@ -55,8 +57,8 @@ try {
     assert.equal(await page.getByRole('heading',{name:'Your poster preview',exact:true}).count(),0);
   });
   await check('Account page and header share one session request and both update after sign-out',async()=>{
-    user=fixture;sessions=0;await go('/account');await page.getByRole('heading',{name:fixture.name,exact:true}).waitFor();assert.equal(sessions,1);
-    await page.getByRole('main').getByRole('button',{name:'Sign out',exact:true}).click();await nav(page).getByRole('link',{name:'Sign in',exact:true}).waitFor();
+    user=fixture;sessions=0;await go('/account/settings');await page.getByRole('heading',{name:fixture.name,exact:true}).waitFor();assert.equal(sessions,1);
+    await page.getByRole('main').getByRole('button',{name:'Sign out on this browser',exact:true}).click();await nav(page).getByRole('link',{name:'Sign in',exact:true}).waitFor();
     await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();assert.equal(await trigger(page).count(),0);
   });
   await check('Other open tabs update when this browser signs out',async()=>{

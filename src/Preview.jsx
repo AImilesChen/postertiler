@@ -5,13 +5,13 @@ import { previewPlan } from './engine/preview.ts';
 import { loadImage } from './export';
 import './preview.css';
 
-export default function Preview({ source, settings, empty = false, pixels = { width: 1, height: 1 }, layoutOnly = false }) {
+export default function Preview({ source, settings, empty = false, pixels = { width: 1, height: 1 }, layoutOnly = false, pageLimit }) {
   const root = useRef(), stage = useRef(), opener = useRef(), tabs = useRef([]);
   const [tab, setTab] = useState(layoutOnly ? 'sheets' : 'original');
   const [zoom, setZoom] = useState(100), [full, setFull] = useState(false);
   const [dimensions, setDimensions] = useState(null), [failedSource, setFailedSource] = useState(null);
   const [viewport, setViewport] = useState({ width: 600, height: 588 });
-  const id = useId().replace(/:/g, ''), g = geometry(settings);
+  const id = useId().replace(/:/g, ''), g = geometry(settings, pageLimit);
   const ready = layoutOnly || (source && dimensions?.source === source);
   const error = source && failedSource === source ? 'The preview could not be shown. Choose the image again.' : '';
   useEffect(() => {
@@ -46,7 +46,8 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
   }, [full]);
   useEffect(() => { if (stage.current) { stage.current.scrollLeft = 0; stage.current.scrollTop = 0; } }, [tab, source]);
 
-  const plan = !g.error ? previewPlan(g, dimensions?.source === source ? dimensions : pixels, settings.placement) : null;
+  const sourcePixels = pixels.width > 1 && pixels.height > 1 ? pixels : dimensions?.source === source ? dimensions : pixels;
+  const plan = !g.error ? previewPlan(g, sourcePixels, settings.placement) : null;
   const sheets = tab === 'sheets', bounds = sheets ? plan?.paperBounds : plan?.canvas;
   // Zoom is relative to the fitted view, never a physical print-scale setting.
   const fitScale = bounds ? Math.max(.001, Math.min((viewport.width - 86) / bounds.width, (viewport.height - 82) / bounds.height)) : 1;

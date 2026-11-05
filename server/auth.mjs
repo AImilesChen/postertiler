@@ -108,7 +108,7 @@ export function createAuthHandler(transport) {
     const clearFlow = cookie(config, 'oauth', '', 0);
     if (!config.available) return redirect(config, '/account?error=unavailable', [clearFlow]);
     if (is('google')) {
-      const flow = { state: oauth.generateRandomState(), nonce: oauth.generateRandomNonce(), verifier: oauth.generateRandomCodeVerifier() };
+      const flow = { state: oauth.generateRandomState(), nonce: oauth.generateRandomNonce(), verifier: oauth.generateRandomCodeVerifier(), returnTo: safeReturnTo(url.searchParams.get('return_to')) };
       const destination = new URL(GOOGLE.authorization_endpoint);
       for (const [name, value] of Object.entries({ client_id: config.client.client_id, redirect_uri: config.origin + CALLBACK,
         response_type: 'code', scope: 'openid email profile', state: flow.state, nonce: flow.nonce,
@@ -130,7 +130,7 @@ export function createAuthHandler(transport) {
     try {
       const user = await completeGoogle(config, env, url, flow, transport);
       const session = await sealCookie(config, 'session', { user }, SESSION_SECONDS);
-      return redirect(config, '/account', [clearFlow, cookie(config, 'session', session, SESSION_SECONDS)]);
+      return redirect(config, safeReturnTo(flow.returnTo), [clearFlow, cookie(config, 'session', session, SESSION_SECONDS)]);
     } catch {
       // OAuth responses can contain codes, tokens and private claims. Never log them.
       return redirect(config, '/account?error=failed', [clearFlow]);
@@ -139,3 +139,8 @@ export function createAuthHandler(transport) {
 }
 
 export const handleAuth = createAuthHandler();
+// Exact, first-party destinations only. Stored inside the encrypted OAuth flow.
+export function safeReturnTo(value) {
+  const paths=['/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
+  return paths.includes(value)?value:'/account';
+}

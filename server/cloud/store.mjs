@@ -1,4 +1,5 @@
 import { CLOUD_LIMITS } from './contract.mjs';
+export const JOB_FILTERS = Object.freeze({all:'1=1',active:"status IN ('awaiting_upload','queued','processing')",succeeded:"status='succeeded'",failed:"status='failed'",canceled:"status='canceled'",expired:"status='expired'"});
 
 export class CloudStore {
   constructor(db,now=()=>Date.now()) {this.db=db;this.now=now;}
@@ -10,6 +11,12 @@ export class CloudStore {
     return {...b,available:Math.max(0,b.granted-b.reserved-b.used),debt:Math.max(0,b.used+b.reserved-b.granted)};
   }
   async list(user) {return (await this.db.prepare('SELECT * FROM cloud_test_jobs WHERE user_key=? ORDER BY created_at DESC LIMIT 30').bind(user).all()).results;}
+  async listPage(user,params) {
+    const where=JOB_FILTERS[params.filter];
+    const total=await this.db.prepare(`SELECT COUNT(*) AS total FROM cloud_test_jobs WHERE user_key=? AND ${where}`).bind(user).first();
+    const rows=await this.db.prepare(`SELECT * FROM cloud_test_jobs WHERE user_key=? AND ${where} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`).bind(user,params.limit,params.offset).all();
+    return {jobs:rows.results,total:Number(total.total),page:params.page,page_size:params.limit};
+  }
   async create(user,body,fingerprint,settings,pages) {
     const now=this.now(),id=crypto.randomUUID();
     // One SQLite statement makes the balance check and reservation indivisible.

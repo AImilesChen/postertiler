@@ -33,7 +33,7 @@ const designRouteSpecs = [
   ['compare','/compare/rasterbator-alternative','V1.1','PosterTiler and Rasterbator','compare'],
   ['life-size','/tools/life-size-poster-maker','V2','Life Size Poster Maker','life-size'],
   ['halftone','/tools/halftone-poster-maker','V2','Halftone Poster Maker','halftone'],
-  ['pricing','/pricing','V2','Choose extra processing capacity','pricing'],
+  ['pricing','/pricing','V2','Pricing — Free & Cloud PDF','pricing'],
   ['account','/account','V2','Your account','account'],
   ['payment-success','/payment/success','V2','Payment received','payment'],
   ['payment-pending','/payment/pending','V2','Confirming your payment','payment'],
@@ -74,5 +74,11 @@ export const stateSpecs = [
   ['refund-pending','Your refund request is being reviewed. Follow its status in your order details.','loading',5]
 ].map(([id,message,tone,step])=>({id,message,tone,step,stage:['permission','cloud-queued','cloud-failed','signed-out','credits-empty','refund-pending'].includes(id)?'V2':'V1'}));
 
-export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone'].includes(route.id));
-export const appRouteSpecs = [...routeSpecs, { id: 'account', path: '/account', stage: 'Auth', title: 'Your account', kind: 'account', private: true }];
+export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone','pricing'].includes(route.id));
+export const appRouteSpecs = [...routeSpecs,
+  { id:'account',path:'/account',stage:'Auth',title:'Your account',kind:'account',private:true },
+  { id:'account-tasks',path:'/account/tasks',stage:'Auth',title:'Cloud tasks',kind:'account',view:'tasks',private:true },
+  { id:'account-billing',path:'/account/billing',stage:'Auth',title:'Credits and orders',kind:'account',view:'billing',private:true },
+  { id:'account-settings',path:'/account/settings',stage:'Auth',title:'Account settings',kind:'account',view:'settings',private:true },
+  { id:'cloud',path:'/cloud',stage:'Cloud',title:'Cloud PDF workspace',kind:'cloud',private:true },
+];

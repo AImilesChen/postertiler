@@ -6,7 +6,7 @@ import { ownerKey } from '../server/cloud/contract.mjs';
 const directory='verification/cloud',origin='http://127.0.0.1:4181';await mkdir(directory,{recursive:true});
 const key=crypto.getRandomValues(new Uint8Array(32)),user={id:'cloud-local-fixture',name:'Cloud Tester',email:'fixture@example.invalid'};
 const config={name:'postertiler-cloud-local',main:'../../server/worker.mjs',compatibility_date:'2026-11-04',dev:{ip:'127.0.0.1',port:4181},
- assets:{binding:'ASSETS',directory:'../../dist',run_worker_first:['/api/*','/account','/account/*'],html_handling:'drop-trailing-slash',not_found_handling:'404-page'},
+ assets:{binding:'ASSETS',directory:'../../dist',run_worker_first:['/api/*','/account','/account/*','/cloud','/cloud/*'],html_handling:'drop-trailing-slash',not_found_handling:'404-page'},
  vars:{AUTH_ORIGIN:origin,GOOGLE_CLIENT_ID:'local.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'local-fixture-only',AUTH_COOKIE_KEY:base64url.encode(key),CLOUD_TEST_ENABLED:'true',BILLING_TEST_ENABLED:'false'},
  d1_databases:[{binding:'BILLING_TEST_DB',database_name:'postertiler-cloud-local',database_id:'00000000-0000-4000-8000-000000000001'}],
  r2_buckets:[{binding:'CLOUD_TEST_FILES',bucket_name:'postertiler-cloud-local'}],

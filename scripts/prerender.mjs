@@ -8,6 +8,11 @@ const indexing = env.VITE_PUBLIC_INDEXING === 'true';
 const template = await readFile('dist/index.html', 'utf8');
 const esc = text => String(text).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const descriptions = {
+  pricing: 'Compare free local poster PDFs and optional cloud exports. Cloud Single is $1.99 and Cloud Pack is $5.99 for five exports; currently sandbox testing with no real charges.',
+  cloud: 'Sign in to prepare a private cloud poster PDF, review print settings and follow your task through to download.',
+  'account-tasks': 'Your private PosterTiler cloud task history, progress and available PDF downloads.',
+  'account-billing': 'Your private PosterTiler processing credits and order history.',
+  'account-settings': 'Manage your PosterTiler sign-in and account information.',
   'life-size': 'Make a life-size poster from an image. Select subject bounds, set the physical height and download proportionally scaled A4, Letter or A3 sheets.',
   halftone: 'Create halftone dots, black-and-white dithering and CMYK-style screens locally, then download a tiled poster PDF with your chosen paper and layout.',
   tools: 'Free local tools for image tiling, poster dimensions, combining images into PDF and tiling PDF pages for printing.',

@@ -1,5 +1,6 @@
 import { getSessionUser } from '../auth.mjs';
-import { CloudStore } from './store.mjs';
+import { CloudStore, JOB_FILTERS } from './store.mjs';
+import { listingParams } from '../listing.mjs';
 import { CLOUD_LIMITS, CloudError, cloudReady, ownerKey, publicJob, sha256, uuid, validateSettings } from './contract.mjs';
 import { cleanImage } from './image.mjs';
 import { sourceKey } from './processor.mjs';
@@ -27,6 +28,10 @@ export function createCloudHandler({authenticate=getSessionUser,now=()=>Date.now
     const owner=await ownerKey(user),store=new CloudStore(env.BILLING_TEST_DB,now),path=url.pathname.slice(BASE.length);
     if(path==='/status' && request.method==='GET') {
       return json({mode:'test',enabled:true,limits:CLOUD_LIMITS,balance:await store.balance(owner),jobs:(await store.list(owner)).map(j=>publicJob(j,now()))});
+    }
+    if(path==='/jobs' && request.method==='GET') {
+      const params=listingParams(url,JOB_FILTERS);if(!params)throw new CloudError('invalid_request');
+      const list=await store.listPage(owner,params);return json({...list,jobs:list.jobs.map(j=>publicJob(j,now()))});
     }
     if(path==='/jobs' && request.method==='POST') {
       if(request.headers.get('Content-Type')?.split(';')[0]!=='application/json')throw new CloudError('invalid_content_type',415);

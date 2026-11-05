@@ -47,7 +47,7 @@ test('withdrawal saves rejection, denies Clarity storage, unloads tags and block
   assert.equal(h.api.readConsent(), 'rejected'); assert.deepEqual(h.sent, ['reload']);
 });
 test('account, API, unknown routes and nonproduction hosts never load visitor tags', () => {
-  for (const address of [{ pathname: '/account' }, { pathname: '/api/auth/callback/google' }, { pathname: '/private/user@example.org' }, { hostname: 'localhost' }, { hostname: 'preview.example.org' }]) {
+  for (const address of [{ pathname: '/account' }, { pathname: '/cloud' }, { pathname: '/account/tasks' }, { pathname: '/account/billing' }, { pathname: '/account/settings' }, { pathname: '/api/auth/callback/google' }, { pathname: '/private/user@example.org' }, { hostname: 'localhost' }, { hostname: 'preview.example.org' }]) {
     const h = harness(all, address); h.api.applyConsent('accepted'); h.api.trackEvent('pdf_ready'); assert.deepEqual(h.loaded, []);
   }
 });

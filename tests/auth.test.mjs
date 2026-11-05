@@ -149,3 +149,19 @@ test('account is rendered but excluded from public Sitemap and permanently noind
   const html = await readFile('dist/account.html','utf8'), map = await readFile('dist/sitemap.xml','utf8');
   assert.ok(html.includes('noindex,nofollow')); assert.ok(!map.includes('/account'));
 });
+test('OAuth returns to an allowlisted workspace destination and rejects external redirects',async()=>{
+ for(const target of ['/cloud','/account/tasks','/account/billing?plan=pack5','https://evil.invalid/','//evil.invalid/','/account/billing?plan=unknown','/cloud?next=https://evil.invalid']){
+  let flow;const transport=provider(()=>flow),handler=createAuthHandler(transport.fetch);
+  const response=await handler(req('/api/auth/google?return_to='+encodeURIComponent(target)),env),url=new URL(response.headers.get('Location'));
+  flow={response,url,cookie:cookiePair(response),state:url.searchParams.get('state'),nonce:url.searchParams.get('nonce')};
+  const result=await handler(req('/api/auth/callback/google?code='+crypto.randomUUID()+'&state='+flow.state,flow.cookie),env);
+  const expected=['/cloud','/account/tasks','/account/billing?plan=pack5'].includes(target)?target:'/account';assert.equal(result.headers.get('Location'),origin+expected);
+ }
+});
+test('all account subpages and the cloud workspace are private and absent from public Sitemap',async()=>{
+ const assets={fetch:async()=>new Response('private fixture')};const map=await readFile('dist/sitemap.xml','utf8');
+ for(const path of ['/cloud','/account/tasks','/account/billing','/account/settings']){
+  const response=await worker.fetch(req(path),{...env,ASSETS:assets});assert.match(response.headers.get('Cache-Control'),/no-store/);assert.match(response.headers.get('X-Robots-Tag'),/noindex/);
+  const html=await readFile('dist'+path+'.html','utf8');assert.ok(html.includes('noindex,nofollow'));assert.ok(!map.includes(origin+path));
+ }
+});
