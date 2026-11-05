@@ -105,6 +105,11 @@ test('Stripe setup failures return a safe category and phase without raw provide
     const result=await f.checkout();assert.equal(result.response.status,503);assert.equal(result.body.error,expected);assert.equal(result.body.operation,'stripe_price');assert.ok(!JSON.stringify(result.body).includes('fixture-private'));
   }
 });
+test('sandbox Checkout validation reasons strip credentials, links and private identifiers', async t => {
+  const f=fixture(t);f.api.checkout.sessions.create=async()=>{throw {type:'StripeInvalidRequestError',message:`Set a business name at https://dashboard.stripe.com/account sk_test_fixtureOnly whsec_fixtureOnly tester@example.invalid opaqueIdentifier0123456789`};};
+  const result=await f.checkout();assert.equal(result.body.error,'stripe_request_rejected');assert.equal(result.body.operation,'stripe_checkout');assert.match(result.body.reason,/Set a business name/);
+  for(const privateText of ['sk_test_fixtureOnly','whsec_fixtureOnly','tester@example.invalid','opaqueIdentifier0123456789','https://'])assert.ok(!result.body.reason.includes(privateText));
+});
 test('repeated and concurrent checkout requests use one order and one Stripe idempotency key', async t => {
   const f=fixture(t), id=crypto.randomUUID();
   const results=await Promise.all([f.checkout('pack5',id),f.checkout('pack5',id),f.checkout('pack5',id)]);

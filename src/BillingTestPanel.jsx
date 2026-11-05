@@ -47,7 +47,7 @@ export default function BillingTestPanel() {
       const result = await response.json();
       if (!response.ok) {
         if (['order_not_payable','request_expired'].includes(result.error)) { attempt.current = null; await refresh(); }
-        throw new Error(checkoutErrors[result.error] || (result.operation === 'database' ? 'The test order database could not be updated. Please try again.' : ''));
+        throw new Error(result.error === 'stripe_request_rejected' && result.operation === 'stripe_checkout' && typeof result.reason === 'string' ? result.reason : checkoutErrors[result.error] || (result.operation === 'database' ? 'The test order database could not be updated. Please try again.' : ''));
       }
       const target = new URL(result.url);
       if (result.mode !== 'test' || target.protocol !== 'https:' || target.hostname !== 'checkout.stripe.com') throw new Error();

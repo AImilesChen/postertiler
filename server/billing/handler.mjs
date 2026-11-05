@@ -54,6 +54,16 @@ function safeFailure(error) {
   if (error?.type === 'StripeConnectionError' || error?.type === 'StripeAPIError') return 'stripe_temporarily_unavailable';
   return 'billing_temporarily_unavailable';
 }
+function checkoutSetupReason(error, env) {
+  // Only setup validation errors are shown in the sandbox. Strip known Secrets,
+  // URLs, emails and opaque identifiers before exposing a short actionable reason.
+  if (error?.type !== 'StripeInvalidRequestError' || typeof error.message !== 'string') return undefined;
+  let reason = error.message;
+  for (const secret of [env.STRIPE_TEST_SECRET_KEY,env.STRIPE_TEST_WEBHOOK_SECRET]) if (secret) reason = reason.split(secret).join('[redacted]');
+  return reason.replace(/(?:sk|rk|pk)_(?:live|test)_[A-Za-z0-9_]+|whsec_[A-Za-z0-9_]+/g,'[redacted]')
+    .replace(/https?:\/\/\S+/g,'[Stripe Dashboard]').replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g,'[redacted email]')
+    .replace(/[A-Za-z0-9_-]{24,}/g,'[redacted identifier]').slice(0,280);
+}
 
 // Injected transports exist only for tests; request parameters and bindings
 // cannot replace the Stripe API or authentication provider.
@@ -123,7 +133,7 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       operation = 'database';
       await store.attach(order.id, session.id);
       return json({ mode: 'test', order_id: order.id, url: checkout });
-    } catch (error) { return json({ error: safeFailure(error), operation }, 503); }
+    } catch (error) { return json({ error: safeFailure(error), operation, reason: operation === 'stripe_checkout' ? checkoutSetupReason(error,env) : undefined }, 503); }
   };
 }
 
