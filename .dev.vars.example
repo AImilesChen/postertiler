@@ -4,3 +4,7 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 # A base64url encoded, randomly generated 32-byte key; use separate local and production keys.
 AUTH_COOKIE_KEY=
+# Stripe sandbox only. Live keys are deliberately not accepted by these routes.
+STRIPE_TEST_SECRET_KEY=
+STRIPE_TEST_WEBHOOK_SECRET=
+BILLING_TEST_ENABLED=false

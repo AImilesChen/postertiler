@@ -43,6 +43,16 @@ The public domain is `postertiler.com`. `src/tracking-config.json` contains publ
 
 All four visitor providers require explicit analytics acceptance. Account/API/unknown paths and nonproduction hosts are excluded. Clarity masks file editors, previews and account navigation. Tags that inspect their own URLs/referrers are excluded on parameterized or unsafe contexts; GA4 uses explicit sanitized page fields. Withdrawal clears controlled analytics cookies and reloads the page. The expanded provider list uses a new consent version, so a former GA4-only acceptance is not reused. GSC uses existing DNS ownership verification; Bing uses the public meta verification tag.
 
+## Stripe sandbox integration
+
+The `/api/billing/test/*` routes implement test Checkout, signed snapshot webhooks and persistent test order/credit records in the separate `BILLING_TEST_DB` D1 database. This is a sandbox integration, not live billing or cloud processing. `BILLING_TEST_ENABLED` defaults to `false`; the account testing panel stays hidden until explicitly enabled with all bindings and secrets. No live key is accepted. The two candidate Price IDs in `server/billing/catalog.mjs` are verified against Stripe for test mode, USD, one-time billing and the expected 199/599 cents before a checkout is created.
+
+Required encrypted server Secrets: `STRIPE_TEST_SECRET_KEY` and `STRIPE_TEST_WEBHOOK_SECRET`. Apply `server/billing/migrations/0001_billing_test.sql` only to the named test database. The HTTPS endpoint is `/api/billing/test/webhook`; subscribe to snapshot events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded` using API version `2026-10-28.endive` for Stripe 23.1.0. Store the endpoint's `whsec_` signing secret in Cloudflare, never in client variables or source control.
+
+The handler reads the raw body, verifies the signature using the official Stripe SDK and Web Crypto, retrieves canonical Stripe objects, verifies the purchased price/amount/owner and updates the event and order atomically. Repeated/delayed events cannot duplicate credits or restore refunded credits. Returning to `/account` only reads persisted state. Checkout idempotency keys survive uncertain API responses; request rate and body size are bounded. No file or Google email/name is sent to Stripe by this implementation; the client reference is a SHA256 pseudonymous Google subject reference.
+
+Run `node --test tests/billing.test.mjs` and `npm run test:browser:billing`. The backend tests use actual SQLite through a D1-shaped adapter and the real SDK's signature verifier with a fixture API. The browser tests also use explicit fixtures. They do not prove real Stripe delivery. Live payments, a production credit-redemption ledger, cloud tasks, live refund rules and paid-service policies remain required before selling cloud processing.
+
 ## Limits and evidence
 
 Each tool shows its supported file, pixel and page limits. PDF layers, forms, encryption and printable annotations have explicit restrictions. CMYK-style output is combined RGB artwork, not prepress color-separation plates. Print at Actual Size / 100%; physical printing and assembly are separate user acceptance steps.

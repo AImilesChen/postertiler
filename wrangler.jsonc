@@ -17,8 +17,15 @@
   },
   "vars": {
     "AUTH_ORIGIN": "https://postertiler.com",
+    "BILLING_TEST_ENABLED": "false",
     "GOOGLE_CLIENT_ID": "125964364837-is10t52c9eqj7vo0momtk0l99a497jp2.apps.googleusercontent.com"
   },
+  "d1_databases": [{
+    "binding": "BILLING_TEST_DB",
+    "database_name": "postertiler-billing-test",
+    "database_id": "33e54a3a-9dba-44f0-90bf-e7ae222be221",
+    "migrations_dir": "server/billing/migrations"
+  }],
   "observability": {
     "enabled": false
   }

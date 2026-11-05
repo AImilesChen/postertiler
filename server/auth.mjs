@@ -33,6 +33,14 @@ function readCookie(request, name) {
   const parts = (request.headers.get('Cookie') || '').split(';').map(s => s.trim()).filter(s => s.startsWith(name + '='));
   return parts.length === 1 ? parts[0].slice(name.length + 1) : null;
 }
+export async function getSessionUser(request, env) {
+  let config;
+  try { config = settings(env); } catch { return null; }
+  if (!config.available) return null;
+  const session = await openCookie(config, 'session', readCookie(request, cookieName(config, 'session')));
+  const user = session?.user;
+  return user && typeof user.id === 'string' && typeof user.email === 'string' ? user : null;
+}
 function cookie(config, purpose, value, maxAge) {
   return `${cookieName(config, purpose)}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${config.local ? '' : '; Secure'}`;
 }

@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle, LockSimple } from '@phosphor-icons/react';
 import { Alert, B } from './ui';
 import { useAuth } from './AuthContext';
 import './account.css';
+import BillingTestPanel from './BillingTestPanel';
 
 const messages = {
   canceled: 'Google sign-in was canceled. You can try again whenever you are ready.',
@@ -43,6 +44,7 @@ export default function Account() {
       </>}
       <noscript><p>Enable JavaScript to view your account. All free tools remain available without signing in.</p></noscript>
     </section>
+    {state.user && <BillingTestPanel key={state.user.id}/>}
     <aside className="auth-note"><LockSimple size={21} aria-hidden="true"/><div><h2>Your files stay with you</h2><p>Signing in does not upload your images or PDFs. All six free tools work without an account or analytics permission.</p><a href="/tools">Browse the free tools<ArrowRight size={15} aria-hidden="true"/></a></div></aside>
   </main>;
 }

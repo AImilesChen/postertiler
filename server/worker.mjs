@@ -1,9 +1,10 @@
 import { handleAuth } from './auth.mjs';
+import { handleBilling } from './billing/handler.mjs';
 
 export default {
   async fetch(request, env) {
     try {
-      const response = await handleAuth(request, env);
+      const response = await handleBilling(request, env) || await handleAuth(request, env);
       if (response) return response;
       const asset = await env.ASSETS.fetch(request);
       if (!new URL(request.url).pathname.startsWith('/account')) return asset;

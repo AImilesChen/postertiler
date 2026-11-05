@@ -40,6 +40,17 @@
 .auth-loading { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 180px; color: var(--muted); font-size: 15px; }
 .auth-loading-mark { width: 12px; height: 12px; background: var(--accent); }
 .account-nav { white-space: nowrap; }
+.billing-test-panel { margin-top: 24px; border: 1px solid var(--rule); padding: 28px; background: #fff; }
+.billing-test-panel h2 { margin: 4px 0 14px; font-size: 23px; }
+.billing-test-panel > p { font-size: 14px; line-height: 1.65; }
+.billing-test-plans { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 20px 0; }
+.billing-test-plans > div { min-width: 0; border: 1px solid var(--rule); padding: 16px; }
+.billing-test-plans h3 { font-size: 16px; margin: 0 0 10px; }
+.billing-test-plans p { font-size: 13px; line-height: 1.5; }
+.billing-test-plans .button { width: 100%; font-size: 13px; white-space: normal; }
+.billing-test-orders ul { padding: 0; list-style: none; }
+.billing-test-orders li { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: space-between; border-top: 1px solid var(--rule); padding: 12px 0; font-size: 13px; }
+@media (max-width: 600px) { .billing-test-panel { padding: 24px 20px; } .billing-test-plans { grid-template-columns: 1fr; } }
 @media (max-width: 600px) {
   .auth-page { padding: 36px 20px 56px; }
   .auth-heading { margin-bottom: 24px; }
