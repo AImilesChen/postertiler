@@ -99,6 +99,12 @@ test('both prices must match actual Stripe test amount, currency and one-time se
   for(const bad of [{livemode:true},{unit_amount:599},{currency:'eur'},{type:'recurring'},{active:false},{transform_quantity:{}},{id:'price_wrong'}]) assert.equal(validTestPrice({...good,...bad},plan),false);
   const f=fixture(t); f.api.prices.retrieve=async()=>({...good,livemode:true}); assert.equal((await f.checkout()).response.status,503); assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM billing_test_orders').get().n,0);
 });
+test('Stripe setup failures return a safe category and phase without raw provider details', async t => {
+  for (const [cause, expected] of [[{type:'StripeAuthenticationError'},'stripe_authentication_failed'],[{type:'StripePermissionError'},'stripe_permission_denied'],[{code:'resource_missing'},'stripe_resource_not_found'],[{type:'StripeInvalidRequestError'},'stripe_request_rejected'],[{type:'StripeConnectionError'},'stripe_temporarily_unavailable']]) {
+    const f=fixture(t);f.api.prices.retrieve=async()=>{throw {...cause,message:'fixture-private-secret-and-provider-body'};};
+    const result=await f.checkout();assert.equal(result.response.status,503);assert.equal(result.body.error,expected);assert.equal(result.body.operation,'stripe_price');assert.ok(!JSON.stringify(result.body).includes('fixture-private'));
+  }
+});
 test('repeated and concurrent checkout requests use one order and one Stripe idempotency key', async t => {
   const f=fixture(t), id=crypto.randomUUID();
   const results=await Promise.all([f.checkout('pack5',id),f.checkout('pack5',id),f.checkout('pack5',id)]);

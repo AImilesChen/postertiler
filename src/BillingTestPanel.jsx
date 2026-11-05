@@ -3,6 +3,14 @@ import { Alert, B } from './ui';
 
 const api = '/api/billing/test';
 const amount = value => `$${(value / 100).toFixed(2)}`;
+const checkoutErrors = {
+  stripe_authentication_failed: 'The configured Stripe test API key was rejected. Check the key in Cloudflare.',
+  stripe_permission_denied: 'The Stripe test API key does not have the required permissions.',
+  stripe_resource_not_found: 'The configured price was not found in this Stripe test account. Check that the prices and API key belong to the same sandbox.',
+  price_configuration_mismatch: 'The Stripe price does not match this test plan. Check its amount, currency and one-time billing in the same sandbox.',
+  stripe_request_rejected: 'Stripe rejected the test checkout setup. Its integration settings need review.',
+  stripe_temporarily_unavailable: 'Stripe could not be reached. You can retry the same checkout.',
+};
 export default function BillingTestPanel() {
   const [data, setData] = useState(null), [error, setError] = useState(''), [busy, setBusy] = useState(false), [returned, setReturned] = useState(null);
   const attempt = useRef(null), alive = useRef(true);
@@ -39,12 +47,12 @@ export default function BillingTestPanel() {
       const result = await response.json();
       if (!response.ok) {
         if (['order_not_payable','request_expired'].includes(result.error)) { attempt.current = null; await refresh(); }
-        throw new Error();
+        throw new Error(checkoutErrors[result.error] || (result.operation === 'database' ? 'The test order database could not be updated. Please try again.' : ''));
       }
       const target = new URL(result.url);
       if (result.mode !== 'test' || target.protocol !== 'https:' || target.hostname !== 'checkout.stripe.com') throw new Error();
-      location.assign(target.href);
-    } catch { if (alive.current) setError('Test checkout could not open. Check your order status, then try again.'); }
+      if (alive.current) location.assign(target.href);
+    } catch (failure) { if (alive.current) setError('Test checkout could not open. ' + (failure.message || 'Check your order status, then try again.')); }
     finally { if (alive.current) setBusy(false); }
   }
   if (!data?.enabled) return error ? <Alert tone="error">{error}</Alert> : null;

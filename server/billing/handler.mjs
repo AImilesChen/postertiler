@@ -46,6 +46,14 @@ function safeCheckoutUrl(value) {
 function stripeClient(env) {
   return new Stripe(env.STRIPE_TEST_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient(), timeout: 10000, maxNetworkRetries: 1 });
 }
+function safeFailure(error) {
+  if (error?.type === 'StripeAuthenticationError') return 'stripe_authentication_failed';
+  if (error?.type === 'StripePermissionError') return 'stripe_permission_denied';
+  if (error?.code === 'resource_missing') return 'stripe_resource_not_found';
+  if (error?.type === 'StripeInvalidRequestError') return 'stripe_request_rejected';
+  if (error?.type === 'StripeConnectionError' || error?.type === 'StripeAPIError') return 'stripe_temporarily_unavailable';
+  return 'billing_temporarily_unavailable';
+}
 
 // Injected transports exist only for tests; request parameters and bindings
 // cannot replace the Stripe API or authentication provider.
@@ -58,17 +66,20 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
     if (!['/status','/checkout','/webhook'].includes(path) && !orderPath) return json({ error: 'not_found' }, 404);
     const method = ['/checkout','/webhook'].includes(path) ? 'POST' : 'GET';
     if (request.method !== method) return json({ error: 'method_not_allowed' }, 405, { Allow: method });
+    let operation = 'configuration';
     try {
       if (url.origin !== origin(env)) return json({ error: 'invalid_origin' }, 400);
       if (path === '/webhook') return await webhook(request, env, makeStripe);
       const user = await authenticate(request, env);
       if (!user) return json({ error: 'sign_in_required' }, 401);
       if (path === '/status') {
+        operation = 'database';
         const enabled = env.BILLING_TEST_ENABLED === 'true' && ready(env);
         const summary = enabled ? await new BillingStore(env.BILLING_TEST_DB).summary(await ownerKey(user)) : { test_credits: 0, orders: [] };
         return json({ mode: 'test', enabled, cloud_delivery: false, ...summary, plans: Object.entries(TEST_CATALOG).map(([id, plan]) => ({ id, name: plan.name, amount: plan.amount, currency: plan.currency, credits: plan.credits })) });
       }
       if (env.BILLING_TEST_ENABLED !== 'true' || !ready(env)) return json({ error: 'test_billing_unavailable' }, 503);
+      operation = 'database';
       const store = new BillingStore(env.BILLING_TEST_DB), userKey = await ownerKey(user);
       if (orderPath) {
         if (!uuid(orderPath[1])) return json({ error: 'not_found' }, 404);
@@ -88,8 +99,10 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (!order && await store.recentCount(userKey) >= 10) return json({ error: 'too_many_attempts' }, 429, { 'Retry-After': '3600' });
       const stripe = makeStripe(env);
       if (!order) {
+        operation = 'stripe_price';
         const price = await stripe.prices.retrieve(plan.price);
         if (!validTestPrice(price, plan)) return json({ error: 'price_configuration_mismatch' }, 503);
+        operation = 'database';
         order = await store.create(userKey, body.request_id, body.plan, plan);
         if (order.sku !== body.plan) return json({ error: 'request_conflict' }, 409);
       }
@@ -97,6 +110,7 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       // Stripe retains idempotency results for at least 24 hours. Never reuse an
       // unattached request beyond that window after an uncertain API response.
       if (!order.session_id && Date.now() - order.created_at > 23 * 3600000) return json({ error: 'request_expired' }, 409);
+      operation = 'stripe_checkout';
       const session = order.session_id ? await stripe.checkout.sessions.retrieve(order.session_id) : await stripe.checkout.sessions.create({
         mode: 'payment', line_items: [{ price: order.price_id, quantity: 1 }], payment_method_types: ['card'],
         client_reference_id: order.user_key, metadata: { order_id: order.id, sku: order.sku, price_version: order.price_version },
@@ -106,9 +120,10 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       }, { idempotencyKey: `postertiler-test-${order.id}` });
       const checkout = safeCheckoutUrl(session.url);
       if (session.livemode !== false || session.status !== 'open' || !checkout) return json({ error: 'checkout_unavailable' }, 502);
+      operation = 'database';
       await store.attach(order.id, session.id);
       return json({ mode: 'test', order_id: order.id, url: checkout });
-    } catch { return json({ error: 'billing_temporarily_unavailable' }, 503); }
+    } catch (error) { return json({ error: safeFailure(error), operation }, 503); }
   };
 }
 
