@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { ArrowRight, CheckCircle, LockSimple } from '@phosphor-icons/react';
 import { Alert, B } from './ui';
+import './account.css';
 
 const messages = {
   canceled: 'Google sign-in was canceled. You can try again whenever you are ready.',
@@ -39,25 +41,25 @@ export default function Account() {
     } catch { setNotice('We could not sign you out. Please try again.'); }
     finally { setSigningOut(false); }
   }
-  return <main className="account-layout">
-    <div className="page-intro"><small>YOUR POSTERTILER</small><h1>{state.user ? 'Your account' : 'Sign in to PosterTiler'}</h1><p>Keep your Google sign-in separate from your poster files.</p></div>
-    <section className="account-card" aria-label="Account sign-in" aria-busy={state.status === 'loading' || signingOut}>
+  const initials = (state.user?.name || state.user?.email || '').trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  return <main className="auth-page">
+    <header className="auth-heading"><span className="auth-eyebrow">YOUR POSTERTILER</span><h1>{state.user ? 'Your account' : 'Sign in to PosterTiler'}</h1><p>{state.user ? 'You’re signed in. Your next poster starts here.' : 'A simple sign-in. Your files stay on your device.'}</p></header>
+    <section className="auth-card" aria-label="Account sign-in" aria-busy={state.status === 'loading' || signingOut}>
       {notice && <Alert>{notice}</Alert>}
-      {state.status === 'loading' ? <p role="status">Checking your sign-in…</p> : state.status === 'error' ? <>
+      {state.status === 'loading' ? <div className="auth-loading" role="status"><span className="auth-loading-mark" aria-hidden="true"/>Checking your sign-in…</div> : state.status === 'error' ? <>
         <Alert tone="error">We could not check your sign-in. Please try again.</Alert><B secondary onClick={() => refresh()}>Try again</B>
       </> : state.user ? <>
-        <small>SIGNED IN WITH GOOGLE</small><h2>{state.user.name || 'Welcome to PosterTiler'}</h2>
-        <p className="account-email">{state.user.email}</p>
-        <p>You stay signed in for up to 7 days, or until you sign out on this browser.</p>
-        <div className="button-row"><a className="button" href="/tools">Explore the tools</a><B secondary disabled={signingOut} onClick={signOut}>{signingOut ? 'Signing out…' : 'Sign out'}</B></div>
+        <div className="auth-profile"><div className="auth-avatar" aria-hidden="true">{initials}</div><div className="auth-identity"><span className="auth-label">GOOGLE ACCOUNT</span><h2>{state.user.name || 'Welcome to PosterTiler'}</h2><p className="auth-email">{state.user.email}</p></div></div>
+        <div className="auth-session"><span className="auth-status"><CheckCircle size={17} weight="fill" aria-hidden="true"/>Signed in</span><p>You stay signed in for up to 7 days on this browser.</p></div>
+        <div className="auth-actions"><a className="button" href="/#poster-editor">Make a poster<ArrowRight size={18} aria-hidden="true"/></a><B secondary disabled={signingOut} onClick={signOut}>{signingOut ? 'Signing out…' : 'Sign out'}</B></div>
       </> : <>
-        <h2>Welcome to PosterTiler</h2><p>Use your Google account to sign in. We request your basic profile and email address.</p>
+        <div className="auth-welcome"><img src="/assets/brand/postertiler-mark.png" alt="" width="48" height="48"/><h2>Welcome to PosterTiler</h2><p>Continue with your Google account.<br/>We only request your basic profile and email.</p></div>
         {state.available ? <a className="google-signin" href="/api/auth/google"><GoogleMark/>Continue with Google</a> : <Alert>Sign-in is temporarily unavailable. The free tools are ready to use.</Alert>}
-        <p className="micro">Read our <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms of Use</a>.</p>
+        <p className="auth-legal">Read our <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms of Use</a>.</p>
       </>}
       <noscript><p>Enable JavaScript to view your account. All free tools remain available without signing in.</p></noscript>
     </section>
-    <div className="account-note"><h2>Your files stay with you</h2><p>Signing in does not upload your images or PDFs. All six free tools work without an account or analytics permission.</p><a href="/tools">Browse the free tools</a></div>
+    <aside className="auth-note"><LockSimple size={21} aria-hidden="true"/><div><h2>Your files stay with you</h2><p>Signing in does not upload your images or PDFs. All six free tools work without an account or analytics permission.</p><a href="/tools">Browse the free tools<ArrowRight size={15} aria-hidden="true"/></a></div></aside>
   </main>;
 }
 function GoogleMark() {

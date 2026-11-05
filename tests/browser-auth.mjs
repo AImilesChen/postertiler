@@ -41,10 +41,20 @@ try {
   await check('Signed-in fixture profile, failed logout and successful logout behave correctly', async () => {
     user=fixture; await go(''); await page.getByRole('heading',{name:'Fixture Person',exact:true}).waitFor();
     assert.ok((await page.locator('main').innerText()).includes(fixture.email));
+    await page.screenshot({path:out+'/signed-in-desktop.png',fullPage:true});
     failLogout=true; await page.getByRole('button',{name:'Sign out',exact:true}).click(); await page.getByText('We could not sign you out. Please try again.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'Fixture Person',exact:true}).count(),1);
     failLogout=false; await page.getByRole('button',{name:'Sign out',exact:true}).click(); await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'Fixture Person',exact:true}).count(),0);
+  });
+  await check('Titles stay above the account card at desktop, tablet and phone sizes', async () => {
+    for (const width of [1440,1024,820,390,320]) for (const loggedIn of [false,true]) {
+      await page.setViewportSize({width,height:1000}); user=loggedIn?fixture:null; await go('');
+      const layout=await page.evaluate(()=>{ const h=document.querySelector('.auth-heading').getBoundingClientRect(), t=document.querySelector('h1').getBoundingClientRect(), c=document.querySelector('.auth-card').getBoundingClientRect(); return {headingBottom:h.bottom,titleWidth:t.width,cardTop:c.top,cardLeft:c.left,cardRight:c.right,viewport:innerWidth}; });
+      assert.ok(layout.headingBottom+16<=layout.cardTop,`Title and card overlap at ${width}px`);
+      assert.ok(layout.titleWidth>=Math.min(320,width-40),`Title is squeezed into a narrow column at ${width}px`);
+      assert.ok(layout.cardLeft>=15&&layout.cardRight<=layout.viewport-15,`Card exceeds the viewport at ${width}px`);
+    }
   });
   await check('Anonymous and signed-in long-profile states fit 390px and 320px without markup injection', async () => {
     for(const width of [390,320]) for(const loggedIn of [false,true]) {
