@@ -14,6 +14,16 @@ The current local tools and ordinary poster PDF exports are free, have no waterm
 
 Google sign-in is optional. Use an account you are authorized to use and protect access to it. Signing in provides a basic profile and a browser session; it does not purchase processing credits, create a paid order or upload your files. This release does not keep a permanent account database. You can sign out on the Account page; other browsers have their own sessions. All current free tools remain available without sign-in.
 
+## Cloud PDF sandbox
+
+Optional cloud processing is available on the Account page using Stripe sandbox credits. This release charges no real money. The displayed reference plans are Cloud Single ($1.99 for 1 credit) and Cloud Pack ($5.99 for 5 credits); use test card data only. Sandbox credits are not real-money purchases and cannot be cashed out. No subscription is created.
+
+One supported image and confirmed settings form one task. Starting reserves one available credit. A successfully stored PDF consumes that credit exactly once. A failed or canceled task releases its reservation; this is a credit release, not a cash refund. A task that has already succeeded cannot be canceled to undo its use. Duplicate submissions for the same unexpired result reuse that result. Changing the image or settings creates a new task. Downloading an available result again does not consume another credit.
+
+This version supports JPG up to 20 MiB and 100 megapixels, and 8-bit non-interlaced PNG up to 8 MiB and 4 megapixels, with neither side above 30,000 pixels. RGB/grayscale JPG is supported; CMYK JPG, animated PNG, WebP, professional PDF, batch processing and AI are not included in this cloud release. Up to 400 poster sheets and a 30,000 mm finished dimension per side are allowed. One task per account may hold a credit at a time. Upload within 10 minutes; queued/processing work has a 20-minute deadline, up to three automatic attempts and up to three manual retries where available.
+
+Files and authenticated downloads expire 24 hours after task creation. Scheduled deletion normally follows within 5 minutes, with retries after outages. Keep your own copy before expiry. Purchased test credits do not have a timed expiry; test data may be reset as part of sandbox maintenance. Printing, cutting and assembly remain your responsibility. For a service issue, contact support@postertiler.com with the task/order reference, without attaching private files unnecessarily. Real-money payment and refund terms will be presented before live sales are enabled. Mandatory consumer rights are unaffected.
+
 ## Your content and permissions
 
 You retain the rights you have in the files you use. You must have the permissions needed to use, reproduce and display the content, including permissions concerning identifiable people where applicable. Processing a file does not give you copyright, trademark or other rights in it.

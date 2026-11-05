@@ -40,6 +40,24 @@
 .auth-loading { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 180px; color: var(--muted); font-size: 15px; }
 .auth-loading-mark { width: 12px; height: 12px; background: var(--accent); }
 .account-nav { white-space: nowrap; }
+.cloud-panel { margin-top:24px; padding:28px; border:1px solid var(--rule); background:#fff; }
+.cloud-panel h2 { margin:4px 0 14px; font-size:25px; letter-spacing:-.5px; }
+.cloud-panel p { line-height:1.65; font-size:14px; }
+.cloud-panel label { display:flex; flex-direction:column; gap:8px; font-size:14px; line-height:1.55; }
+.cloud-panel input:not([type=checkbox]),.cloud-panel select { min-width:0; width:100%; min-height:44px; border:1px solid #aaa; background:#fff; padding:10px; font:inherit; }
+.cloud-panel input[type=file] { padding:10px 0; border:0; }
+.cloud-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:20px 0; }
+.cloud-panel .cloud-check { flex-direction:row; align-items:flex-start; margin:16px 0; gap:10px; }
+.cloud-check input { flex-shrink:0; width:17px; height:17px; margin-top:3px; }
+.cloud-balance { display:grid; grid-template-columns:repeat(3,1fr); padding:20px; gap:12px; background:#f5f5f5; }
+.cloud-balance dt { font-size:12px; color:var(--muted); }
+.cloud-balance dd { margin:6px 0 0; font-size:28px; font-weight:700; }
+.cloud-job { padding:20px 0; border-top:1px solid var(--rule); margin-top:18px; }
+.cloud-job-state { display:block; margin-top:8px; color:var(--muted); font-size:13px; }
+.cloud-job .button { margin-top:10px; white-space:normal; }
+.cloud-jobs { margin-top:32px; }
+@media(max-width:600px) { .cloud-panel { padding:24px 20px; } }
+@media(max-width:350px) { .cloud-fields { grid-template-columns:1fr; } .cloud-balance { padding:14px; } }
 .billing-test-panel { margin-top: 24px; border: 1px solid var(--rule); padding: 28px; background: #fff; }
 .billing-test-panel h2 { margin: 4px 0 14px; font-size: 23px; }
 .billing-test-panel > p { font-size: 14px; line-height: 1.65; }

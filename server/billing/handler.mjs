@@ -2,6 +2,8 @@ import Stripe from 'stripe';
 import { getSessionUser } from '../auth.mjs';
 import { TEST_CATALOG, validTestPrice } from './catalog.mjs';
 import { BillingStore } from './store.mjs';
+import { cloudReady } from '../cloud/contract.mjs';
+import { CloudStore } from '../cloud/store.mjs';
 
 const BASE = '/api/billing/test';
 const EVENTS = new Set(['checkout.session.completed','checkout.session.async_payment_succeeded','checkout.session.async_payment_failed','checkout.session.expired','charge.refunded']);
@@ -86,7 +88,9 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
         operation = 'database';
         const enabled = env.BILLING_TEST_ENABLED === 'true' && ready(env);
         const summary = enabled ? await new BillingStore(env.BILLING_TEST_DB).summary(await ownerKey(user)) : { test_credits: 0, orders: [] };
-        return json({ mode: 'test', enabled, cloud_delivery: false, ...summary, plans: Object.entries(TEST_CATALOG).map(([id, plan]) => ({ id, name: plan.name, amount: plan.amount, currency: plan.currency, credits: plan.credits })) });
+        const cloud = enabled && cloudReady(env);
+        if(cloud) summary.test_credits=(await new CloudStore(env.BILLING_TEST_DB).balance(await ownerKey(user))).available;
+        return json({ mode: 'test', enabled, cloud_delivery: cloud, ...summary, plans: Object.entries(TEST_CATALOG).map(([id, plan]) => ({ id, name: plan.name, amount: plan.amount, currency: plan.currency, credits: plan.credits })) });
       }
       if (env.BILLING_TEST_ENABLED !== 'true' || !ready(env)) return json({ error: 'test_billing_unavailable' }, 503);
       operation = 'database';

@@ -15,6 +15,7 @@ export default function Editor({ calculator = false }) {
   const [reset, setReset] = useState(false), [pdf, setPdf] = useState(null);
   const input = useRef(), cancel = useRef({ current: false }), readId = useRef(0), sourceRef = useRef(null);
   const g = geometry(settings), busy = status === 'exporting';
+  const cloudLink = <a href="/account#cloud-processing" onClick={()=>{try{sessionStorage.setItem('postertiler-cloud-settings',JSON.stringify(settings));}catch{}}}>Try optional cloud processing</a>;
   const alternativeOrientation = g.pw > g.ph ? 'Portrait' : 'Landscape';
   const alternative = geometry({ ...settings, mode: 'exact', width: g.width, height: g.height, orientation: alternativeOrientation });
   const invalidate = () => { cancel.current.current = true; cancel.current = { current: false }; setPdf(null); setStatus(''); setError(''); };
@@ -129,7 +130,7 @@ export default function Editor({ calculator = false }) {
     {busy && <Alert><span aria-live="polite">{progress}</span><button onClick={() => { cancel.current.current = true; }}>Cancel</button></Alert>}
     {status === 'ready' && pdf && <Alert tone="success"><strong>Your PDF is ready</strong><p>Print at Actual Size / 100%, then follow the assembly guide.</p><button onClick={() => saveBlob(pdf, 'postertiler-poster.pdf')}>Download again</button></Alert>}
     {status === 'canceled' && <Alert>PDF preparation canceled. Your image and settings are still here.<button onClick={download}>Prepare PDF again</button></Alert>}
-    {status === 'failed' && <Alert tone="error">The PDF could not be prepared.<button onClick={download}>Try again</button></Alert>}
+    {status === 'failed' && <Alert tone="error">The PDF could not be prepared.<button onClick={download}>Try again</button>{cloudLink}</Alert>}
   </>;
   return <><div className="editor" id="poster-editor" data-clarity-mask="true"><aside className="settings-panel">{calculator ? <div className="calc-controls">{paperControls}{sizeControls}{printControls}{!g.error&&!alternative.error&&<Alert>For the same exact {sizeText(g,settings.unit)} canvas, {alternativeOrientation.toLowerCase()} uses {alternative.count} sheets with the same margins, overlap and label setting.{alternative.count<g.count&&<button onClick={()=>change(s=>({...s,mode:'exact',width:g.width,height:g.height,orientation:alternativeOrientation}))}>Use {alternativeOrientation.toLowerCase()} and save {g.count-alternative.count} sheets</button>}</Alert>}{feedback}<B disabled={!!g.error} onClick={() => { location.href = `/?settings=${encodeURIComponent(JSON.stringify(settings))}#poster-editor`; }}>Create Poster with These Settings <ArrowRight {...icon} /></B></div> : ['Upload', 'Paper Settings', 'Poster Size', 'Print Options', 'Download PDF'].map((title, i) => {
     const n = i + 1;

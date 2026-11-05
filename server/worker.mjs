@@ -1,10 +1,12 @@
 import { handleAuth } from './auth.mjs';
 import { handleBilling } from './billing/handler.mjs';
+import { handleCloud } from './cloud/handler.mjs';
+import { consumeCloud, maintainCloud } from './cloud/processor.mjs';
 
 export default {
   async fetch(request, env) {
     try {
-      const response = await handleBilling(request, env) || await handleAuth(request, env);
+      const response = await handleCloud(request, env) || await handleBilling(request, env) || await handleAuth(request, env);
       if (response) return response;
       const asset = await env.ASSETS.fetch(request);
       if (!new URL(request.url).pathname.startsWith('/account')) return asset;
@@ -19,4 +21,6 @@ export default {
       });
     }
   },
+  async queue(batch,env) { await consumeCloud(batch,env); },
+  async scheduled(controller,env,ctx) { ctx.waitUntil(maintainCloud(env)); },
 };

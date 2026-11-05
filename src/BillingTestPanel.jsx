@@ -19,7 +19,7 @@ export default function BillingTestPanel() {
     if (!response.ok) throw new Error();
     const result = await response.json();
     if (result.mode !== 'test' || typeof result.enabled !== 'boolean' || !Array.isArray(result.orders) || !Array.isArray(result.plans)) throw new Error();
-    if (alive.current) setData(result);
+    if (alive.current) { setData(result); window.dispatchEvent(new Event('billing-updated')); }
     return result;
   }
   useEffect(() => {
@@ -37,7 +37,9 @@ export default function BillingTestPanel() {
         if (['created','pending'].includes(order.status) && ++polls < 6) timer = setTimeout(check, 2000);
       } catch { if (alive.current && validOrder) setError('We could not check this test order. Refresh its status in a moment.'); }
     }
-    check(); return () => { alive.current = false; controller.abort(); clearTimeout(timer); };
+    const update=()=>refresh(controller.signal).catch(()=>{});
+    window.addEventListener('cloud-updated',update);
+    check(); return () => { alive.current = false; controller.abort(); clearTimeout(timer); window.removeEventListener('cloud-updated',update); };
   }, []);
   async function checkout(plan) {
     if (busy) return; setBusy(true); setError('');
@@ -58,7 +60,7 @@ export default function BillingTestPanel() {
   if (!data?.enabled) return error ? <Alert tone="error">{error}</Alert> : null;
   return <section className="billing-test-panel" aria-label="Stripe payment testing" data-clarity-mask="true">
     <span className="auth-label">STRIPE SANDBOX</span><h2>Payment testing</h2>
-    <p>Test payments only. These credits do not purchase or run cloud processing. No real money is charged.</p>
+    <p>{data.cloud_delivery ? 'Test payments only. These credits can run the cloud PDF sandbox below. No real money is charged.' : 'Test payments only. These credits do not purchase or run cloud processing. No real money is charged.'}</p>
     <p className="micro">Starting a test stores a pseudonymous account reference and test order history with Cloudflare, then opens Stripe Checkout. Enter Stripe test card details.</p>
     {error && <Alert tone="error">{error}</Alert>}
     {returned && <Alert>{returned.status === 'paid' ? 'Test payment confirmed by Stripe.' : ['refunded','partially_refunded'].includes(returned.status) ? 'This test payment has a refund.' : ['expired','failed'].includes(returned.status) ? 'This test checkout was not completed.' : 'Waiting for Stripe to confirm this test payment. You can refresh the status.'}</Alert>}

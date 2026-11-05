@@ -8,3 +8,5 @@ AUTH_COOKIE_KEY=
 STRIPE_TEST_SECRET_KEY=
 STRIPE_TEST_WEBHOOK_SECRET=
 BILLING_TEST_ENABLED=false
+CLOUD_TEST_ENABLED=false
+# Cloud sandbox also requires local D1, private R2 and Queue bindings; see README.

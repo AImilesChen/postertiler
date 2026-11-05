@@ -16,6 +16,18 @@ Source files and working previews are held temporarily by the open page, rather 
 
 PDF tiling reuses source page content and resources. It is not a PDF sanitization service. Remove private information and unwanted content before using or sharing a source file. Sending an attachment to support is a separate, voluntary disclosure to us.
 
+## Optional cloud PDF sandbox and test payments
+
+The Account page offers optional cloud PDF processing with Stripe sandbox credits. No real money is charged in this release. Only the cloud form uploads a file, after you explicitly select the upload-consent checkbox and start the task. Ordinary local tools remain local.
+
+For a cloud task, Cloudflare Workers, Queues, D1 and private R2 storage process the selected JPG or PNG, its byte hash, dimensions and confirmed print settings to produce a PDF. Source files may contain EXIF or other metadata; remove private information before uploading. We remove JPEG metadata segments and PNG ancillary metadata from the embedded output image and respect supported EXIF orientation. This is not a content-sanitization or professional color-proofing service. Files are not public, are not used for AI training or promotion, and no AI provider is called.
+
+File access ends 24 hours after task creation. A scheduled cleanup normally deletes source and result objects within the next 5 minutes, and retries after service outages. Keep your downloaded copy; we cannot delete it from your device. Temporary storage may be processed outside your country. Cloudflare's global processing and security practices apply.
+
+We keep a pseudonymous reference derived from your Google account identifier, Stripe test order/payment references, price and credit amounts, job settings, file hashes, statuses and timestamps in D1. These records support ownership checks, duplicate-request protection, credit reservations, delivery and failure recovery. They are separate from the temporary files and do not automatically disappear after 24 hours. In this sandbox they remain until the test data is reset or a supported deletion request is handled; do not upload sensitive personal files for testing.
+
+Test checkout sends Stripe the plan, amount and pseudonymous order/account reference. Stripe collects the test checkout details you enter under its [Privacy Policy](https://stripe.com/privacy). Use only Stripe test card data. We do not receive or store card numbers. Account and cloud API routes are excluded from visitor analytics, including file names, job identifiers and download links. Contact support@postertiler.com for data requests.
+
 ## Optional Google sign-in
 
 You can choose to sign in with Google. We request only your basic identity information: Google's account identifier, verified email address and display name. Google authenticates you under its own [Privacy Policy](https://policies.google.com/privacy). We do not receive your Google password or request access to Gmail, Drive, contacts or calendars.
@@ -28,7 +40,7 @@ Signing in does not upload your poster files or enable analytics. You can use al
 
 Cloudflare delivers and protects the website. Website requests involve technical information such as IP address, request time, browser information and security events. Cloudflare processes this information to deliver pages and protect its infrastructure and our website.
 
-The poster application does not operate an additional visitor database, image archive or custom application-log store. Hosting and security records are handled by Cloudflare under its service settings and [Privacy Policy](https://www.cloudflare.com/privacypolicy/). These infrastructure records are separate from your locally processed poster files. We do not sell personal information or use this release for behavioral advertising.
+The poster application does not operate an additional visitor database or custom application-log store. Optional cloud files and pseudonymous task/payment records are described above. Hosting and security records are handled by Cloudflare under its service settings and [Privacy Policy](https://www.cloudflare.com/privacypolicy/). These infrastructure records are separate from your locally processed poster files. We do not sell personal information or use this release for behavioral advertising.
 
 ## Browser storage and analytics
 

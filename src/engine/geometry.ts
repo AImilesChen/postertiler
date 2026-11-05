@@ -17,7 +17,7 @@ export const DEFAULTS: Settings = {
 };
 const numeric = (v: unknown) => v === '' || v === null || v === undefined ? NaN : Number(v);
 export const pt = (mm: number) => mm * 72 / 25.4;
-export function geometry(s: Settings) {
+export function geometry(s: Settings, pageLimit = LIMITS.pages) {
   let error = '';
   const papers = { A4: [210, 297], 'US Letter': [215.9, 279.4], A3: [297, 420] };
   let [pw, ph] = papers[s.paper] || papers.A4;
@@ -57,7 +57,7 @@ export function geometry(s: Settings) {
   if (!['fit', 'fill'].includes(s.placement)) error = 'Choose Fit or Fill.';
   if (s.pageOrder && !['row-major', 'column-major'].includes(s.pageOrder)) error = 'Choose a supported page order.';
   const count = columns * rows;
-  if (!error && (!Number.isFinite(count) || count > LIMITS.pages)) error = `Use ${LIMITS.pages} poster sheets or fewer for a local export.`;
+  if (!error && (!Number.isFinite(count) || count > pageLimit)) error = `Use ${pageLimit} poster sheets or fewer for this export.`;
   return { pw, ph, margins, printableW, printableH, labelBand, columns, rows, width, height,
     count, overlap: o, framed, gap, stepW: printableW + (framed ? gap : -o), stepH: printableH + (framed ? gap : -o), pageOrder: s.pageOrder || 'row-major',
     coverageW: columns * printableW + (columns - 1) * (framed ? gap : -o),

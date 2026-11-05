@@ -1,5 +1,5 @@
 import { PDFDocument, PDFName, PDFString, StandardFonts, PrintScaling, rgb,
-  pushGraphicsState, popGraphicsState, rectangle, clip, endPath } from 'pdf-lib';
+  pushGraphicsState, popGraphicsState, rectangle, clip, endPath, concatTransformationMatrix } from 'pdf-lib';
 import { geometry, imagePlacement, pagePlans, pt, rowLabel, type Settings } from './geometry.ts';
 const ink = rgb(.08, .08, .08), grey = rgb(.5, .5, .5);
 async function document(title: string) {
@@ -8,10 +8,14 @@ async function document(title: string) {
   pdf.catalog.getOrCreateViewerPreferences().setPrintScaling(PrintScaling.None);
   return pdf;
 }
-export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: (page: number, total: number) => void = () => {}, format: 'jpeg' | 'png' = 'jpeg') {
-  const g = geometry(settings), plans = pagePlans(g), pdf = await document('Printable poster');
+export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: (page: number, total: number) => void = () => {}, format: 'jpeg' | 'png' = 'jpeg', options: { pageLimit?: number; orientation?: number } = {}) {
+  const g = geometry(settings, options.pageLimit), plans = pagePlans(g), pdf = await document('Printable poster');
   const image = format === 'png' ? await pdf.embedPng(jpeg) : await pdf.embedJpg(jpeg), font = await pdf.embedFont(StandardFonts.Helvetica);
-  const placement = imagePlacement(g, image.width, image.height, settings.placement);
+  const orientation = options.orientation || 1;
+  const placement = imagePlacement(g, orientation >= 5 ? image.height : image.width, orientation >= 5 ? image.width : image.height, settings.placement);
+  // EXIF transforms in bottom-left PDF coordinates, after private metadata removal.
+  const transforms = [[1,0,0,1,0,0],[-1,0,0,1,1,0],[-1,0,0,-1,1,1],[1,0,0,-1,0,1],
+    [0,-1,-1,0,1,1],[0,-1,1,0,0,1],[0,1,1,0,0,0],[0,1,-1,0,1,0]];
   pdf.catalog.set(PDFName.of('PageLabels'), pdf.context.obj({
     Nums: plans.flatMap(p => [p.index, pdf.context.obj({ P: PDFString.of(p.label) })]),
   }));
@@ -20,10 +24,10 @@ export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: 
     const left = g.margins.left, top = g.margins.top;
     // Clip to the exact finished canvas; the last sheet never enlarges it.
     page.pushOperators(pushGraphicsState(), rectangle(pt(left), pt(g.ph - top - plan.height), pt(plan.width), pt(plan.height)), clip(), endPath());
-    page.drawImage(image, {
-      x: pt(left + placement.x - plan.x), y: pt(g.ph - top - placement.y + plan.y - placement.height),
-      width: pt(placement.width), height: pt(placement.height),
-    });
+    const [a,b,c,d,e,f] = transforms[orientation - 1] || transforms[0];
+    const w = pt(placement.width), h = pt(placement.height);
+    page.pushOperators(concatTransformationMatrix(w*a,h*b,w*c,h*d,pt(left + placement.x - plan.x)+w*e,pt(g.ph-top-placement.y+plan.y-placement.height)+h*f));
+    page.drawImage(image, { x: 0, y: 0, width: 1, height: 1 });
     page.pushOperators(popGraphicsState());
     if (settings.labels) {
       const text = g.printableW >= 80 ? `${plan.label}  |  ${plan.index + 1} of ${g.count}  |  trim this guide band` : plan.label;
@@ -41,8 +45,8 @@ export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: 
   }
   return pdf.save();
 }
-export async function calibrationPdf(settings: Settings) {
-  const g = geometry(settings); if (g.error) throw new Error(g.error);
+export async function calibrationPdf(settings: Settings, pageLimit?: number) {
+  const g = geometry(settings, pageLimit); if (g.error) throw new Error(g.error);
   const pdf = await document('Print calibration'), font = await pdf.embedFont(StandardFonts.Helvetica);
   const page = pdf.addPage([pt(g.pw), pt(g.ph)]);
   page.drawText('Print calibration', { x: pt(20), y: pt(g.ph - 25), size: 17, font });
@@ -60,8 +64,8 @@ export async function calibrationPdf(settings: Settings) {
   page.drawText('100 mm vertically', { x: pt(35), y: pt(g.ph - 185), size: 9, font });
   return pdf.save();
 }
-export async function assemblyPdf(settings: Settings) {
-  const g = geometry(settings); pagePlans(g);
+export async function assemblyPdf(settings: Settings, pageLimit?: number) {
+  const g = geometry(settings, pageLimit); pagePlans(g);
   const pdf = await document('Poster assembly map'), font = await pdf.embedFont(StandardFonts.Helvetica);
   for (let r0 = 0; r0 < g.rows; r0 += 10) for (let c0 = 0; c0 < g.columns; c0 += 10) {
     const page = pdf.addPage([pt(210), pt(297)]);

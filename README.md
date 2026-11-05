@@ -1,5 +1,15 @@
 # PosterTiler
 
+Version 1.6 adds optional cloud PDF sandbox delivery on `/account`. Stripe remains **test mode only** ($1.99/1 credit, $5.99/5 credits reference plans); no live money is accepted. Ordinary browser exports remain free and local.
+
+Cloud jobs use private R2, a serial Queue consumer and an additive D1 job ledger. Starting atomically reserves one credit; a stored successful result consumes it once; failure/cancellation releases it. Owner-authenticated repeat downloads do not consume credits. Files expire after 24 hours, with cleanup/recovery scheduled every five minutes. Queued jobs persist independently of the browser, with leases, idempotency, bounded automatic retries and a 20-minute deadline.
+
+Supported cloud inputs: RGB/grayscale JPG up to 20 MiB/100 MP, and 8-bit non-interlaced PNG up to 8 MiB/4 MP; 30,000 px per side; up to 400 poster sheets. No AI, WebP, professional PDF or batch cloud processing is included in this release. Upload requires explicit consent. The shared print engine also provides separate assembly and calibration PDFs. Account/API routes remain outside visitor analytics.
+
+Apply `server/billing/migrations/0002_cloud_jobs.sql` **once to the existing sandbox database**, without resetting `0001` or existing orders. Resource bindings: `BILLING_TEST_DB`, private `CLOUD_TEST_FILES` bucket, `CLOUD_TEST_QUEUE`; flags `BILLING_TEST_ENABLED` and `CLOUD_TEST_ENABLED`. Live Stripe keys are rejected. Disable the flags and roll back the Worker to revert the UI/API while retaining the additive records; restore a database bookmark only after reconciling subsequent test transactions.
+
+Local runtime integration: `node scripts/prepare-cloud-local.mjs` prepares an isolated fixture configuration and session under ignored `verification/cloud/`. Initialize the two migration files and generated `seed.sql` using **local** Wrangler D1, then run Wrangler dev with that config and persist directory. `node scripts/check-cloud-runtime.mjs` checks actual local D1/R2/Queue PDF delivery; set `CLOUD_JPEG_FIXTURE` to a supported large JPG fixture. `node tests/browser-cloud.mjs` checks explicit consent, server output download and mobile layout against that local runtime. These scripts do not grant remote credits or use real payments.
+
 Browser-based poster tiling and PDF tools for **postertiler.com**. The formal application source is maintained locally in the PosterTiler project's `app` directory and published at this repository root.
 
 ## Features
@@ -49,11 +59,11 @@ The `/api/billing/test/*` routes implement test Checkout, signed snapshot webhoo
 
 Required encrypted server Secrets: `STRIPE_TEST_SECRET_KEY` and `STRIPE_TEST_WEBHOOK_SECRET`. Apply `server/billing/migrations/0001_billing_test.sql` only to the named test database. The HTTPS endpoint is `/api/billing/test/webhook`; subscribe to snapshot events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded` using API version `2026-10-28.endive` for Stripe 23.1.0. Store the endpoint's `whsec_` signing secret in Cloudflare, never in client variables or source control.
 
-Endive Checkout uses `allowed_payment_method_types: ['card']` as a filter on Dashboard-enabled methods. The older `payment_method_types` create parameter was removed in the September 2026 API release. Sandbox setup errors expose only safe categories and short reasons with credentials, URLs, email addresses and opaque identifiers redacted. The integration was exercised against real Stripe sandbox Checkout for both USD 1.99 (one test credit) and USD 5.99 (five test credits); persisted orders became paid and the total balance remained six after refresh. The public testing panel is closed after verification; live money and cloud delivery remain disabled.
+Endive Checkout uses `allowed_payment_method_types: ['card']` as a filter on Dashboard-enabled methods. The older `payment_method_types` create parameter was removed in the September 2026 API release. Sandbox setup errors expose only safe categories and short reasons with credentials, URLs, email addresses and opaque identifiers redacted. Real Stripe sandbox payments for both USD 1.99 and USD 5.99 previously granted six test credits. Version 1.6 opens the account sandbox for cloud-task acceptance; live money remains disabled.
 
 The handler reads the raw body, verifies the signature using the official Stripe SDK and Web Crypto, retrieves canonical Stripe objects, verifies the purchased price/amount/owner and updates the event and order atomically. Repeated/delayed events cannot duplicate credits or restore refunded credits. Returning to `/account` only reads persisted state. Checkout idempotency keys survive uncertain API responses; request rate and body size are bounded. No file or Google email/name is sent to Stripe by this implementation; the client reference is a SHA256 pseudonymous Google subject reference.
 
-Run `node --test tests/billing.test.mjs` and `npm run test:browser:billing`. The backend tests use actual SQLite through a D1-shaped adapter and the real SDK's signature verifier with a fixture API. The browser tests also use explicit fixtures. They do not prove real Stripe delivery. Live payments, a production credit-redemption ledger, cloud tasks, live refund rules and paid-service policies remain required before selling cloud processing.
+Run `node --test tests/billing.test.mjs tests/cloud.test.mjs` and `npm run test:browser:billing`. Backend tests use actual SQLite and the real SDK's signature verifier with a fixture Stripe API. The separate cloud runtime checks exercise actual local workerd, D1, R2 and Queues. Live payments require separate production data/resources, verified live merchant configuration, tax/refund terms and final acceptance before real sales.
 
 ## Limits and evidence
 
