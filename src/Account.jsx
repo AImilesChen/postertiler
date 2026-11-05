@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle, LockSimple } from '@phosphor-icons/react';
 import { Alert, B } from './ui';
+import { useAuth } from './AuthContext';
 import './account.css';
 
 const messages = {
@@ -10,36 +11,19 @@ const messages = {
   unavailable: 'Sign-in is temporarily unavailable. You can still use every free tool.',
 };
 export default function Account() {
-  const [state, setState] = useState({ status: 'loading', user: null, available: false });
+  const state = useAuth();
   const [notice, setNotice] = useState('');
-  const [signingOut, setSigningOut] = useState(false);
-  const refresh = useCallback(async signal => {
-    setState(current => ({ ...current, status: 'loading' }));
-    try {
-      const response = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: signal || AbortSignal.timeout(10000) });
-      if (!response.ok) throw new Error();
-      const result = await response.json();
-      if (typeof result.available !== 'boolean' || !(result.user === null || (typeof result.user?.email === 'string' && typeof result.user?.id === 'string'))) throw new Error();
-      setState({ status: 'ready', ...result });
-    } catch { if (!signal?.aborted) setState(current => ({ ...current, status: 'error' })); }
-  }, []);
+  const { signingOut, refresh } = state;
   useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => { controller.abort(); setState(current => current.status === 'loading' ? { ...current, status: 'error' } : current); }, 10000);
     setNotice(messages[new URLSearchParams(location.search).get('error')] || '');
-    refresh(controller.signal).finally(() => clearTimeout(timer));
-    return () => { clearTimeout(timer); controller.abort(); };
-  }, [refresh]);
+  }, []);
   async function signOut() {
-    setSigningOut(true); setNotice('');
+    setNotice('');
     try {
-      const response = await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(10000) });
-      if (!response.ok) throw new Error();
-      setState(current => ({ ...current, user: null }));
+      await state.signOut();
       history.replaceState(null, '', '/account');
       setNotice('You are signed out on this browser.');
     } catch { setNotice('We could not sign you out. Please try again.'); }
-    finally { setSigningOut(false); }
   }
   const initials = (state.user?.name || state.user?.email || '').trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
   return <main className="auth-page">

@@ -19,6 +19,11 @@ createServer(async (req, res) => {
   if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405, { Allow: 'GET, HEAD' }).end(); return; }
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    // This static preview has no login credentials. The actual Worker serves authentication.
+    if (pathname === '/api/auth/session') {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' });
+      res.end(req.method === 'HEAD' ? undefined : JSON.stringify({ available: false, user: null })); return;
+    }
     if (pathname !== '/' && /(?:\.html|\/$)/.test(pathname)) {
       const canonical = pathname.replace(/\/index\.html$/, '').replace(/\.html$/, '').replace(/\/$/, '') || '/';
       res.writeHead(307, { Location: canonical }).end(); return;
