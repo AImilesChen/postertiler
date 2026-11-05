@@ -17,7 +17,7 @@
   },
   "vars": {
     "AUTH_ORIGIN": "https://postertiler.com",
-    "BILLING_TEST_ENABLED": "false",
+    "BILLING_TEST_ENABLED": "true",
     "GOOGLE_CLIENT_ID": "125964364837-is10t52c9eqj7vo0momtk0l99a497jp2.apps.googleusercontent.com"
   },
   "d1_databases": [{
