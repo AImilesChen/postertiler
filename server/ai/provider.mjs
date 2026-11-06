@@ -22,13 +22,18 @@ export function falProvider(env,transport=fetch){
    let input;
    if(spec.kind==='upscale')input={image_url:source,model:'Standard V2',upscale_factor:spec.factor,crop_to_fill:false,face_enhancement:false,output_format:'png',enable_safety_checker:true};
    else input={prompt:spec.prompt,image_size:spec.output,quality:spec.quality,num_images:1,output_format:'png',background:'opaque',enable_safety_checker:true,...(spec.kind==='edit'?{image_urls:[source]}:{})};
-   const response=await request('https://queue.fal.run/'+spec.endpoint,{method:'POST',headers:{...auth,'Content-Type':'application/json','X-Fal-Store-IO':'0','X-Fal-Object-Lifecycle-Preference':JSON.stringify({expiration_duration_seconds:3600})},body:JSON.stringify(input)});
+   let response;
+   try{response=await request('https://queue.fal.run/'+spec.endpoint,{method:'POST',headers:{...auth,'Content-Type':'application/json','X-Fal-Store-IO':'0','X-Fal-Object-Lifecycle-Preference':JSON.stringify({expiration_duration_seconds:3600})},body:JSON.stringify(input)});}catch(e){throw new AiError(['AbortError','TimeoutError'].includes(e?.name)?'provider_submit_timeout':'provider_submit_connection',502);}
    if([400,401,402,403,422,429].includes(response.status))throw new AiError('provider_rejected',502);
-   const data=await json(response);
-   if(typeof data.request_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(data.request_id))throw new AiError('submission_uncertain',502);
+   if(!response.ok)throw new AiError('provider_submit_unavailable',502);
+   let data;try{data=await json(response);}catch{throw new AiError('provider_submit_receipt',502);}
+   if(!data||typeof data.request_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(data.request_id))throw new AiError('provider_submit_receipt',502);
+   // fal queue tracking paths use owner/app, without the model endpoint suffix.
+   // Preserve an accepted receipt even if its optional convenience URLs are absent.
+   const base='https://queue.fal.run/'+spec.endpoint.split('/').slice(0,2).join('/')+'/requests/'+data.request_id;
    for(const key of ['response_url','status_url','cancel_url']){
-    const url=queueUrl(data[key]);if(!url||!new URL(url).pathname.includes('/requests/'+data.request_id))throw new AiError('submission_uncertain',502);
-    data[key]=url;
+    const canonical=base+(key==='status_url'?'/status':key==='cancel_url'?'/cancel':'');
+    data[key]=queueUrl(data[key])===canonical?data[key]:canonical;
    }
    return data;
   },

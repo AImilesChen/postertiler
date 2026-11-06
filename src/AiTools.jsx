@@ -8,6 +8,7 @@ import { AI_API,activeAi,aiMessage,useAiAccount,aiWorkingCopy } from './ai-clien
 import { AI_USAGE,aiTaskCount } from './pricing-data';
 import AiCreditDialog from './AiCreditDialog';
 import { AI_TASKS,AI_CHANNEL,aiTaskUrl } from './ai-navigation';
+import { aiJobFeedback } from './ai-job-state';
 import { Alert,B,Field } from './ui';
 import './ai-tools.css';
 import './ai-workflow.css';
@@ -61,18 +62,20 @@ export function AiOrders(){
 export default function AiTools({task='upscale',source=null,pixels=null,onApply,onUndo,applied=false,onPreview}) {
  const kind=Object.hasOwn(AI_TASKS,task)?task:'upscale',auth=useAuth(),account=useAiAccount();
  const [quality,setQuality]=useState('medium'),[size,setSize]=useState('portrait'),[factor,setFactor]=useState(2),[prompt,setPrompt]=useState(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[result,setResult]=useState(null),[upload,setUpload]=useState(null),[creditOpen,setCreditOpen]=useState(false);
- const attempt=useRef(null),locked=useRef(false),alive=useRef(true),epoch=useRef(0),checkout=useRef(null),jobSources=useRef(new Map()),submittedJob=useRef(null);
+ const attempt=useRef(null),locked=useRef(false),alive=useRef(true),epoch=useRef(0),checkout=useRef(null),jobSources=useRef(new Map()),submittedJob=useRef(null),openedJob=useRef(null);
+ const [localJob,setLocalJob]=useState(null);
  const effectiveSource=source||upload?.url,dimensions=source?pixels:upload;
  const current=account.data?.jobs.find(activeAi),credits=kind==='upscale'?3:size==='4k'?16:quality==='high'?8:3;
+ const feedbackJob=(localJob&&(account.data?.jobs.find(job=>job.id===localJob.id)||localJob))||current||account.data?.jobs.find(job=>job.kind===kind),feedback=aiJobFeedback(feedbackJob);
  const available=account.data?.balance?.available??0,ready=auth.status==='ready'&&!!auth.user&&account.data?.enabled;
  const insufficient=ready&&available<credits;
  const sizeTooLarge=kind==='upscale'&&dimensions&&(dimensions.width*dimensions.height*factor*factor>24_000_000||Math.max(dimensions.width,dimensions.height)*factor>12000);
  const closeCredits=useCallback(()=>setCreditOpen(false),[]);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;epoch.current++;};},[]);
- useEffect(()=>{epoch.current++;setConsent(false);setResult(null);attempt.current=null;submittedJob.current=null;setError('');},[source,upload?.url,kind]);
+ useEffect(()=>{epoch.current++;setConsent(false);setResult(null);setLocalJob(null);attempt.current=null;submittedJob.current=null;setError('');setNotice('');},[source,upload?.url,kind]);
  useEffect(()=>()=>{if(result?.url)URL.revokeObjectURL(result.url);},[result]);
  useEffect(()=>()=>{if(upload?.url)URL.revokeObjectURL(upload.url);},[upload]);
- useEffect(()=>{onPreview?.({source:result?result.source:kind==='generate'?null:effectiveSource,result:result?.url,sourcePixels:dimensions,resultPixels:result});},[onPreview,effectiveSource,dimensions?.width,dimensions?.height,result,kind]);
+ useEffect(()=>{onPreview?.({source:result?result.source:kind==='generate'?null:effectiveSource,result:result?.url,sourcePixels:dimensions,resultPixels:result,job:feedbackJob,onRefresh:account.refresh,onOpenResult:feedbackJob?.can_download?()=>openResult(feedbackJob):undefined,busy});},[onPreview,effectiveSource,dimensions?.width,dimensions?.height,result,kind,feedbackJob,account.refresh,busy]);
  useEffect(()=>()=>onPreview?.(null),[onPreview]);
  useEffect(()=>{
   const channel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel(AI_CHANNEL):null;
@@ -80,14 +83,14 @@ export default function AiTools({task='upscale',source=null,pixels=null,onApply,
   return()=>channel?.close();
  },[account.refresh]);
  useEffect(()=>{if(checkout.current&&available>checkout.current.balanceBefore){setCreditOpen(false);checkout.current=null;setNotice('AI credits updated. Your image and settings are ready; nothing has started automatically.');}},[available]);
- useEffect(()=>{const completed=account.data?.jobs.find(job=>job.id===submittedJob.current&&job.status==='succeeded');if(completed&&result?.job.id!==completed.id&&!locked.current){submittedJob.current=null;openResult(completed);}},[account.data?.jobs,result?.job.id]);
+ useEffect(()=>{const completed=account.data?.jobs.find(job=>job.id===submittedJob.current)||(!effectiveSource?account.data?.jobs.find(job=>job.kind===kind):null);if(completed?.status==='succeeded'&&completed.can_download&&result?.job.id!==completed.id&&openedJob.current!==completed.id&&!locked.current){openedJob.current=completed.id;submittedJob.current=null;openResult(completed);}},[account.data?.jobs,result?.job.id,effectiveSource,kind]);
  function change(fn){if(locked.current)return;attempt.current=null;setError('');setNotice('');fn();}
  async function select(file){if(!file)return;setError('');try{const info=await inspectFile(file);setUpload({url:URL.createObjectURL(file),...info});setConsent(false);}catch(e){setError(e.message);}}
  async function start(){
   if(locked.current||!ready)return;
   if(available<credits){setCreditOpen(true);return;}
   if(current&&!(current.status==='awaiting_upload'&&attempt.current))return;
-  locked.current=true;setBusy(true);setError('');setNotice('');const version=epoch.current;
+  locked.current=true;setBusy(true);setError('');setNotice('');setResult(null);setLocalJob({id:'preparing',kind,status:'preparing',credits});const version=epoch.current;
   try{
    let copy;if(kind!=='generate'){if(!effectiveSource)throw new Error('invalid_source');copy=attempt.current?.copy||await aiWorkingCopy(effectiveSource,kind==='edit');}
    const input=kind==='upscale'?{kind,width:copy.width,height:copy.height,factor}:{kind,quality,size,prompt};validateSpec(input);
@@ -97,15 +100,16 @@ export default function AiTools({task='upscale',source=null,pixels=null,onApply,
    const created=await accountRequest(AI_API+'/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
    jobSources.current.set(created.job.id,kind==='generate'?null:effectiveSource);
    submittedJob.current=created.job.id;
-   if(created.job.status==='awaiting_upload')await accountRequest(AI_API+'/jobs/'+created.job.id+'/source',{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:copy.blob,signal:AbortSignal.timeout(60000)});
-   attempt.current=null;if(alive.current&&version===epoch.current)setNotice(created.job.status==='succeeded'?'This task is already complete. Open its result in Recent AI tasks.':'Task started. Your image is being processed.');
-  }catch(e){if(e.message==='request_closed')attempt.current=null;if(alive.current){setError(e.message==='invalid_spec'?(kind==='upscale'?'Choose a supported multiplier and image size.':'Enter a prompt and choose an available output size.'):e.message==='invalid_source'?'Choose a source image first.':e.message==='upload_consent_required'?'Confirm image processing before starting.':aiMessage(e.message));if(e.message==='insufficient_ai_credits')setCreditOpen(true);}}
+   setLocalJob(created.job);
+   if(created.job.status==='awaiting_upload'){const uploaded=await accountRequest(AI_API+'/jobs/'+created.job.id+'/source',{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:copy.blob,signal:AbortSignal.timeout(60000)});if(alive.current&&version===epoch.current)setLocalJob(uploaded.job);}
+   attempt.current=null;
+  }catch(e){if(e.message==='request_closed')attempt.current=null;if(alive.current){setLocalJob(null);setError(e.message==='invalid_spec'?(kind==='upscale'?'Choose a supported multiplier and image size.':'Enter a prompt and choose an available output size.'):e.message==='invalid_source'?'Choose a source image first.':e.message==='upload_consent_required'?'Confirm image processing before starting.':aiMessage(e.message));if(e.message==='insufficient_ai_credits')setCreditOpen(true);}}
   finally{locked.current=false;if(alive.current)setBusy(false);account.refresh();}
  }
- async function cancel(job){setError('');try{await accountRequest(`${AI_API}/jobs/${job.id}/cancel`,{method:'POST'});attempt.current=null;setNotice('Task canceled. Reserved credits are released.');}catch(e){setError(aiMessage(e.message));}account.refresh();}
+ async function cancel(job){setError('');try{const canceled=await accountRequest(`${AI_API}/jobs/${job.id}/cancel`,{method:'POST'});setLocalJob(canceled.job);attempt.current=null;setNotice('');}catch(e){setError(aiMessage(e.message));}account.refresh();}
  async function openResult(job){if(locked.current)return;locked.current=true;setBusy(true);setError('');const version=epoch.current;
   try{const response=await fetch(`${AI_API}/jobs/${job.id}/download`,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('result_expired');const blob=await response.blob();const info=await inspectFile(blob,PROCESSED_IMAGE_BYTES);const bitmap=await createImageBitmap(blob);bitmap.close();
-   if(alive.current&&version===epoch.current){setResult({url:URL.createObjectURL(blob),blob,...info,job,source:jobSources.current.get(job.id)===effectiveSource?effectiveSource:null});setNotice('Your result is ready. Compare the details, then choose Use in poster.');}
+   if(alive.current&&version===epoch.current){setLocalJob(job);setResult({url:URL.createObjectURL(blob),blob,...info,job,source:jobSources.current.get(job.id)===effectiveSource?effectiveSource:null});setNotice('Your result is ready. Compare the details, then choose Use in poster.');}
   }catch(e){if(alive.current)setError(aiMessage(e.message));}finally{locked.current=false;if(alive.current)setBusy(false);}
  }
  const missingInput=kind==='generate'?!prompt.trim():!effectiveSource;
@@ -130,7 +134,8 @@ export default function AiTools({task='upscale',source=null,pixels=null,onApply,
    {!auth.user&&auth.status==='ready'?<a className="button ai-primary-action" href={'/api/auth/google?return_to='+encodeURIComponent(aiTaskUrl(kind))} target="_blank" rel="noopener" aria-disabled={!auth.available} onClick={e=>{if(!auth.available)e.preventDefault();}}>{actionLabel}<ArrowRight size={16} aria-hidden="true"/></a>:<B className="wide ai-primary-action" disabled={auth.status==='loading'||!!current||busy||!!sizeTooLarge||missingInput||auth.status!=='error'&&(!ready||!insufficient&&!consent)} onClick={auth.status==='error'?auth.refresh:start}>{actionLabel}<Sparkle size={16} aria-hidden="true"/></B>}
   </fieldset>
   {error&&<Alert tone="error">{error}</Alert>}{notice&&<p className="ai-notice" role="status">{notice}</p>}
-  {current&&<div className="ai-current" role="status"><strong>{current.status==='awaiting_upload'?'Waiting for image upload':current.status==='submitting'?'Submitting task':current.status==='processing'?'AI is processing your image':'Task queued'}</strong><p>{current.credits} credits reserved. You can return later.</p>{current.status==='awaiting_upload'&&attempt.current&&<B secondary disabled={busy} onClick={start}>Retry upload</B>}<button className="text-button" disabled={busy} onClick={()=>cancel(current)}>Cancel task</button></div>}
+  {feedback&&<div className={'ai-task-summary '+feedback.tone}><strong>{feedback.title}</strong><p>{feedback.creditText}</p>{feedbackJob.can_download&&!result&&<B secondary disabled={busy} onClick={()=>openResult(feedbackJob)}>Open enhanced image</B>}{feedbackJob.status==='failed'&&<p>{aiMessage(feedbackJob.error)} <button className="text-button" onClick={account.refresh}>Refresh task status</button></p>}</div>}
+  {current&&<div className="ai-current">{current.status==='awaiting_upload'&&attempt.current&&<B secondary disabled={busy} onClick={start}>Retry upload</B>}<button className="text-button" disabled={busy} onClick={()=>cancel(current)}>Cancel task</button></div>}
   {result&&<section className="ai-result"><h3>Your AI result is ready</h3><p>{result.width} × {result.height} px · {result.job.credits} credits used</p><div className="button-row"><B disabled={busy} onClick={()=>{onApply?.(result.blob,result);setNotice('AI result applied. Review your print settings, then download the free printable PDF.');}}>Use in poster<ArrowRight size={16}/></B><a className="button secondary" href={result.url} download="postertiler-ai-result.png">Download image</a></div><small>Review text, faces and artwork details before printing.</small></section>}
   {applied&&onUndo&&<button className="text-button" onClick={onUndo}><ArrowClockwise size={16}/>Remove AI result and use original</button>}
   {!!account.data?.jobs.length&&<details className="ai-history"><summary>Recent AI tasks</summary><div>{account.data.jobs.map(job=><article key={job.id}><div><strong>{job.kind==='upscale'?'HD enhancement':job.kind==='edit'?'Image edit':'Image creation'}</strong><span>{job.status} · {job.credits} credits{job.can_download?' used':''}</span>{job.error&&<small>{aiMessage(job.error)}</small>}</div>{job.can_download&&<button disabled={busy} onClick={()=>openResult(job)}>View result</button>}{job.can_cancel&&<button disabled={busy} onClick={()=>cancel(job)}>Cancel</button>}</article>)}</div></details>}

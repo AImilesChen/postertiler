@@ -30,7 +30,7 @@ export async function processAiJob(id,env,{now=()=>Date.now(),provider=falProvid
    const limit=Number(env.AI_DAILY_BUDGET_CENTS||500);
    if(!Number.isInteger(limit)||limit<1||!await store.submitting(job,limit)){await store.fail(id,'daily_budget_reached');return;}
    let submitted;
-   try{submitted=await provider.submit(spec,source);}catch(e){await store.fail(id,e?.code==='provider_rejected'?'provider_rejected':'submission_uncertain');return;}
+   try{submitted=await provider.submit(spec,source);}catch(e){const safe=['provider_rejected','provider_submit_timeout','provider_submit_connection','provider_submit_receipt','provider_submit_unavailable'];await store.fail(id,safe.includes(e?.code)?e.code:'submission_uncertain');return;}
    const fresh=await store.submitted(job,submitted);
    if(fresh.status==='canceled'){await provider.cancel({...fresh,...{cancel_url:submitted.cancel_url}}).catch(()=>{});}
    return; // Only polling is retried; a paid submit is never blindly repeated.
