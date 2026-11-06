@@ -1,13 +1,13 @@
 # AI pilot (v1.11)
 
-This implementation adds optional Topaz Precision enhancement and GPT Image 2 generation/editing. Ordinary local PDFs and cloud-export credits are unchanged. AI remains **disabled by default**, and Stripe remains sandbox-only.
+This implementation adds optional Topaz Precision enhancement and GPT Image 2 generation/editing. Ordinary local PDFs and cloud-export credits are unchanged. The deployed pilot is enabled only for the explicitly invited Google account(s) in the private allowlist; local example configuration remains disabled. Stripe remains sandbox-only.
 
 ## Configuration
 
 1. Apply `server/billing/migrations/0003_ai_test.sql` to the existing, explicitly verified **test** D1 binding `BILLING_TEST_DB`. It adds independent AI tables and does not alter cloud tables. Take a database export before remote migration; never substitute a live-money database.
 2. Store `FAL_KEY` and `AI_TEST_ALLOWED_EMAILS` as Cloudflare Secrets. The latter is a comma-separated list of verified Google sign-in emails invited to this pilot. Do not commit either value.
 3. Existing `STRIPE_TEST_SECRET_KEY`, `STRIPE_TEST_WEBHOOK_SECRET`, private `CLOUD_TEST_FILES` and `CLOUD_TEST_QUEUE` bindings are reused. The existing `/api/billing/test/webhook` dispatches signed AI events by server-created metadata. No second webhook or manually copied Price IDs are required: inline one-time prices come exclusively from the server catalog.
-4. Only after configuration, output validation and a deliberate provider-spend decision, change the versioned `AI_TEST_ENABLED` setting to `true`. `AI_DAILY_BUDGET_CENTS` defaults to 500 **budget cents per rolling day**, not measured vendor spend. fal is a real paid inference service even when payment uses test cards; the pilot allowlist prevents arbitrary visitors from consuming it.
+4. Only after configuration, output validation and a deliberate provider-spend decision, change the versioned `AI_TEST_ENABLED` setting to `true`. The owner approved a private pilot on 2026-11-06; the versioned setting is now `true`. Keep the allowlist private and non-empty. `AI_DAILY_BUDGET_CENTS` defaults to 500 **budget cents per rolling day**, not measured vendor spend. fal is a real paid inference service even when payment uses test cards; the pilot allowlist prevents arbitrary visitors from consuming it. Enabling the flag does not itself submit a provider task.
 
 No actual provider calls are part of the automated tests. Live-money entitlements, sales, tax/refund configuration and public AI access require a separate rollout; do not remove the pilot guard and call it production billing.
 
