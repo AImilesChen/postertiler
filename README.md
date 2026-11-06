@@ -1,6 +1,6 @@
 # PosterTiler
 
-Version 1.10.1 adds a **Size reference** switch to the poster editor's Original preview. It compares the finished poster with an original 180 cm silhouette using one millimetre scale and a shared baseline, with a height ruler in the selected unit. It starts off to preserve the close-up editing view; switching it on fits the person and poster together. Zoom and fullscreen keep their relative sizes. The Printed Sheets assembly diagram and all PDF output remain independent of the reference artwork.
+Version 1.10.2 refines the **Size reference** in the poster editor's Original preview. A generated natural-profile silhouette now appears by default as a very pale background reference, aligned to the poster top. The poster determines the fitted view; the 180 cm figure uses the same millimetre scale and can extend beyond the clipped preview. Transparent asset margins are excluded from the height calculation. The small person icon beside zoom/fullscreen toggles visibility. Printed Sheets and PDF output remain independent of the reference artwork.
 
 Version 1.10 adds an optional **Image adjustments** panel after upload in the poster editor. Brightness, contrast, saturation, warmth and hue can be combined with Original, Halftone dots, B&W dither or CMYK-style art effects. Homepage “Try this look” buttons apply the effect to the current image without replacing its paper settings; with no selected image, they load the bundled Colour and form example. Existing numeric step links keep their meanings.
 

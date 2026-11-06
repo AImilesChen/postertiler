@@ -1,8 +1,8 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { Minus, Plus, CornersOut, X, ImageSquare, PersonSimple } from '@phosphor-icons/react';
-import { geometry, imagePlacement, sizeText, MM_PER_UNIT } from './geometry';
+import { geometry, imagePlacement, sizeText } from './geometry';
 import { previewPlan } from './engine/preview.ts';
-import { sizeReferenceScene } from './engine/size-reference.ts';
+import { sizeReferenceScene, REFERENCE_WIDTH_MM } from './engine/size-reference.ts';
 import SizeReference from './SizeReference';
 import { loadImage } from './export';
 import './preview.css';
@@ -11,7 +11,7 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
   const root = useRef(), stage = useRef(), opener = useRef(), tabs = useRef([]);
   const [tab, setTab] = useState(layoutOnly ? 'sheets' : 'original');
   const [zoom, setZoom] = useState(100), [full, setFull] = useState(false);
-  const [showReference, setShowReference] = useState(false);
+  const [showReference, setShowReference] = useState(true);
   const [dimensions, setDimensions] = useState(null), [failedSource, setFailedSource] = useState(null);
   const [viewport, setViewport] = useState({ width: 600, height: 588 });
   const id = useId().replace(/:/g, ''), g = geometry(settings, pageLimit);
@@ -52,17 +52,21 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
   const sourcePixels = pixels.width > 1 && pixels.height > 1 ? pixels : dimensions?.source === source ? dimensions : pixels;
   const plan = !g.error ? previewPlan(g, sourcePixels, settings.placement) : null;
   const sheets = tab === 'sheets';
-  const reference = withSizeReference && showReference && !sheets && !empty && !layoutOnly && plan;
-  const scene = reference ? sizeReferenceScene(g.width,g.height) : null;
-  const bounds = sheets ? plan?.paperBounds : scene?.bounds || plan?.canvas;
+  const referenceAvailable = withSizeReference && !sheets && !empty && !layoutOnly && !g.error;
+  const reference = referenceAvailable && showReference && !!plan;
+  const bounds = sheets ? plan?.paperBounds : plan?.canvas;
   const axisBounds = sheets ? plan?.paperBounds : plan?.canvas;
-  const heightLabel = !g.error ? `${(g.height/MM_PER_UNIT[settings.unit]).toFixed(settings.unit==='mm'?0:1)} ${settings.unit}` : '';
   const compactReference = reference && viewport.width < 420, padding = compactReference ? 12 : 24;
-  const leftPixels=compactReference?18:28, rightPixels=reference?(compactReference?50:68):10;
+  const leftPixels=compactReference?18:28, rightPixels=10;
+  const referenceGutter=reference?Math.round(viewport.width*(compactReference ? .18 : .25)):padding;
   // Zoom is relative to the fitted view, never a physical print-scale setting.
-  const fitScale = bounds ? Math.max(.001, Math.min((viewport.width - leftPixels-rightPixels-2*padding) / bounds.width, (viewport.height - 24-(reference?38:10)-2*padding) / bounds.height)) : 1;
+  const fitScale = bounds ? Math.max(.001, Math.min((viewport.width - leftPixels-rightPixels-referenceGutter-padding) / bounds.width, (viewport.height - 34-2*padding) / bounds.height)) : 1;
+  const fitBoardWidth=bounds?bounds.width*fitScale+leftPixels+rightPixels:0;
+  const fitPosterLeft=referenceGutter+Math.max(0,(viewport.width-referenceGutter-padding-fitBoardWidth)/2)+leftPixels;
+  const referenceGap=Math.max(compactReference?14:24,fitPosterLeft-referenceGutter/2-REFERENCE_WIDTH_MM*fitScale/2);
+  const scene = reference ? sizeReferenceScene(g.width,g.height,fitScale,referenceGap) : null;
   const factor = zoom / 100, scale = fitScale * factor;
-  const left = leftPixels / fitScale, top = 24 / fitScale, right = rightPixels / fitScale, bottom = (reference?38:10) / fitScale;
+  const left = leftPixels / fitScale, top = 24 / fitScale, right = rightPixels / fitScale, bottom = 10 / fitScale;
   const frameW = bounds ? (bounds.width + left + right) * scale : 0;
   const frameH = bounds ? (bounds.height + top + bottom) * scale : 0;
   const viewBox = bounds ? `${bounds.x - left} ${bounds.y - top} ${bounds.width + left + right} ${bounds.height + top + bottom}` : '';
@@ -78,17 +82,16 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
   return <div ref={root} className={`preview-wrap ${full ? 'fullscreen' : ''}`} data-clarity-mask="true" role={full ? 'dialog' : undefined} aria-modal={full || undefined} data-preview-dialog={full || undefined} aria-label={full ? 'Poster preview' : undefined}>
     <div className="preview-box"><div className="preview-toolbar"><div className="tabs" role="tablist" aria-label="Preview view">
       {['original', 'sheets'].map((value, index) => <button key={value} ref={node => { tabs.current[index] = node; }} id={`${id}-tab-${value}`} role="tab" aria-selected={tab === value} aria-controls={`${id}-panel`} tabIndex={tab === value ? 0 : -1} onKeyDown={e => tabKeys(e, index)} onClick={() => setTab(value)}>{value === 'original' ? 'Original' : 'Printed Sheets'}</button>)}
-    </div><div className="zoom"><button className="icon-button" aria-label="Zoom out" disabled={empty || !!g.error || zoom <= 25} onClick={() => zoomTo(zoom - 25)}><Minus size={18} /></button><button className="fit-zoom" aria-label="Fit preview" title="Reset to fit the preview" disabled={empty || !!g.error} onClick={() => setZoom(100)}>{zoom}%</button><button className="icon-button" aria-label="Zoom in" disabled={empty || !!g.error || zoom >= 300} onClick={() => zoomTo(zoom + 25)}><Plus size={18} /></button><button ref={opener} className="icon-button" aria-label={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>{full ? <X size={18} /> : <CornersOut size={18} />}</button></div></div>
-    {withSizeReference&&!sheets&&!empty&&!layoutOnly&&!g.error&&<div className="preview-reference-tools"><button aria-label="Size reference" aria-pressed={showReference} title="Compare the finished poster with a 180 cm figure" onClick={()=>{setShowReference(value=>!value);setZoom(100);}}><PersonSimple size={18} aria-hidden="true"/><span>Size reference</span><span className="reference-state">{showReference?'On':'Off'}</span></button><span>Poster height <strong>{heightLabel}</strong></span></div>}
+    </div><div className="zoom"><button className="icon-button" aria-label="Zoom out" disabled={empty || !!g.error || zoom <= 25} onClick={() => zoomTo(zoom - 25)}><Minus size={18} /></button><button className="fit-zoom" aria-label="Fit preview" title="Reset to fit the preview" disabled={empty || !!g.error} onClick={() => setZoom(100)}>{zoom}%</button><button className="icon-button" aria-label="Zoom in" disabled={empty || !!g.error || zoom >= 300} onClick={() => zoomTo(zoom + 25)}><Plus size={18} /></button>{referenceAvailable&&<button className="icon-button reference-toggle" aria-label="Size reference" aria-pressed={showReference} title={showReference?'Hide 180 cm reference figure':'Show 180 cm reference figure'} onClick={()=>setShowReference(value=>!value)}><PersonSimple size={18} aria-hidden="true"/></button>}<button ref={opener} className="icon-button" aria-label={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>{full ? <X size={18} /> : <CornersOut size={18} />}</button></div></div>
     <div ref={stage} className="preview-canvas poster-preview-stage" id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} tabIndex={0} aria-label="Poster preview; scroll to inspect when zoomed">
-      {empty ? <div className="empty-preview"><ImageSquare size={50} weight="thin" /><h3>Your poster preview</h3><p>Choose an image to see your poster here.</p></div> : g.error || error ? <p role="alert">{g.error || error}</p> : !ready ? <p role="status">Preparing preview…</p> : !sheets && layoutOnly ? <p>Choose an image in the poster maker to see its placement.</p> : <div className="preview-scroll-space" style={{ width: frameW + 2*padding, height: frameH + 2*padding, padding }}>
+      {empty ? <div className="empty-preview"><ImageSquare size={50} weight="thin" /><h3>Your poster preview</h3><p>Choose an image to see your poster here.</p></div> : g.error || error ? <p role="alert">{g.error || error}</p> : !ready ? <p role="status">Preparing preview…</p> : !sheets && layoutOnly ? <p>Choose an image in the poster maker to see its placement.</p> : <div className={`preview-scroll-space ${reference?'has-size-reference':''}`} style={{ width: frameW + referenceGutter+padding, height: frameH + 2*padding, paddingTop:padding,paddingBottom:padding,paddingLeft:referenceGutter,paddingRight:padding }}>
         <div className="preview-artboard" data-view={tab} style={{ width: frameW, height: frameH }}>
           {!sheets && <div className="poster-image-surface" style={{ left: (left-bounds.x) * scale, top: (top-bounds.y) * scale, width: g.width * scale, height: g.height * scale }}>
             <img className="original-image" src={source} alt="Original selected image" draggable="false" style={{ left: plan.placement.x * scale, top: plan.placement.y * scale, width: plan.placement.width * scale, height: plan.placement.height * scale }} />
           </div>}
           <svg className="poster-plan-overlay" viewBox={viewBox} role="img" aria-label={`${sheets ? 'Sheet layout' : 'Assembled poster with page divisions'}: ${g.columns} columns by ${g.rows} rows. Finished size ${sizeText(g, settings.unit)}.${reference?' Compared with a 180 cm reference figure.':''}`}>
             <defs><pattern id={`${id}-overlap`} width={6 / fitScale} height={6 / fitScale} patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="#b6ccdf" /><path d={`M0 ${6 / fitScale}L${6 / fitScale} 0`} stroke="#698aa5" strokeWidth={.7 / fitScale} /></pattern></defs>
-            {reference&&<SizeReference scene={scene} posterWidth={g.width} posterHeight={g.height} fitScale={fitScale} heightLabel={heightLabel}/>}
+            {reference&&<SizeReference scene={scene} id={id}/>}
             {sheets ? <>
               <g className="preview-paper-shapes" fill="#fff">{plan.pages.map(page => <rect key={page.label} {...page.paper} />)}</g>
               <g className="preview-image-areas" fill="#d4e3ef">{plan.pages.map(page => page.image && <rect key={page.label} {...page.image} />)}</g>
@@ -109,7 +112,7 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
         </div>
       </div>}
     </div>
-    {reference&&<p className="preview-reference-note">180 cm reference figure. Both are drawn to the same scale; the figure is not included in your PDF.</p>}
+    {reference&&<p className="preview-reference-note">Reference figure: 180 cm</p>}
     {!empty && !g.error && sheets && <ul className="preview-legend" aria-label="Sheet layout legend"><li><i className="legend-sheet" />Sheet</li><li><i className="legend-image" />Image area</li><li><i className="legend-overlap" />Overlap</li><li><i className="legend-edge" />Finished poster edge</li></ul>}
     <div className="preview-summary"><span>{empty ? 'Your poster preview' : `${g.columns} × ${g.rows} sheets`}</span><span>{!empty && !g.error && sizeText(g, settings.unit)}</span></div></div>
     {!empty && !g.error && <p className="preview-explanation">{sheets ? 'Assembly map: sheets are shown in their joining positions. Trim or cover printer margins; hatched areas repeat on adjacent sheets.' : g.framed ? 'Finished panel arrangement. The visible gaps are intentional mounting spaces.' : 'Finished poster with page divisions. Printer margins are removed during assembly; the lines are not blank gaps.'}</p>}
