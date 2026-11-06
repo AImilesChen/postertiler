@@ -1,5 +1,7 @@
 # PosterTiler
 
+Version 1.10.1 adds a **Size reference** switch to the poster editor's Original preview. It compares the finished poster with an original 180 cm silhouette using one millimetre scale and a shared baseline, with a height ruler in the selected unit. It starts off to preserve the close-up editing view; switching it on fits the person and poster together. Zoom and fullscreen keep their relative sizes. The Printed Sheets assembly diagram and all PDF output remain independent of the reference artwork.
+
 Version 1.10 adds an optional **Image adjustments** panel after upload in the poster editor. Brightness, contrast, saturation, warmth and hue can be combined with Original, Halftone dots, B&W dither or CMYK-style art effects. Homepage “Try this look” buttons apply the effect to the current image without replacing its paper settings; with no selected image, they load the bundled Colour and form example. Existing numeric step links keep their meanings.
 
 Image edits run locally at full source dimensions in a cancellable Worker. The preview and PDF share the same generated PNG; export waits for the latest render and embeds that PNG without JPEG re-encoding. Restore original, cancel, retry and failed-render recovery retain the selected source. Generated PNGs have an internal 128 MiB inspection allowance; user uploads remain capped at 32 MiB / 24 MP / 12,000 px per side. Cloud PDF still uses its separate file selection and consent flow.
