@@ -14,8 +14,8 @@ export default function ImageAdjustments({ open, hasSource, disabled, treatment,
   const tabs=useRef([]),id=useId();
   const update=(key,value)=>onChange({...treatment,[key]:value});
   const chooseStyle=effect=>onChange({...treatment,effect,invert:false});
-  const sections=[['basic','Basic adjustments'],['effects','Art effects'],['ai','AI tools']];
-  const tabKeys=(e,index)=>{let next;if(e.key==='ArrowRight')next=(index+1)%3;if(e.key==='ArrowLeft')next=(index+2)%3;if(e.key==='Home')next=0;if(e.key==='End')next=2;if(next!==undefined){e.preventDefault();onTab(sections[next][0]);tabs.current[next]?.focus();}};
+  const sections=[['basic','Basic adjustments'],['effects','Art effects']];
+  const tabKeys=(e,index)=>{let next;if(e.key==='ArrowRight')next=(index+1)%sections.length;if(e.key==='ArrowLeft')next=(index+sections.length-1)%sections.length;if(e.key==='Home')next=0;if(e.key==='End')next=sections.length-1;if(next!==undefined){e.preventDefault();onTab(sections[next][0]);tabs.current[next]?.focus();}};
   return <section className={`step image-adjustment-step ${open?'active':''}`}>
     <button className="step-heading" aria-expanded={open} aria-controls={open?'image-adjustments-panel':undefined} disabled={disabled} onClick={onOpen}><PaintBrush size={19} aria-hidden="true"/><strong>Image adjustments</strong><span className="adjustment-optional">Optional</span>{open?<CaretUp size={18}/>:<CaretDown size={18}/>}</button>
     {open&&hasSource&&<div className="step-body" id="image-adjustments-panel">
