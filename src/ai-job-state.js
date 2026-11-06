@@ -9,6 +9,7 @@ export const aiMessage = code => ({
  submission_uncertain:'The model submission could not be confirmed. Automatic retries stopped; your credits were returned.',
  provider_submit_timeout:'The model service did not confirm the request in time. Automatic retries stopped; your credits were returned.',
  provider_submit_connection:'The connection to the model service was interrupted. Automatic retries stopped; your credits were returned.',
+ provider_redirect_blocked:'The model service returned an unexpected response. We stopped this task and returned your credits.',
  provider_submit_receipt:'The model service returned an invalid submission receipt. Automatic retries stopped; your credits were returned.',
  provider_submit_unavailable:'The model service could not accept the submission right now. Your credits were returned.',
  provider_rejected:'The model service rejected this task. Your credits were returned.',

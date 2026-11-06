@@ -16,14 +16,20 @@ export async function boundedBytes(response,limit){
 async function json(response){return JSON.parse(new TextDecoder().decode(await boundedBytes(response,128*1024)));}
 export function falProvider(env,transport=fetch){
  const auth={Authorization:`Key ${env.FAL_KEY}`};
- const request=(url,init={})=>transport(url,{...init,redirect:'error',signal:AbortSignal.timeout(20000)});
+ const request=async(url,init={})=>{
+  // Workers supports manual/follow, not Fetch's error redirect mode.
+  // Reject redirects explicitly so Authorization is never forwarded elsewhere.
+  const response=await transport(url,{...init,redirect:'manual',signal:AbortSignal.timeout(20000)});
+  if(response.status>=300&&response.status<400){await response.body?.cancel().catch(()=>{});throw new AiError('provider_redirect_blocked',502);}
+  return response;
+ };
  return {
   async submit(spec,source){
    let input;
    if(spec.kind==='upscale')input={image_url:source,model:'Standard V2',upscale_factor:spec.factor,crop_to_fill:false,face_enhancement:false,output_format:'png',enable_safety_checker:true};
    else input={prompt:spec.prompt,image_size:spec.output,quality:spec.quality,num_images:1,output_format:'png',background:'opaque',enable_safety_checker:true,...(spec.kind==='edit'?{image_urls:[source]}:{})};
    let response;
-   try{response=await request('https://queue.fal.run/'+spec.endpoint,{method:'POST',headers:{...auth,'Content-Type':'application/json','X-Fal-Store-IO':'0','X-Fal-Object-Lifecycle-Preference':JSON.stringify({expiration_duration_seconds:3600})},body:JSON.stringify(input)});}catch(e){throw new AiError(['AbortError','TimeoutError'].includes(e?.name)?'provider_submit_timeout':'provider_submit_connection',502);}
+   try{response=await request('https://queue.fal.run/'+spec.endpoint,{method:'POST',headers:{...auth,'Content-Type':'application/json','X-Fal-Store-IO':'0','X-Fal-Object-Lifecycle-Preference':JSON.stringify({expiration_duration_seconds:3600})},body:JSON.stringify(input)});}catch(e){if(e instanceof AiError)throw e;throw new AiError(['AbortError','TimeoutError'].includes(e?.name)?'provider_submit_timeout':'provider_submit_connection',502);}
    if([400,401,402,403,422,429].includes(response.status))throw new AiError('provider_rejected',502);
    if(!response.ok)throw new AiError('provider_submit_unavailable',502);
    let data;try{data=await json(response);}catch{throw new AiError('provider_submit_receipt',502);}
