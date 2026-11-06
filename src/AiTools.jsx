@@ -3,7 +3,7 @@ import { ArrowRight,Sparkle,ArrowClockwise } from '@phosphor-icons/react';
 import { useAuth } from './AuthContext';
 import { accountRequest } from './account-data';
 import { inspectFile,PROCESSED_IMAGE_BYTES } from './engine/image.ts';
-import { AI_PACKS,validateSpec } from '../server/ai/contract.mjs';
+import { AI_PACKS,MODERATION_VERSION,validateSpec } from '../server/ai/contract.mjs';
 import { AI_API,activeAi,aiMessage,useAiAccount,aiWorkingCopy } from './ai-client';
 import { AI_USAGE,aiTaskCount } from './pricing-data';
 import AiCreditDialog from './AiCreditDialog';
@@ -96,7 +96,7 @@ export default function AiTools({task='upscale',source=null,pixels=null,onApply,
    const input=kind==='upscale'?{kind,width:copy.width,height:copy.height,factor}:{kind,quality,size,prompt};validateSpec(input);
    if(!consent)throw new Error('upload_consent_required');
    if(!attempt.current)attempt.current={request_id:crypto.randomUUID(),copy};
-   const body={request_id:attempt.current.request_id,spec:input,upload_consent:true,...(copy?{source_hash:copy.hash,source_size:copy.blob.size,source_type:'image/jpeg'}:{})};
+   const body={request_id:attempt.current.request_id,spec:input,upload_consent:true,moderation_consent:MODERATION_VERSION,...(copy?{source_hash:copy.hash,source_size:copy.blob.size,source_type:'image/jpeg'}:{})};
    const created=await accountRequest(AI_API+'/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
    jobSources.current.set(created.job.id,kind==='generate'?null:effectiveSource);
    submittedJob.current=created.job.id;
@@ -129,7 +129,8 @@ export default function AiTools({task='upscale',source=null,pixels=null,onApply,
    </>}
    {sizeTooLarge&&<Alert tone="error">This multiplier exceeds the 24 MP or 12,000 px output limit. Choose a lower multiplier or a smaller source.</Alert>}
    <p className="ai-task-cost"><strong>{credits} AI credits</strong> per successful {kind==='upscale'?'enhancement':'image'} · technical failures release the reservation</p>
-   {ready&&!insufficient&&<label className="check ai-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to send {kind==='generate'?'this prompt':'a working copy of this image'+(kind==='edit'?' and prompt':'')} for cloud AI processing. Website copies expire after 24 hours. <a href="/privacy" target="_blank" rel="noopener">Data details</a></span></label>}
+   <p className="ai-hint">Prompts, uploaded images and results are screened for sexual, graphic and hateful content. Blocked or unverified results are not delivered; reserved AI credits are released.</p>
+   {ready&&!insufficient&&<label className="check ai-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I agree to send {kind==='generate'?'this prompt':'a working copy of this image'+(kind==='edit'?' and prompt':'')} to Sightengine for safety checks and to fal and its model provider for AI processing. Results are also checked by Sightengine. Website copies expire after 24 hours. <a href="/privacy" target="_blank" rel="noopener">Data details</a></span></label>}
    {insufficient&&<div className="ai-credit-needed"><strong>This task needs {credits} AI credits. You have {available}.</strong><p>Get a one-time credit pack, then return to this image. Cloud PDF credits are separate.</p></div>}
    {!auth.user&&auth.status==='ready'?<a className="button ai-primary-action" href={'/api/auth/google?return_to='+encodeURIComponent(aiTaskUrl(kind))} target="_blank" rel="noopener" aria-disabled={!auth.available} onClick={e=>{if(!auth.available)e.preventDefault();}}>{actionLabel}<ArrowRight size={16} aria-hidden="true"/></a>:<B className="wide ai-primary-action" disabled={auth.status==='loading'||!!current||busy||!!sizeTooLarge||missingInput||auth.status!=='error'&&(!ready||!insufficient&&!consent)} onClick={auth.status==='error'?auth.refresh:start}>{actionLabel}<Sparkle size={16} aria-hidden="true"/></B>}
   </fieldset>

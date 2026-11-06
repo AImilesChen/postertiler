@@ -12,6 +12,11 @@ test('terminal failure replaces processing feedback and states the released cred
  for(const status of ['awaiting_upload','queued','submitting','processing']){const feedback=aiJobFeedback({kind:'upscale',status,credits:3});assert.equal(feedback.tone,'working');assert.match(feedback.creditText,/reserved/);}
  const ready=aiJobFeedback({kind:'upscale',status:'succeeded',credits:3});assert.equal(ready.tone,'success');assert.match(ready.creditText,/used/);
 });
+test('safety blocks have a clear reason, no result action and released credits',()=>{
+ for(const error of ['moderation_prompt_blocked','moderation_source_blocked','moderation_output_blocked','moderation_unavailable','moderation_limit']){
+  const feedback=aiJobFeedback({kind:'generate',status:'failed',error,credits:3});assert.equal(feedback.tone,'error');assert.match(feedback.description,/safety|Safety|checks/);assert.match(feedback.creditText,/3 AI credits released/);
+ }
+});
 test('accepted provider receipt is retained using canonical tracking URLs without a second submit',async()=>{
  let calls=0;const provider=falProvider({FAL_KEY:'fixture'},async()=>{calls++;return Response.json({request_id:'receipt_1',response_url:'https://untrusted.invalid/private',status_url:'https://queue.fal.run/topaz/upscale/image/precision/requests/receipt_1/status'});});
  const receipt=await provider.submit(validateSpec({kind:'upscale',width:8,height:8,factor:2}),'data:image/jpeg;base64,fixture');

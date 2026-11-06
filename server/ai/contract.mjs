@@ -1,4 +1,5 @@
 export const AI_VERSION = 'ai-test-2026-11-06';
+export const MODERATION_VERSION = 'sightengine-2026-11-06-v1';
 export const AI_LIMITS = Object.freeze({ sourceBytes:8*1024*1024,resultBytes:32*1024*1024,pixels:24_000_000,dimension:12000,retentionMs:86400000,taskMs:1200000,uploadMs:600000,leaseMs:120000,prompt:1000 });
 export const AI_PACKS = Object.freeze({
   ai40:Object.freeze({name:'AI Starter — 40 credits',price:'inline:ai40',inline:true,amount:499,currency:'usd',credits:40}),
@@ -6,7 +7,7 @@ export const AI_PACKS = Object.freeze({
 });
 export const AI_SIZES = Object.freeze({square:{width:1024,height:1024},portrait:{width:1024,height:1536},landscape:{width:1536,height:1024},'4k':{width:3840,height:2160}});
 export class AiError extends Error { constructor(code,status=400){super(code);this.code=code;this.status=status;} }
-export const aiReady = env => env.AI_TEST_ENABLED==='true' && !!env.FAL_KEY && !!env.AI_TEST_ALLOWED_EMAILS?.trim() && !!env.BILLING_TEST_DB?.prepare && !!env.CLOUD_TEST_FILES?.get && !!env.CLOUD_TEST_QUEUE?.send;
+export const aiReady = env => env.AI_TEST_ENABLED==='true' && !!env.FAL_KEY && !!env.SIGHTENGINE_API_USER?.trim() && !!env.SIGHTENGINE_API_SECRET?.trim() && !!env.AI_TEST_ALLOWED_EMAILS?.trim() && !!env.BILLING_TEST_DB?.prepare && !!env.CLOUD_TEST_FILES?.get && !!env.CLOUD_TEST_QUEUE?.send;
 export const aiAllowed = (user,env) => typeof user?.email==='string' && (env.AI_TEST_ALLOWED_EMAILS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).includes(user.email.toLowerCase());
 export function validateSpec(value) {
   if(!value||Array.isArray(value)||Object.keys(value).some(k=>!['kind','quality','size','factor','prompt','width','height'].includes(k)))throw new AiError('invalid_spec');
