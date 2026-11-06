@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { inspectFile, validatePixels } from './image.ts';
 import { cropRect, validateEffect, ditherRgba, averageCell, tone, type EffectOptions } from './creative.ts';
+import { adjustRgba } from './image-adjustments.ts';
 const worker = self as unknown as DedicatedWorkerGlobalScope;
 worker.onmessage = async ({ data }) => {
   let bitmap: ImageBitmap | undefined;
@@ -12,6 +13,11 @@ worker.onmessage = async ({ data }) => {
     if (!ctx) throw new Error('Image processing is unavailable.');
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, rect.width, rect.height);
     ctx.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height); bitmap.close(); bitmap = undefined;
+    if (data.adjustments) {
+      const pixels = ctx.getImageData(0, 0, rect.width, rect.height);
+      const output = adjustRgba(pixels.data, data.adjustments, ratio => worker.postMessage({ type: 'progress', ratio: ratio * .2 }));
+      ctx.putImageData(new ImageData(output, rect.width, rect.height), 0, 0);
+    }
     if (data.options) {
       const o = data.options as EffectOptions; validateEffect(o);
       const pixels = ctx.getImageData(0, 0, rect.width, rect.height);

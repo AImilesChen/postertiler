@@ -1,4 +1,4 @@
-import { inspectFile } from './engine/image.ts';
+import { inspectFile, PROCESSED_IMAGE_BYTES } from './engine/image.ts';
 export { inspectFile };
 export function loadImage(src) {
   return new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(new Error('Image could not be read.')); image.src = src; });
@@ -19,7 +19,7 @@ async function fallbackJpeg(blob) {
   } finally { URL.revokeObjectURL(url); }
 }
 export async function makePoster(source, settings, onProgress, cancel, preservePng = false) {
-  const blob = await (await fetch(source)).blob(); await inspectFile(blob);
+  const blob = await (await fetch(source)).blob(); await inspectFile(blob, preservePng ? PROCESSED_IMAGE_BYTES : undefined);
   if (cancel.current) throw new Error('canceled');
   if (typeof Worker === 'undefined') throw new Error('Use a current browser that supports background PDF export.');
   const jpeg = !preservePng && typeof OffscreenCanvas === 'undefined' ? await fallbackJpeg(blob) : null;

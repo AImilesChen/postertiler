@@ -7,6 +7,9 @@ import { samples, imagePath } from './data';
 import { loadImage, inspectFile, makePoster, saveBlob, calibration, assembly } from './export';
 import { trackEvent } from './analytics';
 import { sampleSettings } from './example-links';
+import ImageAdjustments from './ImageAdjustments';
+import useAdjustedImage from './useAdjustedImage';
+import { TREATMENT_DEFAULTS, IMAGE_LOOKS, lookFromQuery } from './engine/image-adjustments.ts';
 const icon = { size: 18, 'aria-hidden': true };
 export default forwardRef(function Editor({ calculator = false, homepage = false }, ref) {
   const [source, setSource] = useState(null), [fileName, setFileName] = useState('');
@@ -14,6 +17,8 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const [step, setStep] = useState(1), [settings, setSettings] = useState({ ...DEFAULTS, locked: !calculator });
   const [error, setError] = useState(''), [status, setStatus] = useState(''), [progress, setProgress] = useState('');
   const [reset, setReset] = useState(false), [pdf, setPdf] = useState(null);
+  const [treatment,setTreatment] = useState({...TREATMENT_DEFAULTS}),[adjustmentTab,setAdjustmentTab] = useState('basic');
+  const adjusted = useAdjustedImage(source,treatment), pendingLook = useRef(null);
   const input = useRef(), cancel = useRef({ current: false }), readId = useRef(0), sourceRef = useRef(null);
   const sourceKind = useRef(null);
   const [replacement, setReplacement] = useState(null);
@@ -22,6 +27,14 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const demoSample = samples[0];
   useImperativeHandle(ref, () => ({
     useExample: id => { const sample = samples.find(s => s.id === id); if (sample) requestSample(sample, 3); },
+    useLook: look => {
+      if (!IMAGE_LOOKS.includes(look)) return;
+      setAdjustmentTab('effects');
+      if (status==='reading') { pendingLook.current=look; return; }
+      if (sourceRef.current) {
+        invalidate();setTreatment(current=>({...current,effect:look,invert:false}));setStep('adjustments');focusEditor();
+      } else chooseSample(samples.find(s=>s.id==='geometry'),'adjustments',true,look);
+    },
     getSettings: () => ({ ...settings }),
   }));
   const g = geometry(settings), busy = status === 'exporting';
@@ -30,30 +43,35 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const alternative = geometry({ ...settings, mode: 'exact', width: g.width, height: g.height, orientation: alternativeOrientation });
   const invalidate = () => { cancel.current.current = true; cancel.current = { current: false }; setPdf(null); setStatus(''); setError(''); };
   const change = fn => { invalidate(); setSettings(fn); };
+  const editImage = value => { invalidate();setTreatment(value); };
+  const focusEditor = () => requestAnimationFrame(() => {
+    const editor = document.getElementById('poster-editor');
+    editor?.querySelector('.step.active .step-heading')?.focus({preventScroll:true});
+    if (homepage) editor?.scrollIntoView({block:'start'});
+  });
   const update = (key, value) => change(s => ({ ...s, [key]: value }));
-  const setImage = (url, name, image) => {
+  const setImage = (url, name, image, look = 'original') => {
     if (sourceRef.current?.startsWith('blob:')) URL.revokeObjectURL(sourceRef.current);
     sourceRef.current = url; setSource(url); setFileName(name);
+    const selectedLook=pendingLook.current||look;pendingLook.current=null;
+    setTreatment({...TREATMENT_DEFAULTS,effect:selectedLook});
+    setAdjustmentTab(selectedLook==='original'?'basic':'effects');
     setPixels({ width: image.naturalWidth, height: image.naturalHeight });
     setSettings(s => ({ ...s, imageRatio: image.naturalWidth / image.naturalHeight,
       ...(s.mode === 'exact' && s.locked ? { height: s.width * image.naturalHeight / image.naturalWidth } : {}) }));
   };
-  const chooseSample = async (sample, targetStep = 2, preset = true) => {
+  const chooseSample = async (sample, targetStep = 'adjustments', preset = true, look = 'original') => {
     const id = ++readId.current; invalidate(); setStatus('reading');
     try {
       const url = imagePath(sample.image), image = await loadImage(url);
       if (id !== readId.current) return;
-      setImage(url, sample.image, image); sourceKind.current = 'sample';
+      setImage(url, sample.image, image, look); sourceKind.current = 'sample';
       setSettings(s => preset ? sampleSettings(sample) : ({ ...s, columns: sample.columns, rows: sample.rows, imageRatio: image.naturalWidth / image.naturalHeight }));
       setStep(targetStep); setStatus(''); trackEvent('poster_start');
-      requestAnimationFrame(() => {
-        const editor = document.getElementById('poster-editor');
-        editor?.querySelector('.step.active .step-heading')?.focus({ preventScroll: true });
-        if (homepage) editor?.scrollIntoView({ block: 'start' });
-      });
+      focusEditor();
     } catch { if (id === readId.current) { setError('This example could not be loaded. Try again or choose your own image.'); setStatus(''); } }
   };
-  const requestSample = (sample, targetStep = 2) => {
+  const requestSample = (sample, targetStep = 'adjustments') => {
     if (sourceKind.current === 'user') setReplacement({ sample, targetStep });
     else chooseSample(sample, targetStep);
   };
@@ -64,17 +82,18 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
     try {
       await inspectFile(files[0]); url = URL.createObjectURL(files[0]); const image = await loadImage(url);
       if (id !== readId.current) { URL.revokeObjectURL(url); return; }
-      setImage(url, files[0].name, image); sourceKind.current = 'user'; setStep(2); setStatus(''); trackEvent('poster_start');
+      setImage(url, files[0].name, image); sourceKind.current = 'user'; setStep('adjustments'); setStatus(''); trackEvent('poster_start');focusEditor();
     } catch (e) {
       if (url) URL.revokeObjectURL(url);
-      if (id === readId.current) { setError(e.message || 'We could not read this image. Try another file.'); setStatus(''); }
+      if (id === readId.current) { pendingLook.current=null;setError(e.message || 'We could not read this image. Try another file.'); setStatus(''); }
     }
   };
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     try { if (query.has('settings')) setSettings(sanitizeSettings(JSON.parse(query.get('settings')))); } catch { setError('Those shared settings could not be read. The defaults are ready to use.'); }
-    const sample = samples.find(s => s.id === query.get('sample'));
-    if (sample && !calculator) chooseSample(sample, Math.min(5, Math.max(1, Number(query.get('step')) || 3)), !query.has('settings'));
+    const look=lookFromQuery(location.search);
+    const sample = samples.find(s => s.id === query.get('sample')) || (look?samples.find(s=>s.id==='geometry'):null);
+    if (sample && !calculator) chooseSample(sample,look?'adjustments':Math.min(5,Math.max(1,Number(query.get('step'))||3)),!query.has('settings'),look||'original');
     return () => { ++readId.current; cancel.current.current = true; if (sourceRef.current?.startsWith('blob:')) URL.revokeObjectURL(sourceRef.current); };
   }, []);
   useEffect(() => {
@@ -85,14 +104,15 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const next = () => {
     if (!source && !calculator) { setError('Choose an image to continue.'); return; }
     if (g.error) { setError(g.error); return; }
-    setError(''); if (step === 4) trackEvent('settings_complete', { paper: settings.paper, sheet_count: g.count }); setStep(Math.min(5, step + 1));
+    setError(''); if (step === 4) trackEvent('settings_complete', { paper: settings.paper, sheet_count: g.count }); setStep(step===1?'adjustments':Math.min(5, step + 1));
   };
   const download = async () => {
     if (g.error || !source) { setError(g.error || 'Choose an image to continue.'); return; }
+    if (!adjusted.ready || status==='reading') { setError('Wait for the image preview to finish, retry the update or restore the original image.'); return; }
     const token = { current: false }; cancel.current = token;
     setStatus('exporting'); setError(''); setPdf(null); setProgress('Reading image and preparing PDF…');
     try {
-      const bytes = await makePoster(source, settings, (p, total) => setProgress(total ? `Preparing page ${p} of ${total}` : 'Preparing the image…'), token);
+      const bytes = await makePoster(adjusted.url, settings, (p, total) => setProgress(total ? `Preparing page ${p} of ${total}` : 'Preparing the image…'), token, adjusted.edited);
       if (cancel.current !== token) return;
       setPdf(bytes); saveBlob(bytes, 'postertiler-poster.pdf'); setStatus('ready'); trackEvent('pdf_ready', { paper: settings.paper, sheet_count: g.count });
     } catch (e) {
@@ -146,7 +166,8 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
     <Field label="Page order"><select value={settings.pageOrder} onChange={e => update('pageOrder', e.target.value)}><option value="row-major">Left to right, top to bottom</option><option value="column-major">Top to bottom, left to right</option></select></Field><small>Letters mark rows; numbers mark columns: A1, A2, B1.</small>
     <Alert>Print at Actual Size / 100%. Turn off Fit to page.</Alert>
   </>;
-  const feedback = <>{error && <Alert tone="error">{error}</Alert>}{g.error && (calculator || step !== 1) && <Alert tone="error">{g.error}{g.count>100&&g.count<=400&&!geometry(settings,400).error&&<p>Cloud PDF supports up to 400 sheets for supported files. {cloudLink} · <a href="/pricing">Check file limits and prices</a></p>}</Alert>}{status === 'reading' && <Alert>Reading your image…</Alert>}
+  const adjustmentFeedback = source && adjusted.edited && !adjusted.ready ? adjusted.phase==='failed' ? <Alert tone="error">{adjusted.error||'The image could not be updated.'}<div className="button-row"><button onClick={adjusted.retry}>Retry preview</button><button onClick={()=>editImage({...TREATMENT_DEFAULTS})}>Restore original image</button></div></Alert> : adjusted.phase==='canceled' ? <Alert>Image update canceled. Your source is still here.<button onClick={adjusted.retry}>Retry preview</button></Alert> : <Alert>Updating your image…<button onClick={adjusted.cancel}>Cancel image update</button></Alert> : null;
+  const feedback = <>{adjustmentFeedback}{error && <Alert tone="error">{error}</Alert>}{g.error && (calculator || step !== 1) && <Alert tone="error">{g.error}{g.count>100&&g.count<=400&&!geometry(settings,400).error&&<p>Cloud PDF supports up to 400 sheets for supported files. {cloudLink} · <a href="/pricing">Check file limits and prices</a></p>}</Alert>}{status === 'reading' && <Alert>Reading your image…</Alert>}
     {busy && <Alert><span aria-live="polite">{progress}</span><button onClick={() => { cancel.current.current = true; }}>Cancel</button></Alert>}
     {status === 'ready' && pdf && <Alert tone="success"><strong>Your PDF is ready</strong><p>Print at Actual Size / 100%, then follow the assembly guide.</p><button onClick={() => saveBlob(pdf, 'postertiler-poster.pdf')}>Download again</button></Alert>}
     {status === 'canceled' && <Alert>PDF preparation canceled. Your image and settings are still here.<button onClick={download}>Prepare PDF again</button></Alert>}
@@ -154,16 +175,16 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   </>;
   return <><div className="editor" id="poster-editor" data-clarity-mask="true"><aside className="settings-panel">{calculator ? <div className="calc-controls">{paperControls}{sizeControls}{printControls}{!g.error&&!alternative.error&&<Alert>For the same exact {sizeText(g,settings.unit)} canvas, {alternativeOrientation.toLowerCase()} uses {alternative.count} sheets with the same margins, overlap and label setting.{alternative.count<g.count&&<button onClick={()=>change(s=>({...s,mode:'exact',width:g.width,height:g.height,orientation:alternativeOrientation}))}>Use {alternativeOrientation.toLowerCase()} and save {g.count-alternative.count} sheets</button>}</Alert>}{feedback}<B disabled={!!g.error} onClick={() => { location.href = `/?settings=${encodeURIComponent(JSON.stringify(settings))}#poster-editor`; }}>Create Poster with These Settings <ArrowRight {...icon} /></B></div> : ['Upload', 'Paper Settings', 'Poster Size', 'Print Options', 'Download PDF'].map((title, i) => {
     const n = i + 1;
-    return <section className={`step ${step === n ? 'active' : ''}`} key={title}><button className="step-heading" aria-expanded={step === n} aria-controls={step === n ? `step-${n}` : undefined} disabled={busy} onClick={() => {
+    return <React.Fragment key={title}><section className={`step ${step === n ? 'active' : ''}`}><button className="step-heading" aria-expanded={step === n} aria-controls={step === n ? `step-${n}` : undefined} disabled={busy} onClick={() => {
       if (n > 1 && !source) { setError('Choose an image to continue.'); setStep(1); } else { setStep(n); setError(''); }
     }}><span className="step-no">{String(n).padStart(2, '0')}</span><strong>{title}</strong>{n === 1 && source && step !== 1 && <img className="upload-thumb" src={source} alt="" />}{step !== n && n < 3 && <span className="step-summary">{n === 1 ? fileName : `${settings.paper} · ${settings.orientation}`}</span>}{step === n ? <CaretUp {...icon} /> : <CaretDown {...icon} />}</button>
     {step === n && <div className="step-body" id={`step-${n}`}>
       {n === 1 && <><div className="dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={36} weight="light" /><h2>Drop an image here</h2><p>or choose a file from your device</p><B onClick={() => input.current.click()}>Upload Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>JPG, PNG or WebP. You can also paste an image.</small><small>Your image stays in your browser while you make your poster.</small><small>Local safety limits: 32 MB, 24 megapixels, 12,000 px per side and 100 sheets. Device capacity can be lower.</small>{source && <p className="selected-file">{fileName} · {pixels.width} × {pixels.height} px</p>}<h3 className="example-label">Or try an example</h3><div className="example-strip">{samples.slice(0, 4).map(s => <button key={s.id} aria-label={`Try ${s.title}`} onClick={() => requestSample(s)}><img src={`/assets/homepage/thumb-${s.image.replace(/\.png$/, '')}.webp`} alt={s.title} loading="lazy" /></button>)}</div></>}
       {n === 2 && paperControls}{n === 3 && sizeControls}{n === 4 && printControls}
-      {n === 5 && <><p>Review your poster, then download the pages to print.</p><dl className="metrics download-metrics"><dt>Finished size</dt><dd>{!g.error && sizeText(g, settings.unit)}</dd><dt>Paper</dt><dd>{settings.paper} · {g.pw > g.ph ? 'Landscape' : 'Portrait'}</dd><dt>Layout</dt><dd>{g.columns} across × {g.rows} down</dd><dt>Poster PDF pages</dt><dd>{g.count}</dd><dt>{g.framed ? 'Panel gap' : 'Overlap'}</dt><dd>{g.framed ? g.gap : settings.overlap} mm</dd></dl><Alert>Choose matching paper. Print at Actual Size / 100% and turn off Fit to page.</Alert><B className="wide" disabled={busy || !!g.error} onClick={download}>Download Printable PDF</B><small>Free export. No watermark. No sign-up.</small><details className="optional-cloud-link"><summary>Need cloud processing?</summary><p>For more sheets or work your device cannot finish, check cloud file limits and pricing before choosing to upload.</p>{cloudLink} · <a href="/pricing">Compare options</a></details><div className="download-links"><button disabled={busy || !!g.error} onClick={() => auxiliary('calibration')}>Download calibration page <ArrowSquareOut size={14} /></button><button disabled={busy || !!g.error} onClick={() => auxiliary('assembly')}>Download assembly guide <ArrowSquareOut size={14} /></button></div><small>Guide and calibration files are separate from the {g.count} poster pages.</small></>}
-      {feedback}{n < 5 && <div className="step-actions"><button className="text-button" disabled={n === 1 || status === 'reading'} onClick={() => setStep(n - 1)}><ArrowLeft {...icon} /> Back</button><B disabled={(!!g.error && n > 1) || status === 'reading'} onClick={next}>Continue</B></div>}
-    </div>}</section>;
-  })}{!calculator && source && <button className="reset-link" disabled={busy} onClick={() => setReset(true)}><ArrowCounterClockwise size={15} /> Reset print settings</button>}</aside><div className="editor-preview-column">{demo && <div className="demo-preview-note"><span><strong>Example preview</strong><small>Alpine reflections · choose it to start editing</small></span><button className="underlined" disabled={status === 'reading'} onClick={() => requestSample(demoSample)}>Use this example <ArrowRight size={15} aria-hidden="true" /></button></div>}<Preview source={demo ? '/assets/homepage/alpine-lake-preview.webp' : source} settings={demo ? sampleSettings(demoSample) : settings} empty={!demo && !source && !calculator} pixels={demo ? {width:demoSample.width,height:demoSample.height} : pixels} layoutOnly={calculator} onSourceError={demo ? setDemoFailed : undefined} /></div></div>
+      {n === 5 && <><p>Review your poster, then download the pages to print.</p><dl className="metrics download-metrics"><dt>Finished size</dt><dd>{!g.error && sizeText(g, settings.unit)}</dd><dt>Paper</dt><dd>{settings.paper} · {g.pw > g.ph ? 'Landscape' : 'Portrait'}</dd><dt>Layout</dt><dd>{g.columns} across × {g.rows} down</dd><dt>Poster PDF pages</dt><dd>{g.count}</dd><dt>{g.framed ? 'Panel gap' : 'Overlap'}</dt><dd>{g.framed ? g.gap : settings.overlap} mm</dd></dl><Alert>Choose matching paper. Print at Actual Size / 100% and turn off Fit to page.</Alert><B className="wide" disabled={busy || status === 'reading' || !!g.error || !adjusted.ready} onClick={download}>Download Printable PDF</B><small>Free export. No watermark. No sign-up.</small>{adjusted.edited&&<small>Your image adjustments and art effect are included in this PDF.</small>}<details className="optional-cloud-link"><summary>Need cloud processing?</summary>{adjusted.edited&&<p>These image edits stay in this browser. Cloud PDF starts with a separate file selection.</p>}<p>For more sheets or work your device cannot finish, check cloud file limits and pricing before choosing to upload.</p>{cloudLink} · <a href="/pricing">Compare options</a></details><div className="download-links"><button disabled={busy || !!g.error} onClick={() => auxiliary('calibration')}>Download calibration page <ArrowSquareOut size={14} /></button><button disabled={busy || !!g.error} onClick={() => auxiliary('assembly')}>Download assembly guide <ArrowSquareOut size={14} /></button></div><small>Guide and calibration files are separate from the {g.count} poster pages.</small></>}
+      {feedback}{n < 5 && <div className="step-actions"><button className="text-button" disabled={n === 1 || status === 'reading'} onClick={() => setStep(n === 2 ? 'adjustments' : n - 1)}><ArrowLeft {...icon} /> Back</button><B disabled={(!!g.error && n > 1) || status === 'reading'} onClick={next}>Continue</B></div>}
+    </div>}</section>{n===1&&<ImageAdjustments open={step==='adjustments'} hasSource={!!source} disabled={busy||status==='reading'} treatment={treatment} tab={adjustmentTab} onTab={setAdjustmentTab} onOpen={()=>{if(!source){setError('Choose an image to adjust.');setStep(1);}else{setStep('adjustments');setError('');}}} onChange={editImage} onRestore={editImage} onBack={()=>setStep(1)} onContinue={()=>setStep(2)} feedback={<>{error&&<Alert tone="error">{error}</Alert>}{adjustmentFeedback}{adjusted.ready&&<p className="adjustment-readiness" role="status">{adjusted.edited?'Preview updated. These edits will be included in your PDF.':'Original image. Your source file is unchanged.'}</p>}</>}/>}</React.Fragment>;
+  })}{!calculator && source && <button className="reset-link" disabled={busy} onClick={() => setReset(true)}><ArrowCounterClockwise size={15} /> Reset print settings</button>}</aside><div className="editor-preview-column">{demo && <div className="demo-preview-note"><span><strong>Example preview</strong><small>Alpine reflections · choose it to start editing</small></span><button className="underlined" disabled={status === 'reading'} onClick={() => requestSample(demoSample)}>Use this example <ArrowRight size={15} aria-hidden="true" /></button></div>}{source&&adjusted.edited&&<div className="image-preview-status" data-ready={adjusted.ready}>{adjusted.ready?'Adjusted image · included in PDF':'Preparing adjusted preview · export will wait'}</div>}<Preview source={demo ? '/assets/homepage/alpine-lake-preview.webp' : adjusted.url} settings={demo ? sampleSettings(demoSample) : settings} empty={!demo && !source && !calculator} pixels={demo ? {width:demoSample.width,height:demoSample.height} : pixels} layoutOnly={calculator} onSourceError={demo ? setDemoFailed : undefined} /></div></div>
   {replacement && <div className="modal-scrim"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="replace-title"><button className="dialog-close" data-dismiss aria-label="Close replace image dialog" onClick={() => setReplacement(null)}><X {...icon} /></button><h2 id="replace-title">Replace your image?</h2><p>Using {replacement.sample.title} replaces your current image and print settings. Keep your current poster if you are still working on it.</p><div className="button-row"><B secondary onClick={() => setReplacement(null)}>Keep my poster</B><B onClick={() => { const next = replacement; setReplacement(null); chooseSample(next.sample, next.targetStep); }}>Use example instead</B></div></section></div>}
   {reset && <div className="modal-scrim"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="reset-title"><button className="dialog-close" data-dismiss aria-label="Close reset dialog" onClick={() => setReset(false)}><X {...icon} /></button><h2 id="reset-title">Reset print settings?</h2><p>Your image will stay selected.</p><div className="button-row"><B secondary onClick={() => setReset(false)}>Keep settings</B><B onClick={() => { change(() => ({ ...DEFAULTS, imageRatio: pixels.width / pixels.height })); setStep(2); setReset(false); }}>Reset settings</B></div></section></div>}</>;
 });

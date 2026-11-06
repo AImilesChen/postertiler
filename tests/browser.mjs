@@ -27,7 +27,11 @@ async function check(name, fn) {
   await fn(); checks.push({ name, result: 'passed' }); console.log('PASS', name);
 }
 async function goto(url = '/') { await page.goto(origin + url, { waitUntil: 'networkidle' }); }
-async function upload(file) { await page.locator('input[type=file]').setInputFiles(file); await page.waitForFunction(() => document.querySelector('.step.active .step-no')?.textContent === '02'); }
+async function uploaded() {
+  await page.getByRole('tab', { name: 'Basic adjustments', exact: true }).waitFor();
+  await page.getByRole('button', { name: '02 Paper Settings', exact: false }).click();
+}
+async function upload(file) { await page.locator('input[type=file]').setInputFiles(file); await uploaded(); }
 async function shot(name, fullPage = true) { await page.screenshot({ path: `verification/screenshots/${name}.png`, fullPage }); }
 async function download(button, name) {
   const pending = page.waitForEvent('download'); await page.getByRole('button', { name: button, exact: true }).click();
@@ -110,14 +114,14 @@ try {
       data.items.add(new File([bytes], 'clipboard.jpg', { type: 'image/jpeg' }));
       window.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
     }, encoded);
-    await page.waitForFunction(() => document.querySelector('.step.active .step-no')?.textContent === '02');
+    await uploaded();
     await goto();
     await page.evaluate(encoded => {
       const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0)); const data = new DataTransfer();
       data.items.add(new File([bytes], 'dropped.jpg', { type: 'image/jpeg' }));
       document.querySelector('.dropzone').dispatchEvent(new DragEvent('drop', { dataTransfer: data, bubbles: true, cancelable: true }));
     }, encoded);
-    await page.waitForFunction(() => document.querySelector('.step.active .step-no')?.textContent === '02');
+    await uploaded();
     await goto(); await page.evaluate(() => {
       const data = new DataTransfer(); data.items.add(new File(['a'], 'a.jpg')); data.items.add(new File(['b'], 'b.jpg'));
       document.querySelector('.dropzone').dispatchEvent(new DragEvent('drop', { dataTransfer: data, bubbles: true, cancelable: true }));

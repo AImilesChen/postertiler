@@ -1,6 +1,8 @@
 import { LIMITS } from './geometry.ts';
-export async function inspectFile(blob: Blob) {
-  if (blob.size > LIMITS.bytes) throw new Error('This local tool supports files up to 32 MB. Choose a smaller image.');
+export const PROCESSED_IMAGE_BYTES = 128 * 1024 * 1024;
+export async function inspectFile(blob: Blob, maxBytes = LIMITS.bytes) {
+  const limit = maxBytes === PROCESSED_IMAGE_BYTES ? PROCESSED_IMAGE_BYTES : LIMITS.bytes;
+  if (blob.size > limit) throw new Error(limit === LIMITS.bytes ? 'This local tool supports files up to 32 MB. Choose a smaller image.' : 'The adjusted image is too large to export. Try a smaller source image.');
   const bytes = new Uint8Array(await blob.slice(0, 1024 * 1024).arrayBuffer());
   const v = new DataView(bytes.buffer);
   let width = 0, height = 0, mime = '';
@@ -29,6 +31,7 @@ export async function inspectFile(blob: Blob) {
     if (type === 'VP8L') { const packed = v.getUint32(21, true); width = 1 + (packed & 0x3fff); height = 1 + ((packed >> 14) & 0x3fff); }
   }
   if (!mime) throw new Error('Choose a valid JPG, PNG or WebP image.');
+  if (limit === PROCESSED_IMAGE_BYTES && mime !== 'image/png') throw new Error('Choose a valid processed PNG image.');
   if (!width || !height) throw new Error('We could not read the image dimensions. Try re-saving it as JPG or PNG.');
   validatePixels(width, height);
   return { width, height, mime };
