@@ -32,7 +32,12 @@
       "copy": {
         "heading": "Free Block Poster Maker",
         "subheading": "Turn one image into a large poster you can print on A4 or Letter paper and assemble at home.",
-        "trustPoints": ["Free PDF downloads", "No watermark", "No sign-up"]
+        "trustPoints": ["Free PDF downloads", "No watermark", "No sign-up"],
+        "features": [
+          {"id": "print", "title": "Print at home", "description": "A4 or Letter paper"},
+          {"id": "local", "title": "Runs in your browser", "description": "Local image processing"},
+          {"id": "free", "title": "Free PDF downloads", "description": "No watermark · No sign-up"}
+        ]
       },
       "primaryActionRef": "editor.upload"
     },
