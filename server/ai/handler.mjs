@@ -30,13 +30,17 @@ export function createAiHandler({authenticate=getSessionUser,now=()=>Date.now(),
    if(path==='/moderation-check'&&request.method==='POST'){
     if(!aiReady(env))throw new AiError('moderation_unavailable',503);
     if(lastProbe&&now()-lastProbe<60000)throw new AiError('moderation_limit',429);lastProbe=now();
-    const m=makeModerator(env);await m.prompt('A quiet moonlit garden with maple trees');
+    const m=makeModerator(env,undefined,{diagnostics:true});let phase='benign_prompt';
+    try{
+    await m.prompt('A quiet moonlit garden with maple trees');
+    phase='image';
     const sample=await env.ASSETS.fetch(new Request(origin+'/assets/images/alpine-lake.png'));
     if(!sample.ok)throw new AiError('moderation_unavailable',503);
     await m.image(await moderationPng(await boundedBytes(sample,AI_LIMITS.resultBytes)),'image/png','output');
-    let rejected=false;try{await m.prompt('sexual intercourse');}catch(e){if(e.code!=='moderation_prompt_blocked')throw e;rejected=true;}
+    phase='blocked_prompt';let rejected=false;try{await m.prompt('sexual intercourse');}catch(e){if(e.code!=='moderation_prompt_blocked')throw e;rejected=true;}
     if(!rejected)throw new AiError('moderation_unavailable',503);
     return json({status:'passed',prompt_screening:'passed',image_screening:'passed',blocked_prompt:'blocked',policy:MODERATION_VERSION,fal_calls:0,ai_credits_used:0});
+    }catch(e){return json({error:e instanceof AiError?e.code:'moderation_unavailable',phase,...(e?.diagnostic?{diagnostic:e.diagnostic}:{}),fal_calls:0,ai_credits_used:0},503);}
    }
    if(path==='/status'&&request.method==='GET'){await store.recover();return json({enabled:aiReady(env),mode:'test',version:AI_VERSION,balance:await store.balance(owner),jobs:(await store.list(owner)).map(j=>publicAiJob(j,now())),plans:Object.entries(AI_PACKS).map(([id,p])=>({id,name:p.name,amount:p.amount,credits:p.credits}))});}
    if(path==='/jobs'&&request.method==='POST'){

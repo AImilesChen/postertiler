@@ -6,7 +6,7 @@ export const moderationReady=env=>!!env.SIGHTENGINE_API_USER?.trim()&&!!env.SIGH
 export const IMAGE_MODELS='nudity-2.1,gore-2.0,violence,self-harm,offensive-2.0';
 const languages='en,zh,fr,es,de,it,pt,ru,tr,ko,da,nl,fi,no,pl,ro,sv,tl';
 const ruleCategories=['profanity','violence','self-harm','extremism'];
-const score=(o,k)=>{const n=o?.[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>1)throw new AiError('moderation_unavailable',503);return n;};
+const score=(o,k)=>{const n=o?.[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>1){const e=new AiError('moderation_unavailable',503);e.diagnostic={reason:'invalid_score',field:k};throw e;}return n;};
 const any=(o,keys,threshold)=>keys.map(k=>score(o,k)).some(n=>n>=threshold);
 export function imageDecision(data){
  // These are PosterTiler policy thresholds, not a legal-compliance guarantee.
@@ -19,18 +19,22 @@ function rulesDecision(data){
  return ruleCategories.map(key=>{const matches=data?.[key]?.matches;if(!Array.isArray(matches))throw new AiError('moderation_unavailable',503);return matches;})
   .some((matches,index)=>matches.some(match=>index!==0||['sexual','discriminatory'].includes(match?.type)));
 }
-export function sightengine(env,transport=fetch,{now=()=>Date.now(),sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
+export function sightengine(env,transport=fetch,{now=()=>Date.now(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),diagnostics=false}={}){
  let nextAt=0;
  async function request(path,fields){
   if(!moderationReady(env))throw new AiError('moderation_unavailable',503);
   // Free-plan pacing within this task. Cross-isolate 429s fail closed as well.
   await sleep(Math.max(0,nextAt-now()));nextAt=now()+1100;
-  const form=new FormData();for(const [key,value]of Object.entries(fields))form.set(key,value);form.set('api_user',env.SIGHTENGINE_API_USER);form.set('api_secret',env.SIGHTENGINE_API_SECRET);
+  const form=new FormData();for(const [key,value]of Object.entries(fields))form.set(key,value);form.set('api_user',env.SIGHTENGINE_API_USER.trim());form.set('api_secret',env.SIGHTENGINE_API_SECRET.trim());
+  const failure=(code,detail)=>{const e=new AiError(code,503);if(diagnostics)e.diagnostic={...detail,endpoint:path,mode:fields.mode||'image'};throw e;};
   try{
    const response=await transport('https://api.sightengine.com/1.0/'+path,{method:'POST',body:form,redirect:'manual',signal:AbortSignal.timeout(20000)});
-   if(!response.ok){await response.body?.cancel().catch(()=>{});throw new AiError(response.status===429?'moderation_limit':'moderation_unavailable',503);}
+   if(!response.ok){
+    let code;try{const d=JSON.parse(new TextDecoder().decode(await boundedBytes(new Response(response.body),128*1024)));if(Number.isInteger(d?.error?.code))code=d.error.code;}catch{}
+    failure(response.status===429?'moderation_limit':'moderation_unavailable',{http_status:response.status,...(code!==undefined?{provider_code:code}:{})});
+   }
    const data=JSON.parse(new TextDecoder().decode(await boundedBytes(response,128*1024)));
-   if(data?.status!=='success')throw new AiError('moderation_unavailable',503);
+   if(data?.status!=='success')failure('moderation_unavailable',{reason:'api_failure',...(Number.isInteger(data?.error?.code)?{provider_code:data.error.code}:{})});
    return data;
   }catch(error){if(error instanceof AiError&&['moderation_limit','moderation_unavailable'].includes(error.code))throw error;throw new AiError('moderation_unavailable',503);}
  }
