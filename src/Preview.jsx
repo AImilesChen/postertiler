@@ -112,7 +112,7 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
         </div>
       </div>}
     </div>
-    {reference&&<p className="preview-reference-note">Reference figure: 180 cm</p>}
+    {reference&&<p className="preview-reference-note" aria-live="polite">{settings.unit==='in'?'The reference figure is about 5 ft 11 in tall.':'The reference figure is about 180 cm tall.'}</p>}
     {!empty && !g.error && sheets && <ul className="preview-legend" aria-label="Sheet layout legend"><li><i className="legend-sheet" />Sheet</li><li><i className="legend-image" />Image area</li><li><i className="legend-overlap" />Overlap</li><li><i className="legend-edge" />Finished poster edge</li></ul>}
     <div className="preview-summary"><span>{empty ? 'Your poster preview' : `${g.columns} × ${g.rows} sheets`}</span><span>{!empty && !g.error && sizeText(g, settings.unit)}</span></div></div>
     {!empty && !g.error && <p className="preview-explanation">{sheets ? 'Assembly map: sheets are shown in their joining positions. Trim or cover printer margins; hatched areas repeat on adjacent sheets.' : g.framed ? 'Finished panel arrangement. The visible gaps are intentional mounting spaces.' : 'Finished poster with page divisions. Printer margins are removed during assembly; the lines are not blank gaps.'}</p>}
