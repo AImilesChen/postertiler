@@ -6,6 +6,8 @@ import { samples } from '../src/data.js';
 import { geometry } from '../src/engine/geometry.ts';
 import { lifeSettings } from '../src/engine/creative.ts';
 import { PDFDocument } from 'pdf-lib';
+import { inspectFile } from '../src/engine/image.ts';
+import { featuredPosters,posterScenarios } from '../src/homepage-artwork.js';
 
 test('creative deep links allow only bundled images and supported effects',()=>{
  for(const effect of ['dots','dither','cmyk']){
@@ -20,15 +22,27 @@ test('creative deep links allow only bundled images and supported effects',()=>{
  assert.equal(creativeExample('?sample=geometry&effect=constructor','halftone').effect,'dots');
 });
 
-test('sample presets match bundled PNG dimensions and produce valid printable layouts',async()=>{
+test('sample presets match bundled image dimensions and produce valid printable layouts',async()=>{
  for(const item of samples){
-  const png=await readFile(`public/assets/images/${item.image}`);
-  assert.equal(png.readUInt32BE(16),item.width,item.id);assert.equal(png.readUInt32BE(20),item.height,item.id);
+  const bytes=await readFile(`public/assets/images/${item.image}`),info=await inspectFile(new Blob([bytes]));
+  assert.equal(info.width,item.width,item.id);assert.equal(info.height,item.height,item.id);
   const g=geometry(sampleSettings(item));assert.equal(g.error,'',item.id);assert.equal(g.count,item.rows*item.columns);
  }
  const portrait=samples.find(s=>s.id==='portrait'),g=geometry(lifeSettings(1800,portrait));
  assert.equal(g.height,1800);assert.equal(g.count,49);assert.equal(g.error,'');
  const classroom=samples.find(s=>s.id==='classroom');assert.equal(geometry(sampleSettings(classroom)).count,6);
+});
+
+test('featured cases and use cases have nine different printable artworks with matching links',async()=>{
+ const slots=[...featuredPosters,...posterScenarios];assert.equal(slots.length,9);assert.equal(new Set(slots.map(s=>s.id)).size,9);
+ for(const slot of slots){
+  const item=samples.find(s=>s.id===slot.id);assert.ok(item?.style);await access(`public/assets/images/${item.image}`);
+  if(slot.life)assert.equal(creativeExample(`?sample=${slot.id}`,'life-size').sample.id,slot.id);
+  else assert.equal(geometry(sampleSettings(item)).count,4);
+  const prefix=featuredPosters.some(s=>s.id===slot.id)?'scene':'art';
+  await access(`public/assets/homepage/${prefix}-${slot.id}-960.webp`);
+ }
+ assert.equal(creativeExample('?sample=jade-mountains','life-size').sample,null);
 });
 
 test('homepage calibration retains real paper size and effect previews share source dimensions',async()=>{

@@ -9,6 +9,7 @@ import { previewPlan } from './engine/preview.ts';
 import { calibration } from './export';
 import { trackEvent } from './analytics';
 import copy from './homepage-copy.json';
+import { featuredPosters, posterScenarios } from './homepage-artwork';
 import './homepage.css';
 
 const block = id => copy.blocks.find(b => b.id === id)?.copy || {};
@@ -16,8 +17,9 @@ const arrow = <ArrowRight size={17} aria-hidden="true" />;
 const asset = name => `/assets/homepage/${name}`;
 const sample = id => samples.find(s => s.id === id);
 
-function Scene({ id, alt }) {
-  return <picture><source type="image/webp" srcSet={`${asset(`scene-${id}-480.webp`)} 480w, ${asset(`scene-${id}-960.webp`)} 960w`} sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw" /><img src={asset(`scene-${id}.jpg`)} width="960" height="640" alt={alt} loading="lazy" decoding="async" /></picture>;
+function Scene({ id, alt, artwork = false }) {
+  const prefix=artwork?'art':'scene',item=sample(id);
+  return <picture><source type="image/webp" srcSet={`${asset(`${prefix}-${id}-480.webp`)} 480w, ${asset(`${prefix}-${id}-960.webp`)} 960w`} sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw" /><img src={asset(`${prefix}-${id}.jpg`)} width="960" height={artwork?Math.round(item.height*960/item.width):640} alt={alt} loading="lazy" decoding="async" /></picture>;
 }
 
 export function SheetDiagram({ settings, pixels, title }) {
@@ -34,25 +36,17 @@ export function SheetDiagram({ settings, pixels, title }) {
   </svg>;
 }
 
-function CaseCard({ id, title, onTry, life = false }) {
+function CaseCard({ id, title, style, onTry, life = false }) {
   const [layout,setLayout] = useState(false), item=sample(id);
   const settings=life?lifeSettings(1800,item):sampleSettings(item), g=geometry(settings);
   return <article className="hp-case">
     <div className="hp-case-views" role="group" aria-label={`${title} view`}><button aria-pressed={!layout} onClick={()=>setLayout(false)}>Finished view</button><button aria-pressed={layout} onClick={()=>setLayout(true)}>Sheet layout</button></div>
     <div className="hp-case-art">{layout?<><SheetDiagram settings={settings} pixels={item} title={title}/><span className="hp-map-key">White: sheet · Blue: image · Hatching: overlap</span></>:<><Scene id={id} alt={`${title} shown as an assembled paper poster in a room`}/><span className="hp-mockup-label">Illustrative mockup</span></>}</div>
-    <h3>{title}</h3><p className="hp-case-size">{sizeText(g,'cm')} <span>· {g.count} A4 sheets</span></p><p className="hp-case-detail">{life?'180 cm whole-image height; background retained.':'5 mm margins · 10 mm overlap · Fit whole image.'}</p>
-    {life?<a className="underlined hp-action" href="/tools/life-size-poster-maker?sample=portrait">Open Life Size Poster Maker {arrow}</a>:<button className="underlined hp-action" onClick={()=>onTry(id)}>Try this poster {arrow}</button>}
+    <p className="hp-art-style">{style}</p><h3>{title}</h3><p className="hp-case-size">{sizeText(g,'cm')} <span>· {g.count} A4 sheets</span></p><p className="hp-case-detail">{life?'180 cm whole-image height; background retained.':'5 mm margins · 10 mm overlap · Fit whole image.'}</p>
+    {life?<a className="underlined hp-action" href={`/tools/life-size-poster-maker?sample=${id}`}>Open Life Size Poster Maker {arrow}</a>:<button className="underlined hp-action" onClick={()=>onTry(id)}>Try this poster {arrow}</button>}
   </article>;
 }
 
-const scenarios=[
-  ['botanical','Wall art','Bring a favourite illustration into your everyday space.'],
-  ['alpine','Photo posters','Give a landscape or a favourite photo more room.'],
-  ['classroom','Classroom displays','Make a teaching visual large enough to share.'],
-  ['event','Event signs','Print artwork for a celebration or shop display.'],
-  ['map','Maps and plans','Spread a detailed image across ordinary sheets.'],
-  ['portrait','Life-size posters','Set a measured height for a person or object.'],
-];
 const looks=[
   ['original','Original','Keep the colours and details of your source image.'],
   ['dots','Halftone dots','Turn tones into a bold black-and-white dot screen.'],
@@ -87,9 +81,9 @@ export default function Homepage() {
         ].map(([title,body,img,alt],i)=><article key={title}><img className="hp-step-image" src={asset(img)} width="800" height="520" alt={alt} loading="lazy"/><div className="hp-step-heading"><span>0{i+1}</span><h3>{title}</h3></div><p>{body}</p></article>)}</div><button className="underlined hp-section-link" onClick={()=>trySample('alpine')}>Try an example {arrow}</button>
       </section>
 
-      <section className="hp-section" id="poster-examples"><header className="hp-heading hp-heading-split"><div><small>THE BIGGER PICTURE</small><h2>See what your poster can become</h2><p>Explore three starting points, then check how they fit onto real sheets.</p></div><a className="underlined" href="/gallery">Browse the gallery {arrow}</a></header><div className="hp-cases"><CaseCard id="alpine" title="Landscape wall poster" onTry={trySample}/><CaseCard id="botanical" title="Botanical wall art" onTry={trySample}/><CaseCard id="portrait" title="A life-size statement" life/></div><p className="hp-footnote">Room images are illustrative mockups. Sheet layouts and dimensions are calculated by the print engine; mockup scale is approximate.</p></section>
+      <section className="hp-section" id="poster-examples"><header className="hp-heading hp-heading-split"><div><small>THE BIGGER PICTURE</small><h2>See what your poster can become</h2><p>Explore three starting points, then check how they fit onto real sheets.</p></div><a className="underlined" href="/gallery">Browse the gallery {arrow}</a></header><div className="hp-cases">{featuredPosters.map(item=><CaseCard key={item.id} {...item} onTry={trySample}/>)}</div><p className="hp-footnote">Room images are illustrative mockups. Sheet layouts and dimensions are calculated by the print engine; mockup scale is approximate.</p></section>
 
-      <section className="hp-section" id="poster-uses"><header className="hp-heading"><small>MADE FOR YOUR IDEAS</small><h2>One tool. Plenty of ways to use it.</h2><p>Start with a use in mind. Bring your own artwork or try a sample.</p></header><div className="hp-scenarios">{scenarios.map(([id,title,body])=><article key={id}><div className="hp-scene">{id==='portrait'?<a href="/tools/life-size-poster-maker?sample=portrait" aria-label="Try life-size poster example"><Scene id={id} alt={`${title} illustrative paper-poster mockup`}/></a>:<button className="hp-scene-button" aria-label={`Try ${title.toLowerCase()} example`} onClick={()=>trySample(id)}><Scene id={id} alt={`${title} illustrative paper-poster mockup`}/></button>}<span className="hp-mockup-label">Illustrative mockup</span></div><h3>{title}</h3><p>{body}</p>{id==='portrait'?<a className="underlined" href="/tools/life-size-poster-maker?sample=portrait">Try life-size {arrow}</a>:<button className="underlined" onClick={()=>trySample(id)}>Try this idea {arrow}</button>}</article>)}</div><p className="hp-footnote">The map sample is fictional artwork. Working from a PDF plan? <a href="/tools/pdf-poster-printer">Open PDF Poster Printer</a>.</p></section>
+      <section className="hp-section" id="poster-uses"><header className="hp-heading"><small>MADE FOR YOUR IDEAS</small><h2>One tool. Plenty of ways to use it.</h2><p>Start with a use in mind. Bring your own artwork or try a sample.</p></header><div className="hp-scenarios">{posterScenarios.map(({id,title,body,life})=><article key={id}><div className={`hp-scene hp-artwork-preview ${sample(id).width<sample(id).height?'hp-artwork-portrait':''}`}>{life?<a href={`/tools/life-size-poster-maker?sample=${id}`} aria-label="Try life-size poster example"><Scene id={id} artwork alt={sample(id).title}/></a>:<button className="hp-scene-button" aria-label={`Try ${title.toLowerCase()} example`} onClick={()=>trySample(id)}><Scene id={id} artwork alt={sample(id).title}/></button>}</div><p className="hp-art-style">{sample(id).style}</p><h3>{title}</h3><p>{body}</p>{life?<a className="underlined" href={`/tools/life-size-poster-maker?sample=${id}`}>Try life-size {arrow}</a>:<button className="underlined" onClick={()=>trySample(id)}>Try this idea {arrow}</button>}</article>)}</div><p className="hp-footnote">Original sample illustrations; the world map is fictional. Working from a PDF plan? <a href="/tools/pdf-poster-printer">Open PDF Poster Printer</a>.</p></section>
 
       <section className="hp-section" id="poster-styles"><header className="hp-heading"><small>EXPLORE A DIFFERENT LOOK</small><h2>One image. Four different looks.</h2><p>The same artwork, processed by the same tools you can use here.</p></header><div className="hp-looks">{looks.map(([id,title,body])=><article key={id}><img src={asset(`look-${id}-800.webp`)} srcSet={`${asset(`look-${id}-400.webp`)} 400w, ${asset(`look-${id}-800.webp`)} 800w`} sizes="(max-width: 900px) 50vw, 25vw" width="800" height="1157" loading="lazy" alt={`${title} rendering of Colour and form artwork`}/><h3>{title}</h3><p>{body}</p>{id==='original'?<button className="underlined" onClick={()=>trySample('geometry')}>Try this look {arrow}</button>:<a className="underlined" href={`/tools/halftone-poster-maker?sample=geometry&effect=${id}`}>Try this look {arrow}</a>}</article>)}</div><p className="hp-footnote">CMYK-style is an RGB artwork effect, not prepress colour separation. Effects do not add image detail or use AI.</p></section>
 

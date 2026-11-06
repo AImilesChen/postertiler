@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { loadEnv } from 'vite';
-import { routeSpecs, appRouteSpecs, guides } from '../src/data.js';
+import { routeSpecs, appRouteSpecs, guides, samples } from '../src/data.js';
 import { render } from '../.ssr/entry-server.js';
 const env = { ...loadEnv('production', process.cwd(), ''), ...process.env };
 const origin = 'https://postertiler.com';
@@ -20,7 +20,7 @@ const descriptions = {
   'pdf-poster': 'Tile an existing PDF over A4, Letter or A3 sheets at 100% or a custom scale, retaining existing embedded fonts and vector content.',
   compare: 'Compare PosterTiler and Rasterbator.io with dated source statements, test conditions and clearly scoped browser and PDF observations.',
   home: 'Turn any image into a giant poster. Split pictures into printable A4 or Letter pages, download a free PDF, and assemble your poster at home.',
-  gallery: 'Explore nine example poster layouts. Choose artwork and carry its sheet settings into the free PosterTiler poster maker.',
+  gallery: `Explore ${samples.length} example poster layouts. Choose artwork and carry its sheet settings into the free PosterTiler poster maker.`,
   calculator: 'Calculate poster dimensions or sheet count for A4, Letter and A3. Account for printer margins, overlap and exact finished dimensions.',
   guides: 'Learn to make, print and assemble a tiled poster. Find guidance on paper, actual-size printing, image resolution and calibration.',
   about: 'Meet PosterTiler, a free browser-based tool for turning one image into a large poster printed on ordinary paper.',

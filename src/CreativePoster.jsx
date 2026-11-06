@@ -46,7 +46,7 @@ export default function CreativePoster({ kind }) {
       const s = selected?.id ? selected : samples.find(s => s.id === (life ? 'portrait' : 'geometry'));
       const response = await fetch(imagePath(s.image)); if (!response.ok) throw new Error();
       const blob = await response.blob();
-      if (version === readVersion.current) await choose([new File([blob], s.image, { type: 'image/png' })]);
+      if (version === readVersion.current) await choose([new File([blob], s.image, { type: blob.type || 'image/png' })]);
     } catch { if (version === readVersion.current) { setError('The example could not be loaded. Choose an image from your device.'); setStatus(''); } }
   };
   useEffect(() => {
