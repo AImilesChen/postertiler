@@ -5,16 +5,35 @@ import { accountRequest } from './account-data';
 import { inspectFile,PROCESSED_IMAGE_BYTES } from './engine/image.ts';
 import { AI_PACKS,validateSpec } from '../server/ai/contract.mjs';
 import { AI_API,activeAi,aiMessage,useAiAccount,aiWorkingCopy } from './ai-client';
+import { AI_USAGE,aiTaskCount } from './pricing-data';
 import { Alert,B,Field } from './ui';
 import './ai-tools.css';
 
-export function AiPlans({checkout=false}){
- const auth=useAuth(),[enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),attempt=useRef(null);
- useEffect(()=>{let alive=true;accountRequest(AI_API+'/capabilities').then(d=>{if(alive)setEnabled(d.enabled);}).catch(()=>{});return()=>{alive=false;};},[]);
+export function AiPlans({checkout=false,pricing=false,id}){
+ const auth=useAuth(),[access,setAccess]=useState({status:'loading',enabled:false}),[revision,setRevision]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(''),attempt=useRef(null);
+ useEffect(()=>{
+  if(auth.status!=='ready'){setAccess({status:auth.status==='error'?'error':'loading',enabled:false});return;}
+  let alive=true;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+  setAccess({status:'loading',enabled:false});
+  accountRequest(AI_API+'/capabilities',{signal:controller.signal}).then(d=>{if(typeof d.enabled!=='boolean')throw new Error('invalid_response');if(alive)setAccess({status:'ready',enabled:d.enabled});}).catch(()=>{if(alive)setAccess({status:'error',enabled:false});}).finally(()=>clearTimeout(timer));
+  return()=>{alive=false;clearTimeout(timer);controller.abort();};
+ },[auth.status,auth.user?.id,revision]);
+ const enabled=auth.status==='ready'&&access.status==='ready'&&access.enabled;
+ const checking=auth.status==='loading'||access.status==='loading';
+ const accessError=auth.status==='error'||access.status==='error';
+ const note=checking?'AI tools are in a private pilot. Checking your access…':accessError?'We could not check your AI access. Prices remain visible; retry the access check to continue.':enabled?'Your account has AI pilot access. Stripe test purchases only.':auth.user?'AI tools are invite-only. Access is not currently enabled for this session.':'AI tools are currently invite-only. Sign in to check whether your account has access.';
+ function recheck(){auth.refresh();setRevision(value=>value+1);}
  async function choose(plan){if(busy)return;setBusy(true);setError('');try{if(attempt.current?.plan!==plan)attempt.current={plan,request_id:crypto.randomUUID()};const result=await accountRequest(AI_API+'/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt.current),signal:AbortSignal.timeout(20000)});const u=new URL(result.url);if(u.protocol!=='https:'||u.hostname!=='checkout.stripe.com')throw new Error('invalid_response');location.assign(u.href);}catch{setError('Checkout could not be opened. Try again with the same option.');setBusy(false);}}
- return <section className="ai-plans" aria-label="AI credit packs"><div className="ai-section-heading"><div><span className="account-eyebrow">OPTIONAL AI TOOLS</span><h2>Make something worth printing.</h2><p>Create artwork, edit an image or enhance its resolution. AI credits are separate from Cloud PDF exports.</p></div><Sparkle size={30} weight="light"/></div>
- <p className="ai-sandbox-note">{enabled?'AI sandbox · Stripe test payments only. The configured AI provider may incur real API costs.':'AI processing is being prepared. Credit purchasing is not open yet.'}</p>
- <div className="ai-plan-grid">{Object.entries(AI_PACKS).map(([id,p])=><article className="ai-plan" key={id}><h3>{id==='ai40'?'AI Starter':'AI Pack'}</h3><strong className="ai-price">${(p.amount/100).toFixed(2)}<span> USD</span></strong><p>{p.credits} AI credits · one-time</p><ul><li>HD enhancement · 3 credits</li><li>Standard image · 3 credits</li><li>High-quality image · 8 credits</li><li>4K high-quality image · 16 credits</li></ul>{enabled?checkout&&auth.user?<B disabled={busy} onClick={()=>choose(id)}>{busy?'Opening checkout…':`Test purchase · ${p.credits} credits`}</B>:<a className="button secondary" href="/account/ai">Open AI studio<ArrowRight size={16}/></a>:<button className="button secondary" disabled>Not open yet</button>}<small>No subscription. No monthly credit reset. One image per task.</small></article>)}</div>{error&&<Alert tone="error">{error}</Alert>}<small>Enhancement output up to 24 MP. Technical failures return reserved credits. Generation quality and image dimensions affect the required credits.</small></section>;
+ return <section className="ai-plans" id={id} aria-label="AI credit packs"><div className="ai-section-heading"><div><span className="account-eyebrow">OPTIONAL AI TOOLS</span><h2>{pricing?'Create or enhance your image.':'Make something worth printing.'}</h2><p>Create artwork, edit an image or enhance its resolution. AI credits are separate from Cloud PDF exports.</p></div><Sparkle size={30} weight="light" aria-hidden="true"/></div>
+ <div className="ai-access-note" data-state={accessError?'error':checking?'loading':enabled?'enabled':'restricted'} role="status"><p>{note}</p>{accessError&&<button type="button" onClick={recheck}>Retry access check</button>}</div>
+ {checkout&&enabled&&<p className="ai-sandbox-note">AI generation uses the configured fal account and may incur real API costs, even with Stripe test credits.</p>}
+ <div className="ai-plan-grid">{Object.entries(AI_PACKS).map(([planId,p])=><article className="ai-plan" key={planId}>
+  <span className="ai-plan-purpose">{planId==='ai40'?'For your first ideas':'For more images and experiments'}</span><h3>{planId==='ai40'?'AI Starter':'AI Pack'}</h3><strong className="ai-price">${(p.amount/100).toFixed(2)}<span> USD</span></strong><p>{p.credits} AI credits · one-time</p>
+  <div className="ai-plan-value"><strong>Up to {aiTaskCount(p.credits,AI_USAGE[0].credits)} enhancement or standard tasks</strong><span>If the entire pack is used for {AI_USAGE[0].credits}-credit tasks. High-quality and 4K tasks use more.</span></div>
+  {pricing?<ul><li>GPT Image 2 generation and editing</li><li>2× / 4× enhancement within output limits</li><li>Apply your result to the free poster maker</li></ul>:<ul>{AI_USAGE.map(task=><li key={task.id}>{task.label} · {task.credits} credits</li>)}</ul>}
+  {checking?<button className="button secondary" disabled>Checking access…</button>:accessError?<button className="button secondary" onClick={recheck}>Retry access check</button>:enabled?checkout&&auth.user?<B disabled={busy} onClick={()=>choose(planId)}>{busy?'Opening checkout…':`Test purchase · ${p.credits} credits`}</B>:<a className="button secondary" href="/account/ai">Open AI studio<ArrowRight size={16} aria-hidden="true"/></a>:<a className="button secondary" href="/account/ai">{auth.user?'View AI pilot details':'Sign in to check AI access'}<ArrowRight size={16} aria-hidden="true"/></a>}
+  <small>No subscription. AI credits only; Cloud PDF exports are separate.</small>
+ </article>)}</div>{error&&<Alert tone="error">{error}</Alert>}<small>Enhancement output up to 24 MP. Technical failures release reserved credits. One image per task. Download available results within 24 hours of task creation.</small></section>;
 }
 
 export function AiOrders(){

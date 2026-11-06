@@ -24,6 +24,11 @@ createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' });
       res.end(req.method === 'HEAD' ? undefined : JSON.stringify({ available: false, user: null })); return;
     }
+    if (pathname === '/api/ai/test/capabilities') {
+      // Static preview has no provider or account access. The real Worker controls the pilot.
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' });
+      res.end(req.method === 'HEAD' ? undefined : JSON.stringify({ enabled: false, mode: 'test' })); return;
+    }
     if (pathname !== '/' && /(?:\.html|\/$)/.test(pathname)) {
       const canonical = pathname.replace(/\/index\.html$/, '').replace(/\.html$/, '').replace(/\/$/, '') || '/';
       res.writeHead(307, { Location: canonical }).end(); return;

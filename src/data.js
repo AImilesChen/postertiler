@@ -43,7 +43,7 @@ const designRouteSpecs = [
   ['compare','/compare/rasterbator-alternative','V1.1','PosterTiler and Rasterbator','compare'],
   ['life-size','/tools/life-size-poster-maker','V2','Life Size Poster Maker','life-size'],
   ['halftone','/tools/halftone-poster-maker','V2','Halftone Poster Maker','halftone'],
-  ['pricing','/pricing','V2','Pricing — Free & Cloud PDF','pricing'],
+  ['pricing','/pricing','V2','Pricing — Free PDFs, AI Credits & Cloud Exports','pricing'],
   ['account','/account','V2','Your account','account'],
   ['payment-success','/payment/success','V2','Payment received','payment'],
   ['payment-pending','/payment/pending','V2','Confirming your payment','payment'],
