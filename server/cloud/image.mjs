@@ -9,7 +9,7 @@ function exifOrientation(bytes) {
     for(let i=0;i<count;i++){const p=start+2+i*12;if(v.getUint16(p,le)===274 && v.getUint16(p+2,le)===3 && v.getUint32(p+4,le)===1){const o=v.getUint16(p+8,le);return o>=1&&o<=8?o:1;}}
   }catch{}return 1;
 }
-export function cleanImage(bytes,mime,copy=true) {
+export function cleanImage(bytes,mime,copy=true,limits=CLOUD_LIMITS) {
   const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   let width=0,height=0,orientation=1,parts=[];
   if(mime==='image/jpeg') {
@@ -41,8 +41,8 @@ export function cleanImage(bytes,mime,copy=true) {
     }
     if(!ended || !hasData || !width || !height)fail();
   } else throw new CloudError('unsupported_type');
-  const max=mime==='image/png'?CLOUD_LIMITS.pngPixels:CLOUD_LIMITS.jpegPixels;
-  if(width*height>max || width>CLOUD_LIMITS.dimension || height>CLOUD_LIMITS.dimension)throw new CloudError('image_too_large');
+  const max=mime==='image/png'?limits.pngPixels:limits.jpegPixels;
+  if(width*height>max || width>limits.dimension || height>limits.dimension)throw new CloudError('image_too_large');
   const result=copy?new Uint8Array(parts.reduce((n,p)=>n+p.length,0)):bytes;let offset=0;if(copy)for(const part of parts){result.set(part,offset);offset+=part.length;}
   return {bytes:result,width:orientation>=5?height:width,height:orientation>=5?width:height,orientation,format:mime==='image/png'?'png':'jpeg'};
 }

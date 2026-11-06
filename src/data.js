@@ -86,6 +86,7 @@ export const stateSpecs = [
 
 export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone','pricing'].includes(route.id));
 export const appRouteSpecs = [...routeSpecs,
+  { id:'account-ai',path:'/account/ai',stage:'AI',title:'AI studio',kind:'ai',private:true },
   { id:'account',path:'/account',stage:'Auth',title:'Your account',kind:'account',private:true },
   { id:'account-tasks',path:'/account/tasks',stage:'Auth',title:'Cloud tasks',kind:'account',view:'tasks',private:true },
   { id:'account-billing',path:'/account/billing',stage:'Auth',title:'Credits and orders',kind:'account',view:'billing',private:true },

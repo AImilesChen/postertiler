@@ -10,3 +10,9 @@ STRIPE_TEST_WEBHOOK_SECRET=
 BILLING_TEST_ENABLED=false
 CLOUD_TEST_ENABLED=false
 # Cloud sandbox also requires local D1, private R2 and Queue bindings; see README.
+# Optional AI pilot. Keep disabled until the AI migration and pilot setup are complete.
+AI_TEST_ENABLED=false
+FAL_KEY=
+# Comma-separated verified Google login emails; use a Cloudflare Secret remotely.
+AI_TEST_ALLOWED_EMAILS=
+AI_DAILY_BUDGET_CENTS=500

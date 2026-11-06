@@ -14,6 +14,7 @@ import PdfPoster from './PdfPoster';
 import CreativePoster from './CreativePoster';
 import Account from './Account';
 import Pricing from './Pricing';
+import AiStudio from './AiStudio';
 import CloudWorkspace from './CloudWorkspace';
 import Nav from './Nav';
 import { AuthProvider } from './AuthContext';
@@ -39,6 +40,7 @@ function Policy({route}){return <main className="policy-layout"><PageIntro eyebr
 function GuideDirectory(){const [search,setSearch]=useState('');const filtered=guides.filter(g=>(g.title+' '+g.category).toLowerCase().includes(search.toLowerCase()));return <><Field label="Find a printing guide"><input type="search" placeholder="Search paper, scale or assembly" value={search} onChange={e=>setSearch(e.target.value)}/></Field><div className="guide-list">{filtered.map((g,i)=><a key={g.slug} href={'/guides/'+g.slug}><span>0{i+1}</span><div><small>{g.category}</small><h2>{g.title}</h2><p>{g.intro}</p></div><ArrowRight size={22}/></a>)}{!filtered.length&&<Alert>No guides match that search. Try paper, scale or assembly.</Alert>}</div></>;}
 function OtherPage({route}) {
  if(route.kind==='account')return <Account view={route.view}/>;
+ if(route.kind==='ai')return <AiStudio/>;
  if(route.kind==='cloud')return <CloudWorkspace/>;
  if(route.kind==='pricing')return <Pricing/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;

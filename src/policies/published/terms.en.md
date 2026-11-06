@@ -1,6 +1,6 @@
 # Terms of Use
 
-Effective date: 5 November 2026
+Effective date: 6 November 2026
 
 ## The service and operator
 
@@ -23,6 +23,18 @@ One supported image and confirmed settings form one task. Starting reserves one 
 This version supports JPG up to 20 MiB and 100 megapixels, and 8-bit non-interlaced PNG up to 8 MiB and 4 megapixels, with neither side above 30,000 pixels. RGB/grayscale JPG is supported; CMYK JPG, animated PNG, WebP, professional PDF, batch processing and AI are not included in this cloud release. Up to 400 poster sheets and a 30,000 mm finished dimension per side are allowed. One task per account may hold a credit at a time. Upload within 10 minutes; queued/processing work has a 20-minute deadline, up to three automatic attempts and up to three manual retries where available.
 
 Files and authenticated downloads expire 24 hours after task creation. Scheduled deletion normally follows within 5 minutes, with retries after outages. Keep your own copy before expiry. Purchased test credits do not have a timed expiry; test data may be reset as part of sandbox maintenance. Printing, cutting and assembly remain your responsibility. For a service issue, contact support@postertiler.com with the task/order reference, without attaching private files unnecessarily. Real-money payment and refund terms will be presented before live sales are enabled. Mandatory consumer rights are unaffected.
+
+## Optional AI sandbox and separate credits
+
+When enabled, AI tools offer creation/editing with GPT Image 2 and resolution enhancement with Topaz Precision. AI credits are separate from ordinary Cloud PDF export credits. The sandbox reference packs are $4.99 for 40 AI credits and $9.99 for 100; no subscription is created and no real money is charged. Sandbox balances may be reset during testing. Use test payment details only.
+
+Each task creates one image. Enhancement up to 24 megapixels uses 3 AI credits; standard creation or a supported single-image edit uses 3; high quality uses 8; 4K high quality at the listed output size uses 16. The interface shows the supported dimensions and required credits before submission. Generation and subsequent enhancement are separate optional tasks, each quoted in advance. Selecting 4K does not guarantee a particular physical printing quality.
+
+Starting reserves the displayed credits. A verified, stored result consumes them once. A technical failure releases the reservation. Cancellation before a successful delivery discards any later result and releases the reservation; an already successful task cannot be canceled to undo its use. A provider request may continue after cancellation. Refresh task status after a network error; do not assume it stopped. Downloading or reapplying the same available result does not use additional credits. A new prompt, edit, enhancement or regeneration is a new task, including when the previous image did not match your artistic preference.
+
+AI results may alter details or contain errors. Review text, people, fine lines and permissions before printing or sharing. Enhancement does not guarantee restoration of true missing detail. You retain the rights you have in your inputs; we do not guarantee that an AI result is unique, copyrightable or cleared of third-party rights. Do not use these tools for prohibited or unlawful content.
+
+Website working files and authenticated downloads expire 24 hours after task creation; save the image before expiry. Order history does not store a permanent downloadable image. Ordinary local poster PDF export remains free after you apply an available AI image. Separate Cloud PDF processing is optional and uses its own export credits. Real-money AI sales, expiry, support and cash-refund terms will be clearly presented before live sales are enabled; mandatory consumer rights remain unaffected.
 
 ## Your content and permissions
 

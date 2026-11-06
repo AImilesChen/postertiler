@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Effective date: 5 November 2026
+Effective date: 6 November 2026
 
 ## Operator and contact
 
@@ -18,7 +18,7 @@ PDF tiling reuses source page content and resources. It is not a PDF sanitizatio
 
 ## Optional cloud PDF sandbox and test payments
 
-The Cloud PDF workspace and Account pages offer optional cloud PDF processing with Stripe sandbox credits. No real money is charged in this release. Only the cloud form uploads a file, after you explicitly select the upload-consent checkbox and start the task. Ordinary local tools remain local.
+The Cloud PDF workspace and Account pages offer optional cloud PDF processing with Stripe sandbox credits. No real money is charged in this release. Only the cloud form, or a separately confirmed AI task described below, uploads a file; the cloud form does so after you explicitly select the upload-consent checkbox and start the task. Ordinary local tools remain local.
 
 For a cloud task, Cloudflare Workers, Queues, D1 and private R2 storage process the selected JPG or PNG, its byte hash, dimensions and confirmed print settings to produce a PDF. Source files may contain EXIF or other metadata; remove private information before uploading. We remove JPEG metadata segments and PNG ancillary metadata from the embedded output image and respect supported EXIF orientation. This is not a content-sanitization or professional color-proofing service. Files are not public, are not used for AI training or promotion, and no AI provider is called.
 
@@ -58,6 +58,18 @@ If you make a choice in Cookie settings, the application saves that preference i
 
 Google Search Console and Bing Webmaster Tools are used for public-page verification, Sitemap submission and search visibility reports. Their verification records do not install visitor recordings or upload your poster files. A verified site or accepted Sitemap does not guarantee search indexing or rankings.
 
+## Optional AI processing sandbox
+
+AI creation, single-image editing and resolution enhancement are separate optional services. They are disabled by default until configured, and are identified as sandbox features when enabled. Selecting a file, using free colour adjustments or signing in does not start an AI request.
+
+After you confirm the AI disclosure and start a task, we send your prompt and, for editing or enhancement, a JPEG working copy of the selected image to fal and the selected model provider. GPT Image 2 is used for creation/editing and Topaz Precision for enhancement. Editing working copies are limited to a 1536-pixel edge and 1.6 megapixels; transparent inputs are flattened onto white. We do not send your Google name or email to the model. The provider receives the request through our server, rather than directly from your browser.
+
+Our private Cloudflare storage holds the working image and result for up to 24 hours from task creation. Prompt text and provider URLs are removed when the expired task is cleaned up. Account references, task state, parameters, credit debits/releases and order records are retained to operate the service, reconcile usage and resolve problems. Downloading or applying the result does not publish it in the Gallery.
+
+We request that fal omit inputs and outputs from its request-history payload storage, and request a one-hour expiration for generated CDN files. These controls are not a promise of zero retention across model providers, security logs or other processing. See [fal data retention controls](https://fal.ai/docs/documentation/model-apis/media-expiration) and [fal Privacy Policy](https://fal.ai/legal/privacy-policy). Processing may occur outside your country. Do not submit confidential information or images you lack permission to share with these providers.
+
+AI processing permission is separate from analytics permission. Refusing analytics does not prevent a requested AI task. When you use an AI result in the poster maker, its local working preview stays in page memory; downloaded copies remain on your device. AI credits, Cloud PDF credits and their sandbox order histories are kept separately. No real-money AI checkout is enabled in this release.
+
 ## Support email
 
 If you contact us, we receive your email address, message, headers and any attachments you choose to send. We use these to respond, investigate the problem and handle related privacy or rights requests. Sending your original image is optional; start with a description of the problem.
@@ -82,4 +94,4 @@ Rights and exceptions depend on the circumstances and applicable law. You may al
 
 This is a general-purpose printing tool. Minors should use it with the involvement and permission of a parent, guardian or responsible educator as required by applicable law. The tool does not request dates of birth or children's profiles. Contact us if a child's personal information has been included in support correspondence and needs attention.
 
-We will update this policy when the service or data practices change and show the effective date above. Future permanent account records, payments, cloud processing and AI image services will have appropriate disclosures before they become available.
+We will update this policy when the service or data practices change and show the effective date above. Changes to live payments, account records, cloud processing or AI services will be reflected in this policy before they become available.

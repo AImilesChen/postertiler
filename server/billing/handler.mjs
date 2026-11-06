@@ -5,6 +5,8 @@ import { BillingStore, ORDER_FILTERS } from './store.mjs';
 import { listingParams } from '../listing.mjs';
 import { cloudReady } from '../cloud/contract.mjs';
 import { CloudStore } from '../cloud/store.mjs';
+import { AI_PACKS,aiReady,aiAllowed } from '../ai/contract.mjs';
+import { AiStore } from '../ai/store.mjs';
 
 const BASE = '/api/billing/test';
 const EVENTS = new Set(['checkout.session.completed','checkout.session.async_payment_succeeded','checkout.session.async_payment_failed','checkout.session.expired','charge.refunded']);
@@ -36,12 +38,14 @@ async function ownerKey(user) {
 const objectId = value => typeof value === 'string' ? value : value?.id;
 function validateSession(session, order) {
   const item = session.line_items?.data?.[0];
+  const inline=Object.values(AI_PACKS).some(p=>p.price===order.price_id&&p.amount===order.amount&&p.credits===order.credits);
+  const priceMatches=inline?item?.price?.unit_amount===order.amount&&item.price.currency===order.currency&&!item.price.recurring&&item.price.type==='one_time':objectId(item?.price)===order.price_id;
   return session.livemode === false && session.mode === 'payment' && session.currency === order.currency &&
     session.amount_subtotal === order.amount && session.amount_total === order.amount &&
     session.metadata?.order_id === order.id && session.metadata?.sku === order.sku &&
     session.metadata?.price_version === order.price_version && session.client_reference_id === order.user_key &&
     (!order.session_id || order.session_id === session.id) && session.line_items?.data?.length === 1 &&
-    session.line_items.has_more === false && item.quantity === 1 && objectId(item.price) === order.price_id;
+    session.line_items.has_more === false && item.quantity === 1 && priceMatches;
 }
 function safeCheckoutUrl(value) {
   try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'checkout.stripe.com' ? url.href : null; } catch { return null; }
@@ -70,11 +74,12 @@ function checkoutSetupReason(error, env) {
 
 // Injected transports exist only for tests; request parameters and bindings
 // cannot replace the Stripe API or authentication provider.
-export function createBillingHandler({ makeStripe = stripeClient, authenticate = getSessionUser } = {}) {
+export function createBillingHandler({ makeStripe = stripeClient, authenticate = getSessionUser,ai=false } = {}) {
+  const base=ai?'/api/ai/test/billing':BASE,catalog=ai?AI_PACKS:TEST_CATALOG;
   return async function handleBilling(request, env) {
     const url = new URL(request.url);
-    if (url.pathname !== BASE && !url.pathname.startsWith(BASE + '/')) return null;
-    const path = url.pathname.slice(BASE.length);
+    if (url.pathname !== base && !url.pathname.startsWith(base + '/')) return null;
+    const path = url.pathname.slice(base.length);
     const orderPath = path.match(/^\/orders\/([0-9a-f-]+)$/i);
     if (!['/status','/checkout','/webhook','/orders'].includes(path) && !orderPath) return json({ error: 'not_found' }, 404);
     const method = ['/checkout','/webhook'].includes(path) ? 'POST' : 'GET';
@@ -85,17 +90,19 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (path === '/webhook') return await webhook(request, env, makeStripe);
       const user = await authenticate(request, env);
       if (!user) return json({ error: 'sign_in_required' }, 401);
+      if(ai&&!aiAllowed(user,env))return json({error:'pilot_access_required'},403);
       if (path === '/status') {
         operation = 'database';
-        const enabled = env.BILLING_TEST_ENABLED === 'true' && ready(env);
-        const summary = enabled ? await new BillingStore(env.BILLING_TEST_DB).summary(await ownerKey(user)) : { test_credits: 0, orders: [] };
-        const cloud = enabled && cloudReady(env);
+        const enabled = env.BILLING_TEST_ENABLED === 'true' && ready(env) && (!ai||aiReady(env));
+        const summary = enabled ? await new BillingStore(env.BILLING_TEST_DB,{ai}).summary(await ownerKey(user)) : { test_credits: 0, orders: [] };
+        const cloud = !ai && enabled && cloudReady(env);
         if(cloud) summary.test_credits=(await new CloudStore(env.BILLING_TEST_DB).balance(await ownerKey(user))).available;
-        return json({ mode: 'test', enabled, cloud_delivery: cloud, ...summary, plans: Object.entries(TEST_CATALOG).map(([id, plan]) => ({ id, name: plan.name, amount: plan.amount, currency: plan.currency, credits: plan.credits })) });
+        if(ai&&enabled)summary.test_credits=(await new AiStore(env.BILLING_TEST_DB).balance(await ownerKey(user))).available;
+        return json({ mode: 'test', enabled, cloud_delivery: cloud, ...summary, plans: Object.entries(catalog).map(([id, plan]) => ({ id, name: plan.name, amount: plan.amount, currency: plan.currency, credits: plan.credits })) });
       }
-      if (env.BILLING_TEST_ENABLED !== 'true' || !ready(env)) return json({ error: 'test_billing_unavailable' }, 503);
+      if (env.BILLING_TEST_ENABLED !== 'true' || !ready(env)||ai&&!aiReady(env)) return json({ error: 'test_billing_unavailable' }, 503);
       operation = 'database';
-      const store = new BillingStore(env.BILLING_TEST_DB), userKey = await ownerKey(user);
+      const store = new BillingStore(env.BILLING_TEST_DB,{ai}), userKey = await ownerKey(user);
       if(path === '/orders') {
         const params=listingParams(url,ORDER_FILTERS);if(!params)return json({error:'invalid_request'},400);
         return json(await store.listPage(userKey,params));
@@ -111,16 +118,16 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (request.headers.get('Content-Type')?.split(';')[0] !== 'application/json') return json({ error: 'invalid_content_type' }, 415);
       let body;
       try { body = JSON.parse(await readBody(request, 4096)); } catch { return json({ error: 'invalid_request' }, 400); }
-      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['plan','request_id'].includes(key)) || !Object.hasOwn(TEST_CATALOG, body.plan) || !uuid(body.request_id)) return json({ error: 'invalid_request' }, 400);
-      const plan = TEST_CATALOG[body.plan];
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['plan','request_id'].includes(key)) || !Object.hasOwn(catalog, body.plan) || !uuid(body.request_id)) return json({ error: 'invalid_request' }, 400);
+      const plan = catalog[body.plan];
       let order = await store.findRequest(userKey, body.request_id);
       if (order && order.sku !== body.plan) return json({ error: 'request_conflict' }, 409);
       if (!order && await store.recentCount(userKey) >= 10) return json({ error: 'too_many_attempts' }, 429, { 'Retry-After': '3600' });
       const stripe = makeStripe(env);
       if (!order) {
         operation = 'stripe_price';
-        const price = await stripe.prices.retrieve(plan.price);
-        if (!validTestPrice(price, plan)) return json({ error: 'price_configuration_mismatch' }, 503);
+        if(!plan.inline){const price = await stripe.prices.retrieve(plan.price);
+        if (!validTestPrice(price, plan)) return json({ error: 'price_configuration_mismatch' }, 503);}
         operation = 'database';
         order = await store.create(userKey, body.request_id, body.plan, plan);
         if (order.sku !== body.plan) return json({ error: 'request_conflict' }, 409);
@@ -131,10 +138,10 @@ export function createBillingHandler({ makeStripe = stripeClient, authenticate =
       if (!order.session_id && Date.now() - order.created_at > 23 * 3600000) return json({ error: 'request_expired' }, 409);
       operation = 'stripe_checkout';
       const session = order.session_id ? await stripe.checkout.sessions.retrieve(order.session_id) : await stripe.checkout.sessions.create({
-        mode: 'payment', line_items: [{ price: order.price_id, quantity: 1 }], allowed_payment_method_types: ['card'],
-        client_reference_id: order.user_key, metadata: { order_id: order.id, sku: order.sku, price_version: order.price_version },
-        payment_intent_data: { metadata: { order_id: order.id } },
-        success_url: `${origin(env)}/account?billing_order=${order.id}`, cancel_url: `${origin(env)}/account?billing_canceled=1`,
+        mode: 'payment', line_items: [plan.inline?{price_data:{currency:order.currency,unit_amount:order.amount,product_data:{name:plan.name}},quantity:1}:{ price: order.price_id, quantity: 1 }], allowed_payment_method_types: ['card'],
+        client_reference_id: order.user_key, metadata: { order_id: order.id, sku: order.sku, price_version: order.price_version,...(ai?{billing_scope:'ai'}:{}) },
+        payment_intent_data: { metadata: { order_id: order.id,...(ai?{billing_scope:'ai'}:{}) } },
+        success_url: `${origin(env)}/account${ai?'/ai':''}?billing_order=${order.id}`, cancel_url: `${origin(env)}/account${ai?'/ai':''}?billing_canceled=1`,
         automatic_tax: { enabled: false }, allow_promotion_codes: false,
       }, { idempotencyKey: `postertiler-test-${order.id}` });
       const checkout = safeCheckoutUrl(session.url);
@@ -155,12 +162,13 @@ async function webhook(request, env, makeStripe) {
   catch { return json({ error: 'invalid_signature' }, 400); }
   if (event.livemode !== false || event.account || !/^evt_[A-Za-z0-9]+$/.test(event.id || '')) return json({ error: 'wrong_environment' }, 400);
   if (!EVENTS.has(event.type)) return json({ received: true, ignored: true });
-  const store = new BillingStore(env.BILLING_TEST_DB);
+  let store = new BillingStore(env.BILLING_TEST_DB);
   let session, order, refund = null;
   if (event.type === 'charge.refunded') {
     const charge = await stripe.charges.retrieve(event.data.object.id);
     if (charge.livemode !== false || charge.currency !== 'usd' || !Number.isInteger(charge.amount_refunded) || charge.amount_refunded < 0) return json({ error: 'invalid_payment' }, 400);
     const pi = await stripe.paymentIntents.retrieve(objectId(charge.payment_intent));
+    if(pi.metadata?.billing_scope==='ai')store=new BillingStore(env.BILLING_TEST_DB,{ai:true});
     order = await store.find(pi.metadata?.order_id || '');
     if (!order) return json({ received: true, ignored: true });
     if (charge.amount !== order.amount || objectId(charge.payment_intent) !== pi.id || pi.livemode !== false) return json({ error: 'invalid_payment' }, 400);
@@ -175,6 +183,7 @@ async function webhook(request, env, makeStripe) {
     refund = charge.amount_refunded;
   } else {
     session = await stripe.checkout.sessions.retrieve(event.data.object.id, { expand: ['line_items'] });
+    if(session.metadata?.billing_scope==='ai')store=new BillingStore(env.BILLING_TEST_DB,{ai:true});
     order = await store.find(session.metadata?.order_id || '');
     if (!order) return json({ received: true, ignored: true });
   }
@@ -184,3 +193,4 @@ async function webhook(request, env, makeStripe) {
   return json({ received: true });
 }
 export const handleBilling = createBillingHandler();
+export const handleAiBilling = createBillingHandler({ai:true});

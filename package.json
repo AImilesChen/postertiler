@@ -1,6 +1,6 @@
 {
   "name": "postertiler",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -21,7 +21,8 @@
     "test:browser:nav": "node tests/browser-nav.mjs",
     "test:browser:preview": "node tests/browser-preview.mjs",
     "test:browser:tracking": "node tests/browser-tracking.mjs",
-    "test:browser:billing": "node tests/browser-billing.mjs"
+    "test:browser:billing": "node tests/browser-billing.mjs",
+    "test:browser:ai": "node tests/browser-ai.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "2.1.10",

@@ -141,6 +141,6 @@ export function createAuthHandler(transport) {
 export const handleAuth = createAuthHandler();
 // Exact, first-party destinations only. Stored inside the encrypted OAuth flow.
 export function safeReturnTo(value) {
-  const paths=['/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
+  const paths=['/account/ai','/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
   return paths.includes(value)?value:'/account';
 }

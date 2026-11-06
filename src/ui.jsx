@@ -3,7 +3,7 @@ import { Minus, Plus, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 export const B = ({ children, secondary = false, className = '', ...props }) => <button className={`${secondary ? 'button secondary' : 'button'} ${className}`} {...props}>{children}</button>;
 export function Field({ label, children, hint }) {
   const id = React.useId();
-  const control = React.isValidElement(children) && ['input', 'select'].includes(children.type) ? React.cloneElement(children, { 'aria-label': label }) : children;
+  const control = React.isValidElement(children) && ['input', 'select', 'textarea'].includes(children.type) ? React.cloneElement(children, { 'aria-label': label }) : children;
   return <div className="field" role="group" aria-labelledby={id}><span id={id}>{label}</span>{control}{hint && <small>{hint}</small>}</div>;
 }
 export function NumberInput({ label, value, onChange, unit, min = 0, step = 1 }) {
