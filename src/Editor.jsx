@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ArrowSquareOut, CaretDown, CaretUp, UploadSimple, X, ArrowCounterClockwise, LockSimple } from '@phosphor-icons/react';
 import { B, Field, NumberInput, Alert } from './ui';
 import Preview from './Preview';
@@ -6,14 +6,24 @@ import { DEFAULTS, geometry, sizeText, MM_PER_UNIT, sanitizeSettings } from './g
 import { samples, imagePath } from './data';
 import { loadImage, inspectFile, makePoster, saveBlob, calibration, assembly } from './export';
 import { trackEvent } from './analytics';
+import { sampleSettings } from './example-links';
 const icon = { size: 18, 'aria-hidden': true };
-export default function Editor({ calculator = false }) {
+export default forwardRef(function Editor({ calculator = false, homepage = false }, ref) {
   const [source, setSource] = useState(null), [fileName, setFileName] = useState('');
   const [pixels, setPixels] = useState({ width: 1043, height: 1508 });
   const [step, setStep] = useState(1), [settings, setSettings] = useState({ ...DEFAULTS, locked: !calculator });
   const [error, setError] = useState(''), [status, setStatus] = useState(''), [progress, setProgress] = useState('');
   const [reset, setReset] = useState(false), [pdf, setPdf] = useState(null);
   const input = useRef(), cancel = useRef({ current: false }), readId = useRef(0), sourceRef = useRef(null);
+  const sourceKind = useRef(null);
+  const [replacement, setReplacement] = useState(null);
+  const [demoFailed,setDemoFailed] = useState(false);
+  const demo = homepage && !source && !calculator && !demoFailed;
+  const demoSample = samples[0];
+  useImperativeHandle(ref, () => ({
+    useExample: id => { const sample = samples.find(s => s.id === id); if (sample) requestSample(sample, 3); },
+    getSettings: () => ({ ...settings }),
+  }));
   const g = geometry(settings), busy = status === 'exporting';
   const cloudLink = <a href="/cloud" onClick={()=>{try{sessionStorage.setItem('postertiler-cloud-settings',JSON.stringify(settings));}catch{}}}>Try optional cloud processing</a>;
   const alternativeOrientation = g.pw > g.ph ? 'Portrait' : 'Landscape';
@@ -28,14 +38,24 @@ export default function Editor({ calculator = false }) {
     setSettings(s => ({ ...s, imageRatio: image.naturalWidth / image.naturalHeight,
       ...(s.mode === 'exact' && s.locked ? { height: s.width * image.naturalHeight / image.naturalWidth } : {}) }));
   };
-  const chooseSample = async (sample, targetStep = 2) => {
+  const chooseSample = async (sample, targetStep = 2, preset = true) => {
     const id = ++readId.current; invalidate(); setStatus('reading');
     try {
       const url = imagePath(sample.image), image = await loadImage(url);
       if (id !== readId.current) return;
-      setImage(url, sample.image, image); setSettings(s => ({ ...s, columns: sample.columns, rows: sample.rows }));
+      setImage(url, sample.image, image); sourceKind.current = 'sample';
+      setSettings(s => preset ? sampleSettings(sample) : ({ ...s, columns: sample.columns, rows: sample.rows, imageRatio: image.naturalWidth / image.naturalHeight }));
       setStep(targetStep); setStatus(''); trackEvent('poster_start');
+      requestAnimationFrame(() => {
+        const editor = document.getElementById('poster-editor');
+        editor?.querySelector('.step.active .step-heading')?.focus({ preventScroll: true });
+        if (homepage) editor?.scrollIntoView({ block: 'start' });
+      });
     } catch { if (id === readId.current) { setError('This example could not be loaded. Try again or choose your own image.'); setStatus(''); } }
+  };
+  const requestSample = (sample, targetStep = 2) => {
+    if (sourceKind.current === 'user') setReplacement({ sample, targetStep });
+    else chooseSample(sample, targetStep);
   };
   const read = async files => {
     if (files.length !== 1) { setError('Choose one image to make a poster.'); return; }
@@ -44,7 +64,7 @@ export default function Editor({ calculator = false }) {
     try {
       await inspectFile(files[0]); url = URL.createObjectURL(files[0]); const image = await loadImage(url);
       if (id !== readId.current) { URL.revokeObjectURL(url); return; }
-      setImage(url, files[0].name, image); setStep(2); setStatus(''); trackEvent('poster_start');
+      setImage(url, files[0].name, image); sourceKind.current = 'user'; setStep(2); setStatus(''); trackEvent('poster_start');
     } catch (e) {
       if (url) URL.revokeObjectURL(url);
       if (id === readId.current) { setError(e.message || 'We could not read this image. Try another file.'); setStatus(''); }
@@ -54,7 +74,7 @@ export default function Editor({ calculator = false }) {
     const query = new URLSearchParams(location.search);
     try { if (query.has('settings')) setSettings(sanitizeSettings(JSON.parse(query.get('settings')))); } catch { setError('Those shared settings could not be read. The defaults are ready to use.'); }
     const sample = samples.find(s => s.id === query.get('sample'));
-    if (sample && !calculator) chooseSample(sample, Math.min(5, Math.max(1, Number(query.get('step')) || 3)));
+    if (sample && !calculator) chooseSample(sample, Math.min(5, Math.max(1, Number(query.get('step')) || 3)), !query.has('settings'));
     return () => { ++readId.current; cancel.current.current = true; if (sourceRef.current?.startsWith('blob:')) URL.revokeObjectURL(sourceRef.current); };
   }, []);
   useEffect(() => {
@@ -138,11 +158,12 @@ export default function Editor({ calculator = false }) {
       if (n > 1 && !source) { setError('Choose an image to continue.'); setStep(1); } else { setStep(n); setError(''); }
     }}><span className="step-no">{String(n).padStart(2, '0')}</span><strong>{title}</strong>{n === 1 && source && step !== 1 && <img className="upload-thumb" src={source} alt="" />}{step !== n && n < 3 && <span className="step-summary">{n === 1 ? fileName : `${settings.paper} · ${settings.orientation}`}</span>}{step === n ? <CaretUp {...icon} /> : <CaretDown {...icon} />}</button>
     {step === n && <div className="step-body" id={`step-${n}`}>
-      {n === 1 && <><div className="dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={36} weight="light" /><h2>Drop an image here</h2><p>or choose a file from your device</p><B onClick={() => input.current.click()}>Upload Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>JPG, PNG or WebP. You can also paste an image.</small><small>Your image stays in your browser while you make your poster.</small><small>Local safety limits: 32 MB, 24 megapixels, 12,000 px per side and 100 sheets. Device capacity can be lower.</small>{source && <p className="selected-file">{fileName} · {pixels.width} × {pixels.height} px</p>}<h3 className="example-label">Or try an example</h3><div className="example-strip">{samples.slice(0, 4).map(s => <button key={s.id} aria-label={`Try ${s.title}`} onClick={() => chooseSample(s)}><img src={imagePath(s.image)} alt={s.title} /></button>)}</div></>}
+      {n === 1 && <><div className="dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={36} weight="light" /><h2>Drop an image here</h2><p>or choose a file from your device</p><B onClick={() => input.current.click()}>Upload Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>JPG, PNG or WebP. You can also paste an image.</small><small>Your image stays in your browser while you make your poster.</small><small>Local safety limits: 32 MB, 24 megapixels, 12,000 px per side and 100 sheets. Device capacity can be lower.</small>{source && <p className="selected-file">{fileName} · {pixels.width} × {pixels.height} px</p>}<h3 className="example-label">Or try an example</h3><div className="example-strip">{samples.slice(0, 4).map(s => <button key={s.id} aria-label={`Try ${s.title}`} onClick={() => requestSample(s)}><img src={`/assets/homepage/thumb-${s.image.replace(/\.png$/, '')}.webp`} alt={s.title} loading="lazy" /></button>)}</div></>}
       {n === 2 && paperControls}{n === 3 && sizeControls}{n === 4 && printControls}
       {n === 5 && <><p>Review your poster, then download the pages to print.</p><dl className="metrics download-metrics"><dt>Finished size</dt><dd>{!g.error && sizeText(g, settings.unit)}</dd><dt>Paper</dt><dd>{settings.paper} · {g.pw > g.ph ? 'Landscape' : 'Portrait'}</dd><dt>Layout</dt><dd>{g.columns} across × {g.rows} down</dd><dt>Poster PDF pages</dt><dd>{g.count}</dd><dt>{g.framed ? 'Panel gap' : 'Overlap'}</dt><dd>{g.framed ? g.gap : settings.overlap} mm</dd></dl><Alert>Choose matching paper. Print at Actual Size / 100% and turn off Fit to page.</Alert><B className="wide" disabled={busy || !!g.error} onClick={download}>Download Printable PDF</B><small>Free export. No watermark. No sign-up.</small><details className="optional-cloud-link"><summary>Need cloud processing?</summary><p>For more sheets or work your device cannot finish, check cloud file limits and pricing before choosing to upload.</p>{cloudLink} · <a href="/pricing">Compare options</a></details><div className="download-links"><button disabled={busy || !!g.error} onClick={() => auxiliary('calibration')}>Download calibration page <ArrowSquareOut size={14} /></button><button disabled={busy || !!g.error} onClick={() => auxiliary('assembly')}>Download assembly guide <ArrowSquareOut size={14} /></button></div><small>Guide and calibration files are separate from the {g.count} poster pages.</small></>}
       {feedback}{n < 5 && <div className="step-actions"><button className="text-button" disabled={n === 1 || status === 'reading'} onClick={() => setStep(n - 1)}><ArrowLeft {...icon} /> Back</button><B disabled={(!!g.error && n > 1) || status === 'reading'} onClick={next}>Continue</B></div>}
     </div>}</section>;
-  })}{!calculator && source && <button className="reset-link" disabled={busy} onClick={() => setReset(true)}><ArrowCounterClockwise size={15} /> Reset print settings</button>}</aside><Preview source={source} settings={settings} empty={!source && !calculator} pixels={pixels} layoutOnly={calculator} /></div>
+  })}{!calculator && source && <button className="reset-link" disabled={busy} onClick={() => setReset(true)}><ArrowCounterClockwise size={15} /> Reset print settings</button>}</aside><div className="editor-preview-column">{demo && <div className="demo-preview-note"><span><strong>Example preview</strong><small>Alpine reflections · choose it to start editing</small></span><button className="underlined" disabled={status === 'reading'} onClick={() => requestSample(demoSample)}>Use this example <ArrowRight size={15} aria-hidden="true" /></button></div>}<Preview source={demo ? '/assets/homepage/alpine-lake-preview.webp' : source} settings={demo ? sampleSettings(demoSample) : settings} empty={!demo && !source && !calculator} pixels={demo ? {width:demoSample.width,height:demoSample.height} : pixels} layoutOnly={calculator} onSourceError={demo ? setDemoFailed : undefined} /></div></div>
+  {replacement && <div className="modal-scrim"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="replace-title"><button className="dialog-close" data-dismiss aria-label="Close replace image dialog" onClick={() => setReplacement(null)}><X {...icon} /></button><h2 id="replace-title">Replace your image?</h2><p>Using {replacement.sample.title} replaces your current image and print settings. Keep your current poster if you are still working on it.</p><div className="button-row"><B secondary onClick={() => setReplacement(null)}>Keep my poster</B><B onClick={() => { const next = replacement; setReplacement(null); chooseSample(next.sample, next.targetStep); }}>Use example instead</B></div></section></div>}
   {reset && <div className="modal-scrim"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="reset-title"><button className="dialog-close" data-dismiss aria-label="Close reset dialog" onClick={() => setReset(false)}><X {...icon} /></button><h2 id="reset-title">Reset print settings?</h2><p>Your image will stay selected.</p><div className="button-row"><B secondary onClick={() => setReset(false)}>Keep settings</B><B onClick={() => { change(() => ({ ...DEFAULTS, imageRatio: pixels.width / pixels.height })); setStep(2); setReset(false); }}>Reset settings</B></div></section></div>}</>;
-}
+});

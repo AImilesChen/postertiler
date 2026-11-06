@@ -5,7 +5,7 @@ import { previewPlan } from './engine/preview.ts';
 import { loadImage } from './export';
 import './preview.css';
 
-export default function Preview({ source, settings, empty = false, pixels = { width: 1, height: 1 }, layoutOnly = false, pageLimit }) {
+export default function Preview({ source, settings, empty = false, pixels = { width: 1, height: 1 }, layoutOnly = false, pageLimit, onSourceError }) {
   const root = useRef(), stage = useRef(), opener = useRef(), tabs = useRef([]);
   const [tab, setTab] = useState(layoutOnly ? 'sheets' : 'original');
   const [zoom, setZoom] = useState(100), [full, setFull] = useState(false);
@@ -18,9 +18,9 @@ export default function Preview({ source, settings, empty = false, pixels = { wi
     let alive = true;
     if (source && !layoutOnly) loadImage(source).then(image => {
       if (alive) { setDimensions({ source, width: image.naturalWidth, height: image.naturalHeight }); setFailedSource(null); }
-    }).catch(() => { if (alive) setFailedSource(source); });
+    }).catch(() => { if (alive) { setFailedSource(source); onSourceError?.(true); } });
     return () => { alive = false; };
-  }, [source, layoutOnly]);
+  }, [source, layoutOnly, onSourceError]);
   useEffect(() => {
     const node = stage.current;
     const measure = () => { if (node) setViewport({ width: node.clientWidth, height: node.clientHeight }); };

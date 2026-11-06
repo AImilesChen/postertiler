@@ -1,12 +1,13 @@
 export const samples = [
-  { id: 'alpine', title: 'Alpine reflections', category: 'Landscape', image: 'alpine-lake.png', columns: 2, rows: 2 },
-  { id: 'botanical', title: 'Botanical study', category: 'Art', image: 'botanical-study.png', columns: 2, rows: 3 },
-  { id: 'coast', title: 'Quiet coast', category: 'Landscape', image: 'quiet-coast.png', columns: 3, rows: 2 },
-  { id: 'geometry', title: 'Colour and form', category: 'Art', image: 'colour-and-form.png', columns: 2, rows: 2 },
-  { id: 'map', title: 'An imaginary archipelago', category: 'Maps', image: 'imaginary-archipelago.png', columns: 3, rows: 2 },
-  { id: 'event', title: 'A celebration in colour', category: 'Events', image: 'celebration.png', columns: 2, rows: 3 },
-  { id: 'portrait', title: 'Studio movement', category: 'People', image: 'studio-movement.png', columns: 2, rows: 3 },
-  { id: 'forest', title: 'Morning in the forest', category: 'Landscape', image: 'morning-forest.png', columns: 3, rows: 3 }
+  { id: 'alpine', title: 'Alpine reflections', category: 'Landscape', image: 'alpine-lake.png', width: 1043, height: 1508, columns: 2, rows: 2 },
+  { id: 'botanical', title: 'Botanical study', category: 'Art', image: 'botanical-study.png', width: 1043, height: 1508, columns: 2, rows: 3 },
+  { id: 'coast', title: 'Quiet coast', category: 'Landscape', image: 'quiet-coast.png', width: 1043, height: 1508, columns: 3, rows: 2 },
+  { id: 'geometry', title: 'Colour and form', category: 'Art', image: 'colour-and-form.png', width: 1043, height: 1508, columns: 2, rows: 2 },
+  { id: 'map', title: 'An imaginary archipelago', category: 'Maps', image: 'imaginary-archipelago.png', width: 1536, height: 1024, columns: 3, rows: 2 },
+  { id: 'event', title: 'A celebration in colour', category: 'Events', image: 'celebration.png', width: 1043, height: 1508, columns: 2, rows: 3 },
+  { id: 'portrait', title: 'Studio movement', category: 'People', image: 'studio-movement.png', width: 1043, height: 1508, columns: 2, rows: 3 },
+  { id: 'classroom', title: 'Shapes to explore', category: 'Education', image: 'classroom-shapes.png', width: 1043, height: 1508, columns: 2, rows: 3 },
+  { id: 'forest', title: 'Morning in the forest', category: 'Landscape', image: 'morning-forest.png', width: 1043, height: 1508, columns: 3, rows: 3 }
 ];
 export const imagePath = name => `/assets/images/${name}`;
 export const guides = [

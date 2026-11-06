@@ -1,0 +1,90 @@
+{
+  "effects": [
+    {
+      "effect": "original",
+      "source": "colour-and-form.png",
+      "width": 1043,
+      "height": 1508,
+      "cell": 12,
+      "contrast": 1
+    },
+    {
+      "effect": "dots",
+      "source": "colour-and-form.png",
+      "width": 1043,
+      "height": 1508,
+      "cell": 12,
+      "contrast": 1
+    },
+    {
+      "effect": "dither",
+      "source": "colour-and-form.png",
+      "width": 1043,
+      "height": 1508,
+      "cell": 12,
+      "contrast": 1
+    },
+    {
+      "effect": "cmyk",
+      "source": "colour-and-form.png",
+      "width": 1043,
+      "height": 1508,
+      "cell": 12,
+      "contrast": 1
+    }
+  ],
+  "defaultExample": {
+    "pw": 210,
+    "ph": 297,
+    "margins": {
+      "top": 5,
+      "right": 5,
+      "bottom": 5,
+      "left": 5
+    },
+    "printableW": 200,
+    "printableH": 287,
+    "labelBand": 0,
+    "columns": 2,
+    "rows": 2,
+    "width": 390,
+    "height": 564,
+    "count": 4,
+    "overlap": 10,
+    "framed": false,
+    "gap": 0,
+    "stepW": 190,
+    "stepH": 277,
+    "pageOrder": "row-major",
+    "coverageW": 390,
+    "coverageH": 564,
+    "error": ""
+  },
+  "lifeExample": {
+    "pw": 210,
+    "ph": 297,
+    "margins": {
+      "top": 5,
+      "right": 5,
+      "bottom": 5,
+      "left": 5
+    },
+    "printableW": 200,
+    "printableH": 287,
+    "labelBand": 0,
+    "columns": 7,
+    "rows": 7,
+    "width": 1244.9602122015915,
+    "height": 1800,
+    "count": 49,
+    "overlap": 10,
+    "framed": false,
+    "gap": 0,
+    "stepW": 190,
+    "stepH": 277,
+    "pageOrder": "row-major",
+    "coverageW": 1340,
+    "coverageH": 1949,
+    "error": ""
+  }
+}

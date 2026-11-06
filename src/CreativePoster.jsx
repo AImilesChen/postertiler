@@ -8,6 +8,7 @@ import { FULL_CROP, cropRect, lifeSettings, validateEffect } from './engine/crea
 import { loadImage, inspectFile, makePoster, saveBlob, assembly, calibration } from './export';
 import { creativeJob } from './creative-job';
 import { imagePath, samples } from './data';
+import { creativeExample } from './example-links';
 
 export default function CreativePoster({ kind }) {
   const life = kind === 'life-size';
@@ -39,13 +40,20 @@ export default function CreativePoster({ kind }) {
       setOriginal(url); setFile(files[0]); setPixels({ width: img.naturalWidth, height: img.naturalHeight }); setCrop({ ...FULL_CROP }); setResult(null); setStatus('');
     } catch (e) { if (url) URL.revokeObjectURL(url); if (id === readVersion.current) { setError(e.message || 'This image could not be opened.'); setStatus(''); } }
   };
-  const example = async () => {
+  const example = async (selected) => {
+    const version = ++readVersion.current; invalidate(); setStatus('reading');
     try {
-      const s = samples.find(s => s.id === (life ? 'portrait' : 'geometry'));
+      const s = selected?.id ? selected : samples.find(s => s.id === (life ? 'portrait' : 'geometry'));
       const response = await fetch(imagePath(s.image)); if (!response.ok) throw new Error();
-      await choose([new File([await response.blob()], s.image, { type: 'image/png' })]);
-    } catch { setError('The example could not be loaded. Choose an image from your device.'); }
+      const blob = await response.blob();
+      if (version === readVersion.current) await choose([new File([blob], s.image, { type: 'image/png' })]);
+    } catch { if (version === readVersion.current) { setError('The example could not be loaded. Choose an image from your device.'); setStatus(''); } }
   };
+  useEffect(() => {
+    const init = creativeExample(location.search, kind);
+    if (!life) setEffect(current => ({ ...current, effect: init.effect }));
+    if (init.sample) example(init.sample);
+  }, [kind]);
   const process = async () => {
     if (!file || outputError) { setError(outputError || 'Choose an image first.'); return; }
     const active = { current: false }; token.current.current = true; token.current = active;
