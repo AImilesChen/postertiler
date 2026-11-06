@@ -46,7 +46,7 @@ export function sightengine(env,transport=fetch,{now=()=>Date.now(),sleep=ms=>ne
    // Semantic classification has no Chinese model. Chinese/mixed prompts still
    // receive rule-based screening, provider safety, and visual output review.
    if(!/[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(normalized)){
-    const data=await request('text/check.json',{text:normalized,mode:'ml',lang:'en,fr,es,it,pt,ru,tr',models:'general,self-harm'});
+    const data=await request('text/check.json',{text:normalized,mode:'ml',lang:'en',models:'general,self-harm'});
     if(any(data.moderation_classes,['sexual','discriminatory','violent','self-harm'],.5))throw new AiError('moderation_prompt_blocked');
    }
   },

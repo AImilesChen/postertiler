@@ -65,3 +65,9 @@ test('review PNG handles all five filters and RGB/grayscale/palette transparency
  }
  await assert.rejects(()=>moderationPng(new Uint8Array([1,2,3])));
 });
+
+
+test('pilot diagnostics expose only HTTP/numeric codes, never vendor messages or credentials',async()=>{
+ const m=sightengine(env,async()=>Response.json({status:'failure',error:{code:1001,message:'private secret fixture-secret'}},{status:401}),{...options,diagnostics:true});
+ await assert.rejects(()=>m.prompt('A garden'),e=>{assert.deepEqual(e.diagnostic,{http_status:401,provider_code:1001,endpoint:'text/check.json',mode:'rules'});assert.ok(!JSON.stringify(e).includes('fixture-secret'));return true;});
+});
