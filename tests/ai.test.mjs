@@ -48,7 +48,7 @@ test('moderation consent and server configuration are mandatory; no new reservat
 test('pilot connection diagnostic uses fixed inputs, no fal calls or credit changes, and requires exact origin',async t=>{
  const f=await fixture(t);f.env.ASSETS={async fetch(request){assert.equal(new URL(request.url).pathname,'/assets/images/alpine-lake.png');return new Response(png(),{headers:{'Content-Type':'image/png'}});}};
  f.moderator.prompt=async text=>{f.calls.push(['probe-prompt']);if(text==='sexual intercourse')throw new AiError('moderation_prompt_blocked');};
- assert.equal((await f.request('/moderation-check')).status,200);assert.equal(f.calls.length,0);
+ const page=await f.request('/moderation-check');assert.equal(page.status,200);assert.equal(page.headers.get('Referrer-Policy'),'same-origin');assert.equal(f.calls.length,0);
  assert.equal((await f.request('/moderation-check','POST',undefined,{Origin:'https://evil.invalid'})).status,403);
  const result=await(await f.request('/moderation-check','POST')).json();assert.equal(result.status,'passed');assert.equal(result.fal_calls,0);assert.equal(result.ai_credits_used,0);
  assert.equal((await f.store.balance(f.owner)).available,40);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM ai_test_jobs').get().n,0);assert.equal(f.calls.filter(c=>c[0]==='submit').length,0);
