@@ -16,3 +16,33 @@
 .generator-shapes button:last-child{grid-column:1/-1;flex-direction:row;justify-content:center;gap:10px;min-height:46px;padding:9px}
 .generator-shapes button:last-child strong{font-size:15px}
 .generator-example{align-self:start;position:sticky;top:20px}
+
+/* Give controls and preview matching header rows and content gutters. */
+.ai-redesigned.ai-generator-workspace .ai-tool-panel{padding:0}
+.ai-generator-workspace .ai-controls-heading,
+.ai-redesigned.ai-generator-workspace .ai-image-preview>header{
+ box-sizing:border-box;min-height:84px;padding:16px 22px;
+ display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+ border-bottom:1px solid #ddd;background:#fff;gap:0
+}
+.ai-generator-workspace .ai-controls-heading strong,
+.ai-redesigned.ai-generator-workspace .ai-image-preview>header strong{font-size:16px;line-height:1.4}
+.ai-generator-workspace .ai-controls-heading small{display:block;font-size:14px;line-height:1.6;margin-top:5px;color:#555}
+.ai-generator-workspace .ai-controls-body{padding:22px}
+.ai-redesigned.ai-generator-workspace .ai-image-preview{align-self:start;position:sticky;top:20px;background:#fff}
+.ai-redesigned.ai-generator-workspace .ai-image-preview>header{flex-direction:row;align-items:center;justify-content:space-between;gap:16px}
+.ai-redesigned.ai-generator-workspace .ai-image-preview>.ai-preview-images{flex:none;padding:22px;background:#fff;min-height:0}
+.ai-generator-workspace .generator-example{position:static}
+.ai-generator-workspace .generator-example-heading{min-height:24px;line-height:24px;margin-bottom:8px}
+.ai-generator-workspace .generator-example figure{min-height:360px}
+@media(max-width:900px){
+ .ai-redesigned.ai-generator-workspace .ai-image-preview{position:static}
+}
+@media(max-width:600px){
+ .ai-generator-workspace .ai-controls-heading,
+ .ai-redesigned.ai-generator-workspace .ai-image-preview>header{padding:16px;min-height:84px}
+ .ai-generator-workspace .ai-controls-body,
+ .ai-redesigned.ai-generator-workspace .ai-image-preview>.ai-preview-images{padding:18px 16px}
+ .ai-generator-workspace .generator-example-heading{line-height:1.5}
+ .ai-generator-workspace .generator-example figure{min-height:0}
+}
