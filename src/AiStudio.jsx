@@ -19,7 +19,7 @@ export default function AiStudio({publicPage=false}){
  function choose(event,value){if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();history.pushState(null,'',aiTaskUrl(value));setTask(value);}
  async function apply(blob){setHasImage(true);setPending(blob);}
  if(checkoutReturn){const destination=checkoutReturn.orderId?'/account/ai?billing_order='+checkoutReturn.orderId:'/account/ai?billing_canceled=1';return <AccountGate returnTo={destination}><AiCheckoutReturn {...checkoutReturn}/></AccountGate>;}
- return <main className={'ai-studio-page ai-workflow-page ai-redesigned '+(publicPage?'ai-public-page':'ai-private-page')}>
+ return <main id="ai-studio-page" className={'ai-studio-page ai-workflow-page ai-redesigned '+(publicPage?'ai-public-page':'ai-private-page')}>
   {!publicPage&&<a className="underlined ai-account-back" href="/account"><ArrowLeft size={16}/>Your account</a>}
   <header className="ai-page-heading"><div><h1>{AI_TASKS[task].title}</h1><p>{publicPage?'Enlarge your image 2× or 4×. Compare the details, then make a bigger print.':AI_TASKS[task].description}</p></div>{publicPage&&<a className="underlined" href="#upscaler-examples">See real results <ArrowRight size={17}/></a>}</header>
   <nav className="ai-secondary-modes" aria-label="AI image tools">{Object.entries(AI_TASKS).map(([value,data])=><a key={value} href={publicPage&&value==='upscale'?'#upscale-tool':aiTaskUrl(value)} aria-current={value===task?'page':undefined} onClick={publicPage?undefined:event=>choose(event,value)}>{data.title}</a>)}</nav>
