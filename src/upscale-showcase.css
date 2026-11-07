@@ -1,0 +1,28 @@
+.upscale-showcase{border-top:1px solid #ddd;padding-top:48px}
+.upscale-showcase .hp-heading>div>small{display:flex;align-items:center;gap:8px}
+.upscale-showcase .hp-heading .button{flex-shrink:0;gap:10px;white-space:nowrap;font-size:14px}
+.upscale-showcase-intro{display:flex;justify-content:space-between;align-items:baseline;gap:20px;border-top:1px solid #e0e0e0;padding:20px 0 24px}
+.upscale-showcase-intro p{font-size:13px;line-height:1.6;margin:0}.upscale-showcase-intro p>span{color:#a8a8a8;padding:0 8px}
+.upscale-showcase-intro>small{font-size:11px;line-height:1.6;color:#666}
+.upscale-example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.upscale-example-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.upscale-example-toolbar>span{font-size:10px;letter-spacing:1px;color:#a71324;font-weight:700}
+.upscale-example-toolbar>div{display:flex;gap:4px}.upscale-example-toolbar button{font-size:12px;min-height:36px;padding:7px 10px;background:#fff;border:1px solid transparent;color:#666}
+.upscale-example-toolbar button[aria-pressed=true]{border-color:#d6d6d6;color:#111;background:#f6f6f4}
+.upscale-comparison{position:relative;aspect-ratio:4/3;background:#efefec;overflow:hidden;touch-action:pan-y;cursor:ew-resize;user-select:none}
+.upscale-image-layer{position:absolute;inset:0;overflow:hidden;background:#efefec}
+.upscale-image-layer img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.upscale-comparison.is-detail img{object-fit:cover;object-position:50% 25%;transform:scale(2.1);transform-origin:var(--focus)}
+.upscale-image-label{position:absolute;top:14px;padding:6px 9px;background:#fffffff2;color:#222;font-size:11px;font-weight:600;pointer-events:none;box-shadow:0 1px 5px #00000012}
+.upscale-image-label.before{left:14px}.upscale-image-label.after{right:14px}
+.upscale-split-line{position:absolute;left:var(--split);top:0;bottom:0;width:2px;background:white;box-shadow:0 0 3px #0005;pointer-events:none}
+.upscale-split-line>span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;color:#222;box-shadow:0 1px 8px #0003}
+.upscale-range{display:flex;gap:16px;align-items:center;margin:12px 0 18px;font-size:11px;color:#666}.upscale-range>span{white-space:nowrap}.upscale-range input{width:100%;accent-color:#ac1725;min-width:0;min-height:24px;cursor:ew-resize}
+.upscale-showcase .upscale-example h3{margin:0 0 8px;font-size:21px}.upscale-showcase .upscale-example>p{font-size:13px;margin:0 0 14px}
+.upscale-showcase .upscale-example .upscale-pixels{display:flex;align-items:center;gap:20px;border-top:1px solid #ddd;padding-top:16px;font-size:11px;color:#666}
+.upscale-pixels strong{display:block;color:#111;font-size:15px;font-weight:600;margin-top:5px}.upscale-pixels>svg{color:#999;flex-shrink:0}
+.upscale-attribution{display:block;color:#777;font-size:10px;line-height:1.6}.upscale-attribution>a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.upscale-showcase-footer{display:flex;justify-content:space-between;align-items:baseline;gap:20px;border-top:1px solid #ddd;margin-top:24px;padding-top:16px}.upscale-showcase-footer p{font-size:13px;color:#444;margin:0}
+@media(max-width:900px){.upscale-showcase-intro{display:block}.upscale-showcase-intro>small{display:block;margin-top:8px}.upscale-example-grid{gap:22px}.upscale-example-toolbar{align-items:start;flex-direction:column;gap:8px}.upscale-comparison{aspect-ratio:1}.upscale-showcase-footer{align-items:start;flex-direction:column;gap:8px}}
+@media(max-width:600px){.upscale-showcase{padding-top:28px}.upscale-example-grid{grid-template-columns:1fr;gap:36px}.upscale-example-toolbar{align-items:center;flex-direction:row}.upscale-comparison{aspect-ratio:4/3}.upscale-showcase .upscale-example h3{font-size:20px}.upscale-showcase-intro p{font-size:12px}.upscale-showcase-intro p>span{padding:0 3px}.upscale-image-label{top:10px}.upscale-image-label.before{left:10px}.upscale-image-label.after{right:10px}.upscale-showcase .hp-heading .button{width:100%;justify-content:center;margin-top:8px}}
+@media(prefers-reduced-motion:reduce){.upscale-comparison *{transition:none!important}}

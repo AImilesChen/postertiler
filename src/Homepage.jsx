@@ -10,6 +10,7 @@ import { calibration } from './export';
 import { trackEvent } from './analytics';
 import copy from './homepage-copy.json';
 import { featuredPosters, posterScenarios } from './homepage-artwork';
+import UpscaleShowcase from './UpscaleShowcase';
 import './homepage.css';
 
 const block = id => copy.blocks.find(b => b.id === id)?.copy || {};
@@ -82,6 +83,7 @@ export default function Homepage() {
         ].map(([title,body,img,alt],i)=><article key={title}><img className="hp-step-image" src={asset(img)} width="800" height="520" alt={alt} loading="lazy"/><div className="hp-step-heading"><span>0{i+1}</span><h3>{title}</h3></div><p>{body}</p></article>)}</div><button className="underlined hp-section-link" onClick={()=>trySample('alpine')}>Try an example {arrow}</button>
       </section>
 
+      <UpscaleShowcase/>
       <section className="hp-section" id="poster-examples"><header className="hp-heading hp-heading-split"><div><small>THE BIGGER PICTURE</small><h2>See what your poster can become</h2><p>Explore three starting points, then check how they fit onto real sheets.</p></div><a className="underlined" href="/gallery">Browse the gallery {arrow}</a></header><div className="hp-cases">{featuredPosters.map(item=><CaseCard key={item.id} {...item} onTry={trySample}/>)}</div><p className="hp-footnote">Room images are illustrative mockups. Sheet layouts and dimensions are calculated by the print engine; mockup scale is approximate.</p></section>
 
       <section className="hp-section" id="poster-uses"><header className="hp-heading"><small>MADE FOR YOUR IDEAS</small><h2>One tool. Plenty of ways to use it.</h2><p>Start with a use in mind. Bring your own artwork or try a sample.</p></header><div className="hp-scenarios">{posterScenarios.map(({id,title,body,life})=><article key={id}><div className={`hp-scene hp-artwork-preview ${sample(id).width<sample(id).height?'hp-artwork-portrait':''}`}>{life?<a href={`/tools/life-size-poster-maker?sample=${id}`} aria-label="Try life-size poster example"><Scene id={id} artwork alt={sample(id).title}/></a>:<button className="hp-scene-button" aria-label={`Try ${title.toLowerCase()} example`} onClick={()=>trySample(id)}><Scene id={id} artwork alt={sample(id).title}/></button>}</div><p className="hp-art-style">{sample(id).style}</p><h3>{title}</h3><p>{body}</p>{life?<a className="underlined" href={`/tools/life-size-poster-maker?sample=${id}`}>Try life-size {arrow}</a>:<button className="underlined" onClick={()=>trySample(id)}>Try this idea {arrow}</button>}</article>)}</div><p className="hp-footnote">Original sample illustrations; the world map is fictional. Working from a PDF plan? <a href="/tools/pdf-poster-printer">Open PDF Poster Printer</a>.</p></section>
