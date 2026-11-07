@@ -7,3 +7,6 @@
 @media(max-width:600px){.editor-case-grid{grid-template-columns:1fr;gap:30px}.editor-example-caption{flex-direction:column;align-items:start}.editor-example-image img{height:230px}.editor-example-image{min-height:280px}.editor-case-source,.edit-comparison{height:300px}}
 
 .ai-redesigned.ai-balanced-workspace .ai-form>.workspace-upload{grid-row:auto}
+
+.editor-case-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);column-gap:22px;align-items:center}.editor-case-card>details{grid-column:1/-1}.editor-case-copy{min-width:0}.editor-case-copy .gen-style{margin-top:0}.editor-case-copy h3{margin:10px 0 12px}.editor-case-copy>p:not(.gen-style){font-size:15px}.editor-case-card .edit-comparison,.editor-case-card .editor-case-source{width:100%;height:320px}
+@media(max-width:600px){.editor-case-card{display:block}.editor-case-copy{margin-top:18px}.editor-case-card .edit-comparison,.editor-case-card .editor-case-source{height:320px}}

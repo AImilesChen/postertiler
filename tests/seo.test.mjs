@@ -55,4 +55,6 @@ test('editor has public discovery content but never exposes account history',asy
  assert.ok(page.includes('Keep the idea. Change the feeling.'));assert.ok(page.includes('Change this. Keep that.'));
  assert.ok(page.includes('Will the result have the same shape and resolution?'));assert.ok(sitemap.includes('/tools/ai-image-editor'));
  assert.ok(!page.includes('AI credit orders'));assert.ok(!sitemap.includes('/account/ai'));
+ assert.equal((page.match(/Real AI edit · Standard quality/g)||[]).length,2);
+ for(const id of ['dawn','background'])await access('dist/assets/editor-examples/'+id+'-result.webp');
 });

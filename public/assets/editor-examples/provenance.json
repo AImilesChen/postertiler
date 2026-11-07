@@ -1,0 +1,50 @@
+{
+  "cases": [
+    {
+      "id": "dawn",
+      "sourceAttribution": "Landscape \u2014 Wang Hui; The Met Open Access; Public domain",
+      "sourcePage": "https://www.metmuseum.org/art/collection/search/36071",
+      "publicSource": "/assets/generator-inspiration/ink-landscape.jpg",
+      "publicSourceSHA256": "bfa3214875ee1820b8d0223ec511f521722846c1a28cf7e7816585b57e7bed37",
+      "result": "/assets/editor-examples/dawn-result.webp",
+      "rawOutputPixels": [
+        1024,
+        1536
+      ],
+      "rawResultSHA256": "d529df34234af912b5685586cb67d43e280eeecbb15a9dc8ca71da81eed8c342",
+      "publicResultSHA256": "30b286343ea97614fea747d725149574c80dae8f84f17c3be95fa59e2dfdc71f",
+      "provider": "fal",
+      "model": "openai/gpt-image-2/edit",
+      "quality": "medium",
+      "testAICredits": 3,
+      "generationDate": "2026-11-07",
+      "processing": "Actual AI edit; public preview resized and encoded as WebP without additional effects. Browser submitted a JPEG working copy of the public source.",
+      "bytes": 143384
+    },
+    {
+      "id": "background",
+      "sourceAttribution": "Roses \u2014 Vincent van Gogh; The Met Open Access; Public domain",
+      "sourcePage": "https://www.metmuseum.org/art/collection/search/436534",
+      "publicSource": "/assets/generator-inspiration/painterly-flowers.jpg",
+      "publicSourceSHA256": "76e8b89371d4c4cc29abd13cde101bb3c786391cb9ea95ccea9390029f6c2413",
+      "result": "/assets/editor-examples/background-result.webp",
+      "rawOutputPixels": [
+        1024,
+        1536
+      ],
+      "rawResultSHA256": "c81b4fa56045208390add188e188e0c794947beb2411c7e8e465d5e59106c49e",
+      "publicResultSHA256": "a5723331c247c2db5f74f03a909167a01fd48f13e04376e9e8af5117e9681256",
+      "provider": "fal",
+      "model": "openai/gpt-image-2/edit",
+      "quality": "medium",
+      "testAICredits": 3,
+      "generationDate": "2026-11-07",
+      "processing": "Actual AI edit; public preview resized and encoded as WebP without additional effects. Browser submitted a JPEG working copy of the public source.",
+      "bytes": 354954
+    }
+  ],
+  "authorizedCalls": 2,
+  "callsSubmitted": 2,
+  "budgetUSD": 0.2,
+  "actualFalInvoiceVerified": false
+}
