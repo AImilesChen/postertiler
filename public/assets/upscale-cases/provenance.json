@@ -1,51 +1,53 @@
 {
-  "notice": "Actual model results. Source photos are CC0 thumbnails from larger originals, not pre-existing homepage examples. Web-optimized previews do not replace the full PNG evidence retained privately.",
+  "notice": "Actual results from the production enhancement tool. The input images were reduced in resolution for demonstration. Full PNG results retained privately.",
   "cases": [
     {
-      "id": "cat",
-      "source_page": "https://commons.wikimedia.org/wiki/File:Closeup_of_a_black_cat.jpg",
-      "photographer": "Miscellaneous contributor",
-      "license": "CC0-1.0",
+      "id": "flowers",
+      "source_page": "https://www.metmuseum.org/art/collection/search/436525",
+      "creator": "Vincent van Gogh / The Metropolitan Museum of Art",
+      "license": "Public domain",
       "input_dimensions": [
-        250,
-        333
+        300,
+        360
       ],
       "output_dimensions": [
-        1000,
-        1332
+        1200,
+        1440
       ],
       "model": "Topaz Standard V2",
       "endpoint": "topaz/upscale/image/precision",
       "factor": 4,
       "generated_date": "2026-11-07",
-      "input_file": "cat-source.jpg",
-      "preview_file": "cat-enhanced.webp",
+      "input_file": "flowers-source.jpg",
+      "preview_file": "flowers-enhanced.webp",
+      "input_preparation": "Aspect ratio preserved, reduced-resolution JPEG input from public-domain original; no artificial blur",
       "preview_encoding": "WebP quality 92; no sharpening or other image adjustments",
-      "original_result_sha256": "dd5d461457bfebe84d777638245a583930fb38389f5f16f789a74dbb4840b888",
-      "input_sha256": "0f7c8753bbba700458174dbfa2ed9073875902e7e5b64d69b44956110ed3180e"
+      "original_result_sha256": "9bdc8afc9d1fd48894e4c2682abb2604fdf5042bbac19cc59f865b439fc62b71",
+      "input_sha256": "46ba9e4e8da9a8fb6cd27f45f76a2d47f06b8cc177e2b46af5e036bde3ea1cfc"
     },
     {
-      "id": "kingfisher",
-      "source_page": "https://commons.wikimedia.org/wiki/File:Kingfisher-bird-863495.jpg",
-      "photographer": "Foundry",
+      "id": "garden",
+      "source_page": "https://commons.wikimedia.org/wiki/File:The_Japanese_Garden_(Unsplash).jpg",
+      "creator": "Mike Lewis",
       "license": "CC0-1.0",
       "input_dimensions": [
-        330,
-        209
+        360,
+        235
       ],
       "output_dimensions": [
-        1320,
-        836
+        720,
+        470
       ],
       "model": "Topaz Standard V2",
       "endpoint": "topaz/upscale/image/precision",
-      "factor": 4,
+      "factor": 2,
       "generated_date": "2026-11-07",
-      "input_file": "kingfisher-source.jpg",
-      "preview_file": "kingfisher-enhanced.webp",
+      "input_file": "garden-source.jpg",
+      "preview_file": "garden-enhanced.webp",
+      "input_preparation": "Aspect ratio preserved, reduced-resolution JPEG input from public-domain original; no artificial blur",
       "preview_encoding": "WebP quality 92; no sharpening or other image adjustments",
-      "original_result_sha256": "4b90dc42fa15a69685fd9e129137c43260093249f24e9c69617da54884fcd6b9",
-      "input_sha256": "ab2167759623bd8981df04e2637dc881ce5fae94ba7aa94eb89b891dd6c2bc62"
+      "original_result_sha256": "0e3c7025c9eef840aa8b308ddbb641ef441a7cabda64b43444fb6fe357326074",
+      "input_sha256": "08fb0d7f075700d4669c77d52d688869b749ae6afca310d3ccff51bd34cc05ae"
     }
   ]
 }
