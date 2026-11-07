@@ -6,7 +6,7 @@ import './generator.css';
 
 export function GeneratorExample({onUsePrompt,disabled=false}){
  const item=generatorPreview;
- return <div className="generator-example"><div className="generator-example-heading"><span>STYLE INSPIRATION</span><span>Painterly landscape</span></div><figure><img src={item.image} alt="Wheat Field with Cypresses by Vincent van Gogh, a public-domain style reference" width="600" height="480"/><figcaption><strong>Your artwork starts here.</strong><p>Describe your idea, or use a prompt to get started.</p><button className="button secondary" disabled={disabled} onClick={()=>onUsePrompt?.(item)}>Try this prompt <ArrowRight size={17}/></button></figcaption></figure><p className="generator-reference-note">Reference artwork, not a generated result. <a href={item.source} target="_blank" rel="noopener noreferrer">Van Gogh · The Met Open Access</a></p></div>;
+ return <div className="generator-example"><figure><img src={item.image} alt="Wheat Field with Cypresses by Vincent van Gogh, a public-domain style reference" width="600" height="480"/><figcaption>Style reference · Painterly landscape</figcaption></figure><div className="generator-reference-row"><p className="generator-reference-note">Reference artwork, not a generated result. <a href={item.source} target="_blank" rel="noopener noreferrer">Van Gogh · The Met</a></p><button className="button secondary" disabled={disabled} onClick={()=>onUsePrompt?.(item)}>Try this prompt <ArrowRight size={17}/></button></div></div>;
 }
 
 const faq=[
