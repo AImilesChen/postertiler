@@ -5,8 +5,8 @@ import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const release = process.env.POSTERTILER_TEST_RELEASE === 'true';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
-test('25 released routes include public Pricing with unique metadata and real prerendered content', async () => {
-  assert.equal(routeSpecs.length, 25); const titles = new Set(), descriptions = new Set();
+test('28 released routes include public Pricing with unique metadata and real prerendered content', async () => {
+  assert.equal(routeSpecs.length, 28); const titles = new Set(), descriptions = new Set();
   for (const route of routeSpecs) {
     const html = await readFile(htmlPath(route.path), 'utf8');
     const title = html.match(/<title>(.*?)<\/title>/s)?.[1], description = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
@@ -20,12 +20,12 @@ test('25 released routes include public Pricing with unique metadata and real pr
       assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
-  assert.equal(titles.size, 25); assert.equal(descriptions.size, 25);
+  assert.equal(titles.size, 28); assert.equal(descriptions.size, 28);
   await access('dist/assets/brand/og-image.png');
 });
 test('Sitemap contains only public final-domain routes and robots matches the expected build mode', async () => {
   const sitemap = await readFile('dist/sitemap.xml', 'utf8'), robots = await readFile('dist/robots.txt', 'utf8');
-  assert.equal((sitemap.match(/<loc>/g) || []).length, 25);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, 28);
   assert.ok(sitemap.includes('https://postertiler.com/pricing'));
   assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|_design/.test(sitemap));
   assert.ok(robots.includes(release?'Allow: /':'Disallow: /'));
@@ -67,4 +67,16 @@ test('dithering is a public local tool with crawlable examples and no AI account
  for(const asset of ['portrait-effect.png','waves-effect.png','irises-effect.png']){assert.ok(html.includes(asset));await access('dist/assets/dither-examples/'+asset);}
  assert.ok((await readFile('dist/tools.html','utf8')).includes('/tools/dithering-tool'));
  assert.ok((await readFile('dist/sitemap.xml','utf8')).includes('/tools/dithering-tool'));
+});
+
+
+test('guide hub and new articles expose real preparation, keyword help and crawlable reading paths',async()=>{
+ const hub=await readFile(htmlPath('/guides'),'utf8');
+ for(const text of ['What needs fixing?','Find a printing guide','Check one sheet first.','Calibration PDF','Print checklist'])assert.ok(hub.includes(text),text);
+ for(const slug of ['printer-margins-and-overlap','fit-vs-fill-poster','paper-size-and-orientation']){
+  const page=await readFile(htmlPath('/guides/'+slug),'utf8');assert.ok(page.includes('On this page'));assert.ok(page.includes('guide-step-0'));assert.ok(page.includes('Common mistakes'));
+  assert.ok((await readFile('dist/sitemap.xml','utf8')).includes('/guides/'+slug));
+ }
+ const scale=await readFile(htmlPath('/guides/how-to-print-a-pdf-at-actual-size'),'utf8');assert.ok(scale.includes('/assets/guides/calibration-preview.webp'));assert.ok(!scale.includes('/assets/reference/editor-v1.png'));
+ const quality=await readFile(htmlPath('/guides/image-resolution-for-large-posters'),'utf8');assert.ok(quality.includes('/tools/ai-image-upscaler'));assert.ok(!quality.includes('The V1 tool does not call'));
 });

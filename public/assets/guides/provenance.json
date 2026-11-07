@@ -1,0 +1,8 @@
+{
+  "image": "calibration-preview.webp",
+  "source": "Actual calibrationPdf(DEFAULTS) from src/engine/pdf.ts",
+  "sourcePaper": "A4 Portrait",
+  "processing": "Rendered at 900 px wide with PDF.js and encoded as WebP; no content added. Screen preview is not a print-scale template.",
+  "pdfSHA256": "c7abc10867436ae028382058962a7c9406c7c4c99dd3ba5aad6f4c91b8c78070",
+  "imageSHA256": "8fd77ca8171b1ae74a233fc091cc5ec99ac8397b742d851c825f672803890e60"
+}

@@ -45,6 +45,25 @@ export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: 
   }
   return pdf.save();
 }
+export async function checklistPdf(settings: Settings, items: readonly string[]) {
+  const g = geometry(settings); if (g.error) throw new Error(g.error);
+  if (!items.length || items.length > 12 || items.some(item => item.length > 180 || /[^\x20-\x7e]/.test(item))) throw new Error('Choose a supported print checklist.');
+  const pdf = await document('Before you print'), font = await pdf.embedFont(StandardFonts.Helvetica);
+  const page = pdf.addPage([pt(g.pw), pt(g.ph)]), left = pt(20), maxWidth = pt(g.pw - 48);
+  page.drawText('PosterTiler - Before you print', { x:left, y:pt(g.ph - 23), size:17, font });
+  page.drawText(`${settings.paper} | ${settings.orientation} | Print at Actual Size / 100%`, { x:left, y:pt(g.ph - 34), size:10, font });
+  let y = pt(g.ph - 49);
+  items.forEach((item,index) => {
+    const words = `${index + 1}. ${item}`.split(' '); let line = '';
+    for (const word of words) {
+      if (line && font.widthOfTextAtSize(line + ' ' + word,11) > maxWidth) { page.drawText(line,{x:left,y,size:11,font}); y-=16; line=word; }
+      else line += (line ? ' ' : '') + word;
+    }
+    if (line) { page.drawText(line,{x:left,y,size:11,font}); y-=29; }
+  });
+  page.drawText('Your poster PDF, calibration page and assembly map are separate downloads.', { x:left,y:pt(21),size:9,font });
+  return pdf.save();
+}
 export async function calibrationPdf(settings: Settings, pageLimit?: number) {
   const g = geometry(settings, pageLimit); if (g.error) throw new Error(g.error);
   const pdf = await document('Print calibration'), font = await pdf.embedFont(StandardFonts.Helvetica);

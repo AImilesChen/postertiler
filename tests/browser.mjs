@@ -137,7 +137,7 @@ try {
     await page.getByRole('button', { name: 'Full screen', exact: true }).click(); await page.getByRole('dialog', { name: 'Poster preview' }).waitFor();
     await page.keyboard.press('Escape'); assert.equal(await page.getByRole('dialog', { name: 'Poster preview' }).count(), 0);
     await goto('/guides'); await page.getByRole('searchbox').fill('no-such-guide'); await page.getByText('No guides match that search.', { exact: false }).waitFor();
-    await page.getByRole('searchbox').fill('assemble'); assert.equal(await page.locator('.guide-list>a').count(), 1);
+    await page.getByRole('searchbox').fill('assemble'); assert.ok(await page.locator('.gd-guide-card').count() >= 1); assert.ok(await page.locator('.gd-guide-card[href="/guides/how-to-assemble-a-tiled-poster"]').count());
   });
   await check('Exact Letter export keeps 400 x 500 mm and column-first labels', async () => {
     const settings = { ...DEFAULTS, paper: 'US Letter', mode: 'exact', width: 400, height: 500, margin: 6.35, overlap: 6.35, placement: 'fill', locked: false, pageOrder: 'column-major' };

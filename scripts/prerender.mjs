@@ -26,7 +26,7 @@ const descriptions = {
   home: 'Turn any image into a giant poster. Split pictures into printable A4 or Letter pages, download a free PDF, and assemble your poster at home.',
   gallery: `Explore ${samples.length} example poster layouts. Choose artwork and carry its sheet settings into the free PosterTiler poster maker.`,
   calculator: 'Calculate poster dimensions or sheet count for A4, Letter and A3. Account for printer margins, overlap and exact finished dimensions.',
-  guides: 'Learn to make, print and assemble a tiled poster. Find guidance on paper, actual-size printing, image resolution and calibration.',
+  guides: 'Find practical poster printing guides for paper, margins, overlap, Fit and Fill, image quality and assembly. Download a calibration PDF and print checklist.',
   about: 'Meet PosterTiler, a free browser-based tool for turning one image into a large poster printed on ordinary paper.',
   privacy: 'Read how PosterTiler handles local image processing, website delivery, optional analytics and privacy requests.',
   terms: 'Terms for using the free PosterTiler image tiling tool, including image rights, local processing and printing conditions.',

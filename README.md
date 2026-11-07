@@ -85,3 +85,10 @@ Third-party notices are retained in `third-party-licenses` and test fixtures. Pu
 `/tools/dithering-tool` is a free browser-only workspace with Floyd–Steinberg black-and-white, Bayer ordered and deterministic Noise algorithms. Four presets, RGB colour quantisation and custom two-tone palettes share a validated worker. Grain is measured against the selected output dimensions. PNG downloads and poster import use the same rendered Blob; the poster editor does not apply the effect again. Inputs retain the existing 32 MB / 24 MP / 12,000 px limits. Optional downscaling never enlarges the source. No fal, uploads, account or credit reservation is involved.
 
 Examples and source provenance are in `public/assets/dither-examples`. Artwork sources are The Met Open Access, with processed examples generated using the local effect implementation. Private working images remain in page memory; reloading clears the session. Consent-based analytics for this workspace use explicit safe events and suppress automatic DOM recording tags.
+
+
+## Printing guides and preparation
+
+`/guides` includes a beginner walkthrough, problem-based shortcuts, eight searchable guides and paper-specific calibration/checklist downloads. Search includes descriptions, article text and curated aliases; `scale`, `100%`, `blurry` and `white border` resolve to relevant guides. The original five article URLs remain unchanged. New articles cover margins/overlap, Fit/Fill and paper/orientation. Desktop articles have a sticky contents list; mobile articles use an expandable contents list.
+
+The calibration preview in `public/assets/guides` is rendered from the actual print engine PDF. It is labelled as a preview, not a print-scale template. Calibration and checklist downloads support A4, US Letter and A3 in portrait or landscape. Actual user assembly maps remain in the poster export flow. No payment, AI processing, external upload or new tracking provider is required.
