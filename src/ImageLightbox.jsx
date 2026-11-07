@@ -3,9 +3,9 @@ import {createPortal} from 'react-dom';
 import {Minus,Plus,X} from '@phosphor-icons/react';
 import './image-lightbox.css';
 
-export default function ImageLightbox({images,initialIndex=0,onClose}){
+export default function ImageLightbox({images,initialIndex=0,initialDetail=false,onClose}){
  const dialog=useRef(null),stage=useRef(null),close=useRef(null),pointers=useRef(new Map()),gesture=useRef(null),view=useRef(null),title=useId();
- const [index,setIndex]=useState(initialIndex),[natural,setNatural]=useState({}),[box,setBox]=useState({width:0,height:0}),[zoom,setZoom]=useState(null),[pan,setPan]=useState({x:0,y:0});
+ const [index,setIndex]=useState(initialIndex),[natural,setNatural]=useState({}),[box,setBox]=useState({width:0,height:0}),[zoom,setZoom]=useState(initialDetail?1:null),[pan,setPan]=useState({x:0,y:0});
  const image=images[index],width=natural[image.url]?.width||image.width||1,height=natural[image.url]?.height||image.height||1;
  const fit=Math.min(1,Math.max(1,box.width-48)/width,Math.max(1,box.height-48)/height),scale=zoom??fit;
  view.current={scale,pan};

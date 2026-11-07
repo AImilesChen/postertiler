@@ -1,0 +1,44 @@
+[
+  {
+    "id": "portrait",
+    "title": "Young Woman with a Water Pitcher",
+    "artist": "Johannes Vermeer",
+    "source": "https://www.metmuseum.org/art/collection/search/437881",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP353257.jpg",
+    "license": "Public domain — The Met Open Access",
+    "width": 555,
+    "height": 624,
+    "preset": "natural",
+    "processing": "Actual local dithering implementation; effect example is lossless PNG, preset thumbnails are resized JPEG previews.",
+    "sourceSHA256": "30ac89e45c7fc2d3df2319199ecce7294bce78050c0671912dcbffd6d5878d01",
+    "effectSHA256": "d60dd8b0e39190efbde7d6998c1e5322877607193335944dc606a0a4092d45d0"
+  },
+  {
+    "id": "irises",
+    "title": "Irises",
+    "artist": "Vincent van Gogh",
+    "source": "https://www.metmuseum.org/art/collection/search/436528",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP346474.jpg",
+    "license": "Public domain — The Met Open Access",
+    "width": 599,
+    "height": 475,
+    "preset": "colour",
+    "processing": "Actual local dithering implementation; effect example is lossless PNG, preset thumbnails are resized JPEG previews.",
+    "sourceSHA256": "0f60d933e34c359cb0539132133c7c83b75df8401a8b11ae3c86c2d818da6332",
+    "effectSHA256": "4f8726ad23051dfcce3a0eabd8002eb843e75519f8d20977884d0c7f94754410"
+  },
+  {
+    "id": "waves",
+    "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)",
+    "artist": "Katsushika Hokusai",
+    "source": "https://www.metmuseum.org/art/collection/search/45434",
+    "imageSource": "https://images.metmuseum.org/CRDImages/as/web-large/DP130155.jpg",
+    "license": "Public domain — The Met Open Access",
+    "width": 600,
+    "height": 403,
+    "preset": "retro",
+    "processing": "Actual local dithering implementation; effect example is lossless PNG, preset thumbnails are resized JPEG previews.",
+    "sourceSHA256": "ef37010aa5bcf926b22e13aa48b64d2d3b10ce1bb7b16e835b784d775fa95c71",
+    "effectSHA256": "82f29dbc1ff820e2f0d1255774178280526a9eceb299ace59f7cc4afd95e5e9b"
+  }
+]

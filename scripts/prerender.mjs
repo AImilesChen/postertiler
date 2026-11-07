@@ -8,6 +8,7 @@ const indexing = env.VITE_PUBLIC_INDEXING === 'true';
 const template = await readFile('dist/index.html', 'utf8');
 const esc = text => String(text).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const descriptions = {
+  dither: 'Create black-and-white, retro and colour dither effects with a free local image tool. Download PNG or turn your artwork into a printable poster. No sign-up.',
   'ai-editor': 'Upload an image, describe changes and compare the AI-edited result before making a printable poster. Optional one-time AI credits; currently invite-only.',
   'ai-upscaler': 'Enlarge images 2× or 4× with AI, compare real before-and-after results and prepare a printable poster. Optional credit-based cloud tool; currently invite-only.',
   'ai-generator': 'Describe artwork, explore editable prompt ideas and create an AI image for a printable poster. Optional one-time AI credits; currently an invite-only pilot.',

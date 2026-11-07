@@ -6,6 +6,7 @@ import './nav.css';
 
 const tools = [
   ['AI Image Generator',AI_GENERATOR_URL], ['AI Image Editor',aiTaskUrl('edit')],
+  ['Image Dithering Tool','/tools/dithering-tool'],
   ['All Tools','/tools'], ['Poster Size Calculator','/tools/poster-size-calculator'],
   ['Image to PDF','/tools/image-to-pdf'], ['PDF Poster Printer','/tools/pdf-poster-printer'],
   ['Life Size Poster Maker','/tools/life-size-poster-maker'], ['Halftone Poster Maker','/tools/halftone-poster-maker'],

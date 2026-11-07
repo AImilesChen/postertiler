@@ -17,7 +17,7 @@ export const CONSENT_KEY = 'postertiler-analytics-consent-v2';
 const DURATION = 180 * 24 * 60 * 60 * 1000;
 const scripts = new Map(), ahrefsQueue = [];
 let allowed = false, initialized = false;
-const events = new Set(['page_view', 'poster_start', 'settings_complete', 'pdf_ready', 'pdf_failed', 'pdf_canceled', 'calibration_ready', 'assembly_ready']);
+const events = new Set(['page_view', 'poster_start', 'settings_complete', 'pdf_ready', 'pdf_failed', 'pdf_canceled', 'calibration_ready', 'assembly_ready', 'tool_start', 'image_download', 'tool_to_poster']);
 const productionPage = () => location.hostname === 'postertiler.com' && publicPaths.has(location.pathname);
 const pageUrl = () => `https://postertiler.com${location.pathname}`;
 function referrerOrigin() {
@@ -28,7 +28,7 @@ function referrerOrigin() {
 function safeAutomaticContext() {
   // This public landing page also hosts private uploads and task history.
   // Keep its consented GA4 pageview; do not load DOM/session-recording tags.
-  if (['/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor'].includes(location.pathname)) return false;
+  if (['/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor','/tools/dithering-tool'].includes(location.pathname)) return false;
   if (location.search || location.hash) return false;
   try {
     if (!document.referrer) return true;
@@ -63,7 +63,7 @@ function addScript(name, src, attributes = {}, onload) {
 function safeProperties(parameters) {
   const safe = {};
   if (['A4', 'A3', 'US Letter'].includes(parameters.paper)) safe.paper = parameters.paper;
-  if (['image_poster', 'image_pdf', 'pdf_poster', 'life_size', 'halftone'].includes(parameters.tool)) safe.tool = parameters.tool;
+  if (['image_poster', 'image_pdf', 'pdf_poster', 'life_size', 'halftone', 'dither'].includes(parameters.tool)) safe.tool = parameters.tool;
   if (Number.isInteger(parameters.sheet_count) && parameters.sheet_count >= 1 && parameters.sheet_count <= 100) safe.sheet_count = parameters.sheet_count;
   return safe;
 }

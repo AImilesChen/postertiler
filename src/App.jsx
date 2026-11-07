@@ -12,6 +12,7 @@ import { sampleSettings } from './example-links';
 import ImageToPdf from './ImageToPdf';
 import PdfPoster from './PdfPoster';
 import CreativePoster from './CreativePoster';
+import DitherTool from './DitherTool';
 import Account from './Account';
 import Pricing from './Pricing';
 import AiStudio from './AiStudio';
@@ -48,6 +49,7 @@ function OtherPage({route}) {
  if(route.kind==='cloud')return <CloudWorkspace/>;
  if(route.kind==='pricing')return <Pricing/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;
+ if(route.kind==='dither')return <DitherTool/>;
  if(route.kind==='image-pdf')return <ImageToPdf/>;
  if(route.kind==='pdf-poster')return <PdfPoster/>;
  if(route.kind==='tools')return <ToolsIndex/>;

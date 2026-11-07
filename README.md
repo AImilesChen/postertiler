@@ -78,3 +78,10 @@ Run `node --test tests/billing.test.mjs tests/cloud.test.mjs` and `npm run test:
 Each tool shows its supported file, pixel and page limits. PDF layers, forms, encryption and printable annotations have explicit restrictions. CMYK-style output is combined RGB artwork, not prepress color-separation plates. Print at Actual Size / 100%; physical printing and assembly are separate user acceptance steps.
 
 Third-party notices are retained in `third-party-licenses` and test fixtures. Public repository visibility does not grant a license to third-party trademarks, brand artwork or source material.
+
+
+## Local image dithering
+
+`/tools/dithering-tool` is a free browser-only workspace with Floyd–Steinberg black-and-white, Bayer ordered and deterministic Noise algorithms. Four presets, RGB colour quantisation and custom two-tone palettes share a validated worker. Grain is measured against the selected output dimensions. PNG downloads and poster import use the same rendered Blob; the poster editor does not apply the effect again. Inputs retain the existing 32 MB / 24 MP / 12,000 px limits. Optional downscaling never enlarges the source. No fal, uploads, account or credit reservation is involved.
+
+Examples and source provenance are in `public/assets/dither-examples`. Artwork sources are The Met Open Access, with processed examples generated using the local effect implementation. Private working images remain in page memory; reloading clears the session. Consent-based analytics for this workspace use explicit safe events and suppress automatic DOM recording tags.

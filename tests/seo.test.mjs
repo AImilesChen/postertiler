@@ -5,8 +5,8 @@ import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const release = process.env.POSTERTILER_TEST_RELEASE === 'true';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
-test('24 released routes include public Pricing with unique metadata and real prerendered content', async () => {
-  assert.equal(routeSpecs.length, 24); const titles = new Set(), descriptions = new Set();
+test('25 released routes include public Pricing with unique metadata and real prerendered content', async () => {
+  assert.equal(routeSpecs.length, 25); const titles = new Set(), descriptions = new Set();
   for (const route of routeSpecs) {
     const html = await readFile(htmlPath(route.path), 'utf8');
     const title = html.match(/<title>(.*?)<\/title>/s)?.[1], description = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
@@ -20,12 +20,12 @@ test('24 released routes include public Pricing with unique metadata and real pr
       assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
-  assert.equal(titles.size, 24); assert.equal(descriptions.size, 24);
+  assert.equal(titles.size, 25); assert.equal(descriptions.size, 25);
   await access('dist/assets/brand/og-image.png');
 });
 test('Sitemap contains only public final-domain routes and robots matches the expected build mode', async () => {
   const sitemap = await readFile('dist/sitemap.xml', 'utf8'), robots = await readFile('dist/robots.txt', 'utf8');
-  assert.equal((sitemap.match(/<loc>/g) || []).length, 24);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, 25);
   assert.ok(sitemap.includes('https://postertiler.com/pricing'));
   assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|_design/.test(sitemap));
   assert.ok(robots.includes(release?'Allow: /':'Disallow: /'));
@@ -57,4 +57,14 @@ test('editor has public discovery content but never exposes account history',asy
  assert.ok(!page.includes('AI credit orders'));assert.ok(!sitemap.includes('/account/ai'));
  assert.equal((page.match(/Real AI edit · Standard quality/g)||[]).length,2);
  for(const id of ['dawn','background'])await access('dist/assets/editor-examples/'+id+'-result.webp');
+});
+
+
+test('dithering is a public local tool with crawlable examples and no AI account gate',async()=>{
+ const html=await readFile(htmlPath('/tools/dithering-tool'),'utf8');
+ assert.ok(html.includes('Image Dithering Tool'));assert.ok(html.includes('Image dithering, explained.'));
+ assert.ok(html.includes('Download PNG'));assert.ok(html.includes('No sign-up or watermark'));
+ for(const asset of ['portrait-effect.png','waves-effect.png','irises-effect.png']){assert.ok(html.includes(asset));await access('dist/assets/dither-examples/'+asset);}
+ assert.ok((await readFile('dist/tools.html','utf8')).includes('/tools/dithering-tool'));
+ assert.ok((await readFile('dist/sitemap.xml','utf8')).includes('/tools/dithering-tool'));
 });

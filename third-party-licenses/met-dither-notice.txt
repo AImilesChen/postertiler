@@ -1,0 +1,12 @@
+Dithering examples: The Met Open Access
+
+Young Woman with a Water Pitcher — Johannes Vermeer
+https://www.metmuseum.org/art/collection/search/437881
+
+Irises — Vincent van Gogh
+https://www.metmuseum.org/art/collection/search/436528
+
+Under the Wave off Kanagawa — Katsushika Hokusai
+https://www.metmuseum.org/art/collection/search/45434
+
+Public-domain source images from The Metropolitan Museum of Art Open Access collection. Source URLs, dimensions, processing and hashes are recorded in public/assets/dither-examples/provenance.json. Local dithering examples are digital derivatives, not photographs of finished physical prints.
