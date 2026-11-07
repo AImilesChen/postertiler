@@ -25,7 +25,7 @@ export default function AiStudio({publicPage=false}){
   <p className="ai-pilot-banner"><strong>Private pilot</strong> Invited accounts only · Credit purchases use Stripe test checkout.</p>
   <section className="ai-workbench" id="upscale-tool" aria-label={AI_TASKS[task].title+' workspace'} data-clarity-mask="true">
    <header className="ai-workbench-header"><h2>{task==='upscale'?'Enhance your image':task==='edit'?'Edit your image':'Create your artwork'}</h2><div id="ai-workbench-toolbar"/></header>
-   <div className="ai-focused-grid"><section className="ai-tool-panel" aria-label={AI_TASKS[task].title+' controls'}><AiTools key={task} task={task} workspace returnTo={publicPage?AI_UPSCALER_URL:aiTaskUrl(task)} onApply={apply} onPreview={setPreview}/></section><AiImagePreview {...preview} workspace showExample={task==='upscale'}/></div>
+   <div className="ai-focused-grid"><section className="ai-tool-panel" aria-label={AI_TASKS[task].title+' controls'}><AiTools task={task} workspace returnTo={publicPage?AI_UPSCALER_URL:aiTaskUrl(task)} onApply={apply} onPreview={setPreview}/></section><AiImagePreview {...preview} workspace showExample={task==='upscale'}/></div>
    <footer id="ai-workbench-results" className="ai-workbench-footer"><p className="ai-workbench-default-note">Your original stays unchanged. Review the result before printing.</p></footer>
   </section>
   {hasImage&&<section id="ai-poster-workspace" data-clarity-mask="true"><h2>Prepare your poster</h2><p>Your enhanced image is in the free poster maker. Choose its paper and finished dimensions.</p><Editor ref={editor}/></section>}
