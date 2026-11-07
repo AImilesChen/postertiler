@@ -1,0 +1,93 @@
+[
+  {
+    "id": "ink-landscape",
+    "objectID": 36071,
+    "title": "Landscape",
+    "artist": "Wang Hui",
+    "date": "dated 1693",
+    "image": "/assets/generator-inspiration/ink-landscape.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/as/web-large/DP-37658-002.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/36071",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 103136
+  },
+  {
+    "id": "woodblock-waves",
+    "objectID": 45434,
+    "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)",
+    "artist": "Katsushika Hokusai",
+    "date": "ca. 1830–32",
+    "image": "/assets/generator-inspiration/woodblock-waves.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/as/web-large/DP130155.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/45434",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 166452
+  },
+  {
+    "id": "dreamlike-skies",
+    "objectID": 437380,
+    "title": "The Chariot of Apollo",
+    "artist": "Odilon Redon",
+    "date": "1905–16",
+    "image": "/assets/generator-inspiration/dreamlike-skies.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP279887.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/437380",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 254435
+  },
+  {
+    "id": "painterly-flowers",
+    "objectID": 436534,
+    "title": "Roses",
+    "artist": "Vincent van Gogh",
+    "date": "1890",
+    "image": "/assets/generator-inspiration/painterly-flowers.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP346475.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/436534",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 128833
+  },
+  {
+    "id": "golden-valley",
+    "objectID": 10497,
+    "title": "View from Mount Holyoke, Northampton, Massachusetts, after a Thunderstorm—The Oxbow",
+    "artist": "Thomas Cole",
+    "date": "1836",
+    "image": "/assets/generator-inspiration/golden-valley.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ad/web-large/DP-12550-001.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/10497",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 97058
+  },
+  {
+    "id": "vintage-theatre",
+    "objectID": 437654,
+    "title": "Circus Sideshow (Parade de cirque)",
+    "artist": "Georges Seurat",
+    "date": "1887–88",
+    "image": "/assets/generator-inspiration/vintage-theatre.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP375450_cropped.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/437654",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 457746
+  },
+  {
+    "id": "landscape-preview",
+    "objectID": 436535,
+    "title": "Wheat Field with Cypresses",
+    "artist": "Vincent van Gogh",
+    "date": "1889",
+    "image": "/assets/generator-inspiration/landscape-preview.jpg",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/web-large/DP-42549-001.jpg",
+    "source": "https://www.metmuseum.org/art/collection/search/436535",
+    "license": "Public domain — The Met Open Access",
+    "usage": "Style reference, not a result from the PosterTiler image generator",
+    "bytes": 221383
+  }
+]

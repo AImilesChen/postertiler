@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { aiTaskFromSearch, aiTaskUrl } from '../src/ai-navigation.js';
+import { aiTaskFromSearch, aiTaskUrl,aiToolUrl,aiPublicTask } from '../src/ai-navigation.js';
 import { safeReturnTo } from '../server/auth.mjs';
 
 test('AI entry intents survive refresh and exact OAuth returns; missing intent selects enhancement',()=>{
@@ -11,6 +11,16 @@ test('AI entry intents survive refresh and exact OAuth returns; missing intent s
     assert.equal(safeReturnTo(destination),destination);
   }
   for(const task of ['__proto__','constructor','https://attacker.invalid/','unknown'])assert.equal(aiTaskUrl(task),'/account/ai?task=upscale');
+});
+
+test('public AI modes have exact crawlable paths while account return intents stay private',()=>{
+ for(const [task,path] of [['upscale','/tools/ai-image-upscaler'],['generate','/tools/ai-image-generator']]){
+  assert.equal(aiToolUrl(task),path);assert.equal(aiPublicTask(path),task);assert.equal(safeReturnTo(path),path);
+  assert.equal(aiTaskUrl(task),'/account/ai?task='+task);
+  for(const bad of [path+'?next=https://attacker.invalid',path+'#private','https://attacker.invalid'+path])assert.equal(safeReturnTo(bad),'/account');
+ }
+ assert.equal(aiToolUrl('edit'),'/account/ai?task=edit');
+ assert.equal(aiPublicTask('/tools/unknown'),undefined);
 });
 test('AI payment returns only permit an exact first-party UUID route',()=>{
   const route='/account/ai?billing_order=c965fca2-7ef7-4cba-a30e-7de9a2ca6878';

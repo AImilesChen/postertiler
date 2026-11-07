@@ -15,6 +15,7 @@ import CreativePoster from './CreativePoster';
 import Account from './Account';
 import Pricing from './Pricing';
 import AiStudio from './AiStudio';
+import {AI_PUBLIC_PAGES,aiPublicTask} from './ai-navigation';
 import CloudWorkspace from './CloudWorkspace';
 import Nav from './Nav';
 import { AuthProvider } from './AuthContext';
@@ -42,6 +43,7 @@ function OtherPage({route}) {
  if(route.kind==='account')return <Account view={route.view}/>;
  if(route.kind==='ai')return <AiStudio/>;
  if(route.kind==='ai-upscaler')return <AiStudio publicPage/>;
+ if(route.kind==='ai-generator')return <AiStudio publicPage initialTask="generate"/>;
  if(route.kind==='cloud')return <CloudWorkspace/>;
  if(route.kind==='pricing')return <Pricing/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;
@@ -57,9 +59,20 @@ function OtherPage({route}) {
 function useDialogKeyboard(){useEffect(()=>{let active=null,previous=null;const sync=()=>{const d=document.querySelector('[aria-modal="true"]:not([data-preview-dialog])');if(d!==active){if(d){previous=document.activeElement;active=d;d.querySelector('button,input,select,a[href]')?.focus();}else{active=null;if(previous?.isConnected)previous.focus();}}};const observer=new MutationObserver(sync);observer.observe(document.body,{childList:true,subtree:true});const key=e=>{if(!active)return;if(e.key==='Escape'){e.preventDefault();active.querySelector('[data-dismiss]')?.click();}if(e.key==='Tab'){const controls=[...active.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]')];const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};document.addEventListener('keydown',key);sync();return()=>{observer.disconnect();document.removeEventListener('keydown',key);};},[]);}
 export function App({pathname}={}) {
  useDialogKeyboard();
- const path=(pathname||(typeof location==='undefined'?'/':location.pathname)).replace(/\/$/,'')||'/';
+ const [browserPath,setBrowserPath]=useState(()=>typeof location==='undefined'?'/':location.pathname);
+ useEffect(()=>{const read=()=>setBrowserPath(location.pathname);window.addEventListener('popstate',read);return()=>window.removeEventListener('popstate',read);},[]);
+ const path=(pathname||browserPath).replace(/\/$/,'')||'/';
  const route=appRouteSpecs.find(r=>r.path===path);
- useEffect(()=>{document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;},[path]);
+ useEffect(()=>{
+  if(route?.kind!=='ai')document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;
+  if(!['ai','ai-upscaler','ai-generator'].includes(route?.kind))return;
+  const page=AI_PUBLIC_PAGES[aiPublicTask(path)],url='https://postertiler.com'+path;
+  const description=page?.description||'Your private PosterTiler AI image workspace, tasks and available downloads.';
+  const set=(selector,value,attribute='content')=>document.querySelector(selector)?.setAttribute(attribute,value);
+  set('link[rel="canonical"]',url,'href');set('meta[name="robots"]',page&&import.meta.env.VITE_PUBLIC_INDEXING==='true'?'index,follow':'noindex,nofollow');
+  set('meta[name="description"]',description);set('meta[property="og:url"]',url);set('meta[property="og:title"]',document.title);set('meta[property="og:description"]',description);
+  const schema=document.querySelector('script[type="application/ld+json"]');if(schema)schema.textContent=JSON.stringify({'@context':'https://schema.org','@type':'WebPage',name:page?.title||'Your AI workspace',description,url});
+ },[path]);
  return <AuthProvider><Nav/><div id="main-content" tabIndex={-1}>{path==='/'?<Homepage/>:route?<OtherPage route={route}/>:<main><PageIntro eyebrow="404" title="This page is not here">Return to the poster maker or printing guides.</PageIntro><a className="button" href="/">Make a Poster</a></main>}</div><Footer/></AuthProvider>;
 }
 

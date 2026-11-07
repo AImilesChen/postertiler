@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CaretDown, List, SignOut, UserCircle, X, Sparkle } from '@phosphor-icons/react';
-import { aiTaskUrl,AI_UPSCALER_URL } from './ai-navigation';
+import { aiTaskUrl,AI_UPSCALER_URL,AI_GENERATOR_URL } from './ai-navigation';
 import { useAuth } from './AuthContext';
 import './nav.css';
 
 const tools = [
-  ['AI Image Generator',aiTaskUrl('generate')], ['AI Image Editor',aiTaskUrl('edit')],
+  ['AI Image Generator',AI_GENERATOR_URL], ['AI Image Editor',aiTaskUrl('edit')],
   ['All Tools','/tools'], ['Poster Size Calculator','/tools/poster-size-calculator'],
   ['Image to PDF','/tools/image-to-pdf'], ['PDF Poster Printer','/tools/pdf-poster-printer'],
   ['Life Size Poster Maker','/tools/life-size-poster-maker'], ['Halftone Poster Maker','/tools/halftone-poster-maker'],

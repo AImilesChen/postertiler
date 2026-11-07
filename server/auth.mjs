@@ -142,6 +142,6 @@ export const handleAuth = createAuthHandler();
 // Exact, first-party destinations only. Stored inside the encrypted OAuth flow.
 export function safeReturnTo(value) {
   if(typeof value==='string'&&/^\/account\/ai\?billing_order=[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))return value;
-  const paths=['/tools/ai-image-upscaler','/account/ai','/account/ai?task=upscale','/account/ai?task=generate','/account/ai?task=edit','/account/ai?billing_canceled=1','/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
+  const paths=['/tools/ai-image-upscaler','/tools/ai-image-generator','/account/ai','/account/ai?task=upscale','/account/ai?task=generate','/account/ai?task=edit','/account/ai?billing_canceled=1','/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
   return paths.includes(value)?value:'/account';
 }
