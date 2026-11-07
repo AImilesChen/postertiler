@@ -14,12 +14,12 @@ test('AI entry intents survive refresh and exact OAuth returns; missing intent s
 });
 
 test('public AI modes have exact crawlable paths while account return intents stay private',()=>{
- for(const [task,path] of [['upscale','/tools/ai-image-upscaler'],['generate','/tools/ai-image-generator']]){
+ for(const [task,path] of [['upscale','/tools/ai-image-upscaler'],['generate','/tools/ai-image-generator'],['edit','/tools/ai-image-editor']]){
   assert.equal(aiToolUrl(task),path);assert.equal(aiPublicTask(path),task);assert.equal(safeReturnTo(path),path);
   assert.equal(aiTaskUrl(task),'/account/ai?task='+task);
   for(const bad of [path+'?next=https://attacker.invalid',path+'#private','https://attacker.invalid'+path])assert.equal(safeReturnTo(bad),'/account');
  }
- assert.equal(aiToolUrl('edit'),'/account/ai?task=edit');
+ assert.equal(aiToolUrl('edit'),'/tools/ai-image-editor');
  assert.equal(aiPublicTask('/tools/unknown'),undefined);
 });
 test('AI payment returns only permit an exact first-party UUID route',()=>{

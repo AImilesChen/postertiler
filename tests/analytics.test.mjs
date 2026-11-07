@@ -9,7 +9,7 @@ function harness(env = all, address = {}) {
   const document = { cookie: '', referrer: '', createElement: () => ({ attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, remove() { removed.push(this.id); } }), head: { append: script => loaded.push(script) } };
   const location = { pathname: '/', hostname: 'postertiler.com', search: '', hash: '', reload: () => sent.push('reload'), ...address };
   const window = { addEventListener: (name, fn) => { listeners[name] = fn; } };
-  const context = vm.createContext({ document, location, window, routeSpecs: [{ path: '/' }, { path: '/gallery' }, {path:'/tools/ai-image-upscaler'},{path:'/tools/ai-image-generator'}], URL, Date, Set, Map, localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) } });
+  const context = vm.createContext({ document, location, window, routeSpecs: [{ path: '/' }, { path: '/gallery' }, {path:'/tools/ai-image-upscaler'},{path:'/tools/ai-image-generator'},{path:'/tools/ai-image-editor'}], URL, Date, Set, Map, localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) } });
   const transformed = source.replace("import { routeSpecs } from './data';", '').replace(/import\.meta\.env\.([A-Z0-9_]+)/g, (_, key) => JSON.stringify(env[key] || '')).replaceAll('export ', '');
   vm.runInContext(transformed + '\nglobalThis.api={applyConsent,initializeAnalytics,trackEvent,readConsent,CONSENT_KEY};', context);
   return { api: context.api, window, document, location, loaded, sent, values, listeners, removed };
@@ -73,7 +73,7 @@ test('a refusal in another tab stops collection in the current tab', () => {
 });
 
 test('public AI uploads load only explicit GA4 pageviews and never DOM recording providers',()=>{
- for(const pathname of ['/tools/ai-image-upscaler','/tools/ai-image-generator']){
+ for(const pathname of ['/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor']){
  const h=harness(all,{pathname});h.api.applyConsent('accepted');
  assert.deepEqual(h.loaded.map(tag=>tag.id),['postertiler-ga4']);
  const events=h.window.dataLayer.filter(args=>args[0]==='event');assert.equal(events.length,1);assert.equal(events[0][1],'page_view');

@@ -28,7 +28,7 @@ function referrerOrigin() {
 function safeAutomaticContext() {
   // This public landing page also hosts private uploads and task history.
   // Keep its consented GA4 pageview; do not load DOM/session-recording tags.
-  if (['/tools/ai-image-upscaler','/tools/ai-image-generator'].includes(location.pathname)) return false;
+  if (['/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor'].includes(location.pathname)) return false;
   if (location.search || location.hash) return false;
   try {
     if (!document.referrer) return true;

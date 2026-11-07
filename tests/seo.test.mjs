@@ -5,8 +5,8 @@ import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const release = process.env.POSTERTILER_TEST_RELEASE === 'true';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
-test('23 released routes include public Pricing with unique metadata and real prerendered content', async () => {
-  assert.equal(routeSpecs.length, 23); const titles = new Set(), descriptions = new Set();
+test('24 released routes include public Pricing with unique metadata and real prerendered content', async () => {
+  assert.equal(routeSpecs.length, 24); const titles = new Set(), descriptions = new Set();
   for (const route of routeSpecs) {
     const html = await readFile(htmlPath(route.path), 'utf8');
     const title = html.match(/<title>(.*?)<\/title>/s)?.[1], description = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
@@ -20,12 +20,12 @@ test('23 released routes include public Pricing with unique metadata and real pr
       assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
-  assert.equal(titles.size, 23); assert.equal(descriptions.size, 23);
+  assert.equal(titles.size, 24); assert.equal(descriptions.size, 24);
   await access('dist/assets/brand/og-image.png');
 });
 test('Sitemap contains only public final-domain routes and robots matches the expected build mode', async () => {
   const sitemap = await readFile('dist/sitemap.xml', 'utf8'), robots = await readFile('dist/robots.txt', 'utf8');
-  assert.equal((sitemap.match(/<loc>/g) || []).length, 23);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, 24);
   assert.ok(sitemap.includes('https://postertiler.com/pricing'));
   assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|_design/.test(sitemap));
   assert.ok(robots.includes(release?'Allow: /':'Disallow: /'));
@@ -47,4 +47,12 @@ test('generator discovery page is prerendered with honest reference artwork and 
  assert.ok(page.includes('Style references, not results from this generator.'));assert.ok(page.includes('What happens if a prompt or image is blocked?'));
  assert.ok(sitemap.includes('/tools/ai-image-generator'));assert.ok(!page.includes('AI credit orders'));
  assert.equal((page.match(/View prompt &amp; artwork source/g)||[]).length,6);
+});
+
+
+test('editor has public discovery content but never exposes account history',async()=>{
+ const page=await readFile(htmlPath('/tools/ai-image-editor'),'utf8'),sitemap=await readFile('dist/sitemap.xml','utf8');
+ assert.ok(page.includes('Keep the idea. Change the feeling.'));assert.ok(page.includes('Change this. Keep that.'));
+ assert.ok(page.includes('Will the result have the same shape and resolution?'));assert.ok(sitemap.includes('/tools/ai-image-editor'));
+ assert.ok(!page.includes('AI credit orders'));assert.ok(!sitemap.includes('/account/ai'));
 });

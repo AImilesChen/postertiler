@@ -44,6 +44,7 @@ function OtherPage({route}) {
  if(route.kind==='ai')return <AiStudio/>;
  if(route.kind==='ai-upscaler')return <AiStudio publicPage/>;
  if(route.kind==='ai-generator')return <AiStudio publicPage initialTask="generate"/>;
+ if(route.kind==='ai-editor')return <AiStudio publicPage initialTask="edit"/>;
  if(route.kind==='cloud')return <CloudWorkspace/>;
  if(route.kind==='pricing')return <Pricing/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;
@@ -65,7 +66,7 @@ export function App({pathname}={}) {
  const route=appRouteSpecs.find(r=>r.path===path);
  useEffect(()=>{
   if(route?.kind!=='ai')document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;
-  if(!['ai','ai-upscaler','ai-generator'].includes(route?.kind))return;
+  if(!['ai','ai-upscaler','ai-generator','ai-editor'].includes(route?.kind))return;
   const page=AI_PUBLIC_PAGES[aiPublicTask(path)],url='https://postertiler.com'+path;
   const description=page?.description||'Your private PosterTiler AI image workspace, tasks and available downloads.';
   const set=(selector,value,attribute='content')=>document.querySelector(selector)?.setAttribute(attribute,value);

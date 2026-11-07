@@ -1,6 +1,8 @@
 export const AI_UPSCALER_URL = '/tools/ai-image-upscaler';
 export const AI_GENERATOR_URL = '/tools/ai-image-generator';
+export const AI_EDITOR_URL = '/tools/ai-image-editor';
 export const AI_PUBLIC_PAGES = Object.freeze({
+ edit:{path:AI_EDITOR_URL,title:'AI Image Editor — Edit Images for Posters',description:'Upload an image, describe changes and compare the AI-edited result before making a printable poster. Optional one-time AI credits; currently invite-only.'},
  upscale:{path:AI_UPSCALER_URL,title:'AI Image Upscaler — Enlarge Images for Printing',description:'Enlarge images 2× or 4× with AI, compare real before-and-after results and prepare a printable poster. Optional credit-based cloud tool; currently invite-only.'},
  generate:{path:AI_GENERATOR_URL,title:'AI Image Generator for Posters',description:'Describe artwork, explore editable prompt ideas and create an AI image for a printable poster. Optional one-time AI credits; currently an invite-only pilot.'},
 });
