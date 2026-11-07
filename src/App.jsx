@@ -41,6 +41,7 @@ function GuideDirectory(){const [search,setSearch]=useState('');const filtered=g
 function OtherPage({route}) {
  if(route.kind==='account')return <Account view={route.view}/>;
  if(route.kind==='ai')return <AiStudio/>;
+ if(route.kind==='ai-upscaler')return <AiStudio publicPage/>;
  if(route.kind==='cloud')return <CloudWorkspace/>;
  if(route.kind==='pricing')return <Pricing/>;
  if(['life-size','halftone'].includes(route.kind))return <CreativePoster kind={route.kind}/>;

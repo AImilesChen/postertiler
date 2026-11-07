@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CaretDown, List, SignOut, UserCircle, X, Sparkle } from '@phosphor-icons/react';
-import { aiTaskUrl } from './ai-navigation';
+import { aiTaskUrl,AI_UPSCALER_URL } from './ai-navigation';
 import { useAuth } from './AuthContext';
 import './nav.css';
 
@@ -48,7 +48,7 @@ export default function Nav() {
     <a className="brand" href="/" aria-label="PosterTiler home"><img src="/assets/brand/postertiler-wordmark.png?v=1.1" alt="PosterTiler"/></a>
     <button className="mobile-menu icon-button" aria-expanded={mobileOpen} aria-controls="main-navigation" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} onClick={() => { setMobileOpen(!mobileOpen); setPanel(null); }}><span aria-hidden="true">{mobileOpen ? <X size={18}/> : <List size={18}/>}</span></button>
     <nav id="main-navigation" className={mobileOpen ? 'open' : ''} aria-label="Main navigation">
-      <div className="nav-link-group"><a href="/#poster-editor">Make a Poster</a><a className="nav-ai-upscaler" href={aiTaskUrl('upscale')}><Sparkle size={17} aria-hidden="true"/>AI Upscaler</a><a href="/gallery">Gallery</a>
+      <div className="nav-link-group"><a href="/#poster-editor">Make a Poster</a><a className="nav-ai-upscaler" href={AI_UPSCALER_URL}><Sparkle size={17} aria-hidden="true"/>AI Upscaler</a><a href="/gallery">Gallery</a>
         <div className="tools-menu" onKeyDown={event => { if (event.key === 'Escape') setPanel(null); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPanel(current => current === 'tools' ? null : current); }}>
           <button aria-expanded={panel === 'tools'} onClick={() => setPanel(panel === 'tools' ? null : 'tools')}>Tools</button>
           {panel === 'tools' && <div className="menu-popover">{tools.map(([label,path]) => <a key={path} href={path}>{label}</a>)}</div>}

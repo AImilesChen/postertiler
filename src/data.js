@@ -37,6 +37,7 @@ const designRouteSpecs = [
   ['terms','/terms','V1','Terms of Service','policy'],
   ['contact','/contact','V1','Contact','contact'],
   ['cookies','/cookies','V1','Cookie Policy','policy'],
+  ['ai-upscaler','/tools/ai-image-upscaler','V1.1','AI Image Upscaler — Enlarge Images for Printing','ai-upscaler'],
   ['tools','/tools','V1.1','Tools for a bigger print','tools'],
   ['image-pdf','/tools/image-to-pdf','V1.1','Image to PDF','image-pdf'],
   ['pdf-poster','/tools/pdf-poster-printer','V1.1','PDF Poster Printer','pdf-poster'],

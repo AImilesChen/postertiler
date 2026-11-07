@@ -1,3 +1,4 @@
+export const AI_UPSCALER_URL = '/tools/ai-image-upscaler';
 export const AI_TASKS = Object.freeze({
   upscale: { title: 'AI Image Upscaler', verb: 'Enhance image', description: 'Increase image resolution without writing a prompt. Compare the result, then use it in your poster.' },
   generate: { title: 'AI Image Generator', verb: 'Generate image', description: 'Describe your artwork, create an image, then prepare its printable sheets.' },

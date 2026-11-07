@@ -26,6 +26,9 @@ function referrerOrigin() {
 // These tags inspect their own URL/referrer. Do not expose parameterized,
 // unknown or account addresses to them. GA4 below uses explicit safe fields.
 function safeAutomaticContext() {
+  // This public landing page also hosts private uploads and task history.
+  // Keep its consented GA4 pageview; do not load DOM/session-recording tags.
+  if (location.pathname === '/tools/ai-image-upscaler') return false;
   if (location.search || location.hash) return false;
   try {
     if (!document.referrer) return true;

@@ -5,8 +5,8 @@ import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const release = process.env.POSTERTILER_TEST_RELEASE === 'true';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
-test('21 released routes include public Pricing with unique metadata and real prerendered content', async () => {
-  assert.equal(routeSpecs.length, 21); const titles = new Set(), descriptions = new Set();
+test('22 released routes include public Pricing with unique metadata and real prerendered content', async () => {
+  assert.equal(routeSpecs.length, 22); const titles = new Set(), descriptions = new Set();
   for (const route of routeSpecs) {
     const html = await readFile(htmlPath(route.path), 'utf8');
     const title = html.match(/<title>(.*?)<\/title>/s)?.[1], description = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
@@ -20,15 +20,23 @@ test('21 released routes include public Pricing with unique metadata and real pr
       assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
-  assert.equal(titles.size, 21); assert.equal(descriptions.size, 21);
+  assert.equal(titles.size, 22); assert.equal(descriptions.size, 22);
   await access('dist/assets/brand/og-image.png');
 });
 test('Sitemap contains only public final-domain routes and robots matches the expected build mode', async () => {
   const sitemap = await readFile('dist/sitemap.xml', 'utf8'), robots = await readFile('dist/robots.txt', 'utf8');
-  assert.equal((sitemap.match(/<loc>/g) || []).length, 21);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, 22);
   assert.ok(sitemap.includes('https://postertiler.com/pricing'));
   assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|_design/.test(sitemap));
   assert.ok(robots.includes(release?'Allow: /':'Disallow: /'));
   if(release)assert.ok(robots.includes('Sitemap: '+domain+'/sitemap.xml'));
   assert.ok((await readFile('dist/404.html', 'utf8')).includes('This page is not here'));
+});
+
+test('public enhancement content is indexable while personal AI history stays private',async()=>{
+ const page=await readFile(htmlPath('/tools/ai-image-upscaler'),'utf8'),privatePage=await readFile(htmlPath('/account/ai'),'utf8'),sitemap=await readFile('dist/sitemap.xml','utf8');
+ assert.ok(page.includes('Three steps. No prompt needed.'));assert.ok(page.includes('What happens if enhancement fails?'));
+ assert.ok(page.includes('https://postertiler.com/tools/ai-image-upscaler'));assert.ok(sitemap.includes('/tools/ai-image-upscaler'));
+ assert.match(privatePage,/<meta name="robots" content="noindex,nofollow"/);assert.ok(!sitemap.includes('/account/ai'));
+ assert.ok(!page.includes('fixture@example.invalid'));
 });

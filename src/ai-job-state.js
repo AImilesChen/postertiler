@@ -48,3 +48,7 @@ export function aiJobFeedback(job) {
  const state=states[job.status]||{tone:'neutral',title:'Check task status',description:'Refresh the task status before starting again.',step:null};
  return {...state,creditText:activeAi(job)?`${credits} AI credits reserved; charged only after a verified result.`:job.status==='failed'||job.status==='canceled'?`${credits} AI credits released. No credits used for this task.`:job.status==='succeeded'?`${credits} AI credits used. Download this result again at no extra cost.`:''};
 }
+
+export function selectedAiFeedback(jobs=[],{localJob=null,restoreLatest=true,kind='upscale'}={}) {
+ return (localJob&&(jobs.find(job=>job.id===localJob.id)||localJob)) || jobs.find(activeAi) || (restoreLatest?jobs.find(job=>job.kind===kind):null) || null;
+}

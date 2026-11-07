@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {aiJobFeedback} from '../src/ai-job-state.js';
+import {aiJobFeedback,selectedAiFeedback} from '../src/ai-job-state.js';
 import {falProvider} from '../server/ai/provider.mjs';
 import {validateSpec} from '../server/ai/contract.mjs';
 
@@ -26,4 +26,16 @@ test('provider submission problems retain safe diagnostic categories without exp
  for(const [transport,code] of [[async()=>{throw new DOMException('private URL and token','TimeoutError');},'provider_submit_timeout'],[async()=>{throw new Error('private details');},'provider_submit_connection'],[async()=>new Response('private provider details',{status:503}),'provider_submit_unavailable'],[async()=>new Response('not-json'),'provider_submit_receipt']]){
   const provider=falProvider({FAL_KEY:'fixture'},transport);await assert.rejects(()=>provider.submit(validateSpec({kind:'upscale',width:8,height:8,factor:2}),'fixture'),error=>error.code===code&&!error.message.includes('private'));
  }
+});
+
+test('a fresh workspace never shows an unrelated completed task as its current result',()=>{
+ const previous={id:'old',kind:'upscale',status:'succeeded',credits:3};
+ assert.equal(selectedAiFeedback([previous],{restoreLatest:false}),null);
+ assert.equal(selectedAiFeedback([previous],{restoreLatest:true}),previous);
+ const live={id:'new',kind:'upscale',status:'processing',credits:3};
+ assert.equal(selectedAiFeedback([previous,live],{restoreLatest:false}),live);
+ const failed={...live,status:'failed',error:'provider_failed'};
+ assert.equal(selectedAiFeedback([previous,failed],{localJob:live,restoreLatest:false}),failed);
+ assert.equal(selectedAiFeedback([previous],{localJob:previous,restoreLatest:false}),previous);
+ assert.equal(selectedAiFeedback(undefined,{restoreLatest:false}),null);
 });

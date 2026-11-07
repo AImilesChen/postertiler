@@ -9,7 +9,7 @@ function harness(env = all, address = {}) {
   const document = { cookie: '', referrer: '', createElement: () => ({ attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, remove() { removed.push(this.id); } }), head: { append: script => loaded.push(script) } };
   const location = { pathname: '/', hostname: 'postertiler.com', search: '', hash: '', reload: () => sent.push('reload'), ...address };
   const window = { addEventListener: (name, fn) => { listeners[name] = fn; } };
-  const context = vm.createContext({ document, location, window, routeSpecs: [{ path: '/' }, { path: '/gallery' }], URL, Date, Set, Map, localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) } });
+  const context = vm.createContext({ document, location, window, routeSpecs: [{ path: '/' }, { path: '/gallery' }, {path:'/tools/ai-image-upscaler'}], URL, Date, Set, Map, localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) } });
   const transformed = source.replace("import { routeSpecs } from './data';", '').replace(/import\.meta\.env\.([A-Z0-9_]+)/g, (_, key) => JSON.stringify(env[key] || '')).replaceAll('export ', '');
   vm.runInContext(transformed + '\nglobalThis.api={applyConsent,initializeAnalytics,trackEvent,readConsent,CONSENT_KEY};', context);
   return { api: context.api, window, document, location, loaded, sent, values, listeners, removed };
@@ -70,4 +70,12 @@ test('a refusal in another tab stops collection in the current tab', () => {
   const h = harness(); h.api.initializeAnalytics(); h.api.applyConsent('accepted');
   h.values.set(h.api.CONSENT_KEY, JSON.stringify({ choice: 'rejected', expires: Date.now() + 10000 }));
   h.listeners.storage({ key: h.api.CONSENT_KEY }); assert.deepEqual(h.sent, ['reload']);
+});
+
+test('public AI uploads load only explicit GA4 pageviews and never DOM recording providers',()=>{
+ const h=harness(all,{pathname:'/tools/ai-image-upscaler'});h.api.applyConsent('accepted');
+ assert.deepEqual(h.loaded.map(tag=>tag.id),['postertiler-ga4']);
+ const events=h.window.dataLayer.filter(args=>args[0]==='event');assert.equal(events.length,1);assert.equal(events[0][1],'page_view');
+ assert.equal(events[0][2].page_location,'https://postertiler.com/tools/ai-image-upscaler');
+ assert.equal(h.window.clarity,undefined);assert.equal(h.window.AhrefsAnalytics,undefined);
 });

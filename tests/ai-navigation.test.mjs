@@ -17,3 +17,8 @@ test('AI payment returns only permit an exact first-party UUID route',()=>{
   assert.equal(safeReturnTo(route),route);
   for(const bad of [route+'&next=https://attacker.invalid',route+'#redirect','https://attacker.invalid'+route,'//attacker.invalid/account/ai','/account/ai?task=generate&next=https://attacker.invalid','/account/ai?billing_order=invalid'])assert.equal(safeReturnTo(bad),'/account');
 });
+
+test('OAuth permits the exact public upscaler return and rejects appended redirect data',()=>{
+ assert.equal(safeReturnTo('/tools/ai-image-upscaler'),'/tools/ai-image-upscaler');
+ for(const bad of ['/tools/ai-image-upscaler?next=https://attacker.invalid','//attacker.invalid/tools/ai-image-upscaler','https://attacker.invalid/tools/ai-image-upscaler','/tools/ai-image-upscaler#private'])assert.equal(safeReturnTo(bad),'/account');
+});
