@@ -34,7 +34,7 @@ test('every printed raster page has its actual position, sequential page number 
 });
 test('printed text and direction arrow fit inside reserved band for narrow and asymmetric sheets',async()=>{
   const doc=await PDFDocument.create(),font=await doc.embedFont(StandardFonts.Helvetica);
-  for(const input of [PRINT_DEFAULTS,{...PRINT_DEFAULTS,orientation:'Landscape',separateMargins:true,marginTop:4,marginBottom:12,marginLeft:3,marginRight:9},{...PRINT_DEFAULTS,margin:95}]){
+  for(const input of [PRINT_DEFAULTS,{...PRINT_DEFAULTS,orientation:'Landscape',separateMargins:true,marginTop:4,marginBottom:12,marginLeft:3,marginRight:9},{...PRINT_DEFAULTS,margin:95},{...PRINT_DEFAULTS,margin:104.9,overlap:0}]){
     const g=geometry(input),draws=[];assert.equal(g.error,'');
     drawSheetLabel({drawText:(s,o)=>draws.push({text:s,...o}),drawLine:o=>draws.push(o)},font,g,'ZZ100',399,400);
     const top=pt(g.ph-g.margins.top-g.printableH),bottom=top-pt(g.labelBand),left=pt(g.margins.left),right=left+pt(g.printableW);
