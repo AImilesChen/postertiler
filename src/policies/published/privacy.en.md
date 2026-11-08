@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Effective date: 6 November 2026
+Effective date: 8 November 2026
 
 ## Operator and contact
 
@@ -12,7 +12,7 @@ The free tools process your selected images and PDFs in your browser. They use f
 
 This includes image poster tiling, multi-image PDF merging, PDF page tiling, subject-bound selection for life-size posters, halftone effects and the size calculator. The image effects run on your device without an AI API.
 
-Source files and working previews are held temporarily by the open page, rather than saved to persistent browser storage by the application. Closing or reloading the page discards the working state. Downloaded files remain wherever you save them; we cannot delete your own copies.
+Source files and working previews are held temporarily by the open page, rather than saved to persistent browser storage by the application. Closing or reloading the page discards the working state. An optional gallery draft is an exception: only when you choose to submit a project, a prepared copy may be stored locally for the sign-in and submission flow described below. Downloaded files remain wherever you save them; we cannot delete your own copies.
 
 PDF tiling reuses source page content and resources. It is not a PDF sanitization service. Remove private information and unwanted content before using or sharing a source file. Sending an attachment to support is a separate, voluntary disclosure to us.
 
@@ -73,6 +73,22 @@ Our private Cloudflare storage holds the working image and result for up to 24 h
 We request that fal omit inputs and outputs from its request-history payload storage, and request a one-hour expiration for generated CDN files. These controls are not a promise of zero retention across model providers, security logs or other processing. See [fal data retention controls](https://fal.ai/docs/documentation/model-apis/media-expiration) and [fal Privacy Policy](https://fal.ai/legal/privacy-policy). Processing may occur outside your country. Do not submit confidential information or images you lack permission to share with these providers.
 
 AI processing permission is separate from analytics permission. Refusing analytics does not prevent a requested AI task. When you use an AI result in the poster maker, its local working preview stays in page memory; downloaded copies remain on your device. AI credits, Cloud PDF credits and their sandbox order histories are kept separately. No real-money AI checkout is enabled in this release.
+
+## Gallery submissions
+
+Sharing a locally generated PDF through your device's share menu does not upload it to the PosterTiler gallery. The app or recipient you select handles that share under its own practices. Opening a share menu is not confirmation that a recipient received the file.
+
+Gallery submission is a separate, voluntary upload that requires sign-in. Before submission, a gallery draft may be kept in this browser's IndexedDB so it can survive sign-in. Drafts expire after 24 hours and are discarded when next accessed; you can also discard a draft in the submission form. No draft image is uploaded just by opening that form.
+
+When you submit, we receive the prepared artwork image, an optional photo of your finished print, your public author name (or Anonymous), title, description, category, print settings and your publication choices. A separate gallery JPEG copy is prepared with a maximum side of 3000 pixels and an 8-megapixel limit. Metadata is removed from the stored gallery images. Do not include private information or images of people without appropriate permission.
+
+Cloudflare D1 and private R2 storage hold submissions and moderation records separately from sandbox payments and temporary processing jobs. Gallery resources use an Asia-Pacific location hint; this is not a guarantee that all processing or access stays in that region. Images and submission text are sent to Sightengine for safety checks, followed by manual review. A failed or unavailable automatic check cannot publish a submission. Gallery checks do not use fal image generation or spend your AI credits.
+
+Approved projects make the chosen preview image, public author name, title, description and print settings publicly accessible. Your account email, Google identifier and review history are not part of the public project. You separately choose whether to allow personal poster making with the artwork and whether to provide a printable PDF. An approved public PDF is generated from the checked gallery image and settings; we do not accept an arbitrary PDF attachment for publication. Browser-visible images may still be saved or captured regardless of the stated permissions.
+
+Pending submissions remain private and expire after 30 days without a decision. Rejected or unsuccessful-check images are scheduled for deletion after 7 days. Withdrawing a project disables new public access immediately; its server files are then deleted by the scheduled cleanup, normally within 5 minutes. Approved files otherwise remain until withdrawn or removed. Copies already downloaded or cached by other people cannot be recalled. This gallery retention is separate from the 24-hour retention of temporary cloud or AI tasks.
+
+Submission status, selected permissions, consent version and timestamps are stored with a pseudonymous account reference. Review and resolved-report records are retained for up to 90 days; closed submission records are removed after their server-file cleanup and a further 90 days. Open reports remain while being investigated. We use these records to manage publication, prevent abuse and address rights or privacy concerns. Contact support@postertiler.com for a data or removal request; include the project link rather than unnecessary personal files.
 
 ## Support email
 

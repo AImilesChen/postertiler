@@ -24,7 +24,7 @@ const descriptions = {
   'pdf-poster': 'Tile an existing PDF over A4, Letter or A3 sheets at 100% or a custom scale, retaining existing embedded fonts and vector content.',
   compare: 'Compare PosterTiler and Rasterbator.io with dated source statements, test conditions and clearly scoped browser and PDF observations.',
   home: 'Turn any image into a giant poster. Split pictures into printable A4 or Letter pages, download a free PDF, and assemble your poster at home.',
-  gallery: `Explore ${samples.length} example poster layouts. Choose artwork and carry its sheet settings into the free PosterTiler poster maker.`,
+  gallery: `Explore digital artwork, reviewed community projects and printable poster ideas. Share your project or take a print plan into the free PosterTiler poster maker.`,
   calculator: 'Calculate poster dimensions or sheet count for A4, Letter and A3. Account for printer margins, overlap and exact finished dimensions.',
   guides: 'Find practical poster printing guides for paper, margins, overlap, Fit and Fill, image quality and assembly. Download a calibration PDF and print checklist.',
   about: 'Meet PosterTiler, a free browser-based tool for turning one image into a large poster printed on ordinary paper.',

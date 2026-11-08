@@ -1,3 +1,4 @@
+import DownloadReady from './DownloadReady';
 import React, { useEffect, useRef, useState } from 'react';
 import { UploadSimple } from '@phosphor-icons/react';
 import { DEFAULTS, sizeText } from './geometry';
@@ -47,6 +48,7 @@ function usePdfPreview(file, pageIndex) {
   return { source: url, error, loading };
 }
 export default function PdfPoster() {
+  const [readyDialog,setReadyDialog]=useState(false);
   const [file, setFile] = useState(null), [info, setInfo] = useState(null), [settings, setSettings] = useState({ ...DEFAULTS });
   const [range, setRange] = useState('1'), [scaleMode, setScaleMode] = useState('actual'), [percent, setPercent] = useState(100), [previewIndex, setPreviewIndex] = useState(0);
   const [status, setStatus] = useState(''), [error, setError] = useState(''), [progress, setProgress] = useState(''), [pdf, setPdf] = useState(null);
@@ -74,7 +76,7 @@ export default function PdfPoster() {
     const token = { current: false }; cancel.current = token; setError(''); setPdf(null); setStatus('exporting'); setProgress('Preparing source PDF…');
     try {
       const result = await documentJob('tile-pdf', { file, settings, range, percent: scale }, token, (page, total) => setProgress(`Preparing sheet ${page} of ${total}…`));
-      setPdf(result.bytes); saveBlob(result.bytes, 'postertiler-tiled-pdf.pdf'); setStatus('ready'); trackEvent('pdf_ready', { tool: 'pdf_poster', paper: settings.paper, sheet_count: model.count });
+      setPdf(result.bytes); setReadyDialog(true); setStatus('ready'); trackEvent('pdf_ready', { tool: 'pdf_poster', paper: settings.paper, sheet_count: model.count });
     } catch (e) { setStatus(e.message === 'canceled' ? 'canceled' : 'failed'); if (e.message !== 'canceled') setError(e.message); trackEvent(e.message === 'canceled' ? 'pdf_canceled' : 'pdf_failed', { tool: 'pdf_poster' }); }
   };
   const auxiliary = async kind => {
@@ -84,7 +86,7 @@ export default function PdfPoster() {
       else { const { pdfAssembly } = await import('./engine/document-tools.ts'); saveBlob(await pdfAssembly(info, settings, range, scale), 'postertiler-pdf-assembly.pdf'); }
     } catch { setError('This guide could not be prepared. Check the settings and try again.'); }
   };
-  return <main><div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>PDF Poster Printer</h1><p>Split a PDF over ordinary sheets at its intended physical size. Keep existing text and vector paths in the exported PDF.</p></div>
+  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name="postertiler-tiled-pdf.pdf" onClose={()=>setReadyDialog(false)}/>}<div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>PDF Poster Printer</h1><p>Split a PDF over ordinary sheets at its intended physical size. Keep existing text and vector paths in the exported PDF.</p></div>
     <div className="document-tool" data-clarity-mask="true"><section className="document-controls" aria-label="PDF poster settings"><fieldset disabled={busy}>
       <h2>01 Choose a PDF</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={28} /><p>Drop a PDF here</p><B onClick={() => input.current.click()}>Choose PDF</B><input ref={input} hidden type="file" accept="application/pdf,.pdf" onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>Local processing. Up to 64 MB / 100 source pages / 100 output sheets. Source images above 24 MP, encrypted PDFs and optional layers are not supported.</small>
       {file && <p className="file-label">{file.name} · {info.pages.length} source page{info.pages.length === 1 ? '' : 's'}</p>}
@@ -104,7 +106,7 @@ export default function PdfPoster() {
       {model && <div className="download-links"><button onClick={() => auxiliary('calibration')}>Download calibration page</button><button onClick={() => auxiliary('assembly')}>Download assembly maps</button></div>}
     </fieldset>
     {busy && <Alert>{status === 'reading' ? 'Reading PDF pages…' : progress}<button onClick={() => { cancel.current.current = true; }}>Cancel</button></Alert>}
-    {error && <Alert tone="error">{error}</Alert>}{status === 'ready' && pdf && <Alert tone="success">Your tiled PDF is ready.<button onClick={() => saveBlob(pdf, 'postertiler-tiled-pdf.pdf')}>Download again</button></Alert>}{status === 'canceled' && <Alert>Preparation canceled. Your existing PDF and settings are still here.</Alert>}
+    {error && <Alert tone="error">{error}</Alert>}{status === 'ready' && pdf && <Alert tone="success">Your tiled PDF is ready.<button onClick={() => setReadyDialog(true)}>Download or share PDF</button></Alert>}{status === 'canceled' && <Alert>Preparation canceled. Your existing PDF and settings are still here.</Alert>}
     </section><div className="pdf-tool-preview">{model && <Field label="Preview source page"><select value={previewGroup?.sourceIndex ?? 0} onChange={e => setPreviewIndex(Number(e.target.value))}>{model.groups.map(group => <option key={group.sourceIndex} value={group.sourceIndex}>Source page {group.sourceIndex + 1}</option>)}</select></Field>}
       {(loading || previewError) && <Alert tone={previewError ? 'warning' : 'info'}>{previewError || 'Rendering the selected source page…'}</Alert>}
       <Preview source={source} settings={previewGroup?.settings || settings} empty={!source || !previewGroup} pixels={{ width: 0, height: 0 }} />

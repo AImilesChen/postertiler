@@ -1,3 +1,5 @@
+import DownloadReady from './DownloadReady';
+import {prepareGalleryDraft} from './gallery-client';
 import React, { useEffect, useRef, useState } from 'react';
 import { UploadSimple } from '@phosphor-icons/react';
 import { B, Field, NumberInput, Alert } from './ui';
@@ -11,6 +13,7 @@ import { imagePath, samples } from './data';
 import { creativeExample } from './example-links';
 
 export default function CreativePoster({ kind }) {
+  const [readyDialog,setReadyDialog]=useState(false);
   const life = kind === 'life-size';
   const [file, setFile] = useState(null), [original, setOriginal] = useState(null), [pixels, setPixels] = useState(null);
   const [crop, setCrop] = useState({ ...FULL_CROP }), [height, setHeight] = useState(1800), [unit, setUnit] = useState('cm');
@@ -72,12 +75,12 @@ export default function CreativePoster({ kind }) {
     try {
       const bytes = await makePoster(result.url, settings, (p, total) => setProgress(`Preparing page ${p} of ${total}`), active, true);
       if (active !== token.current) return;
-      setPdf(bytes); setStatus('ready'); saveBlob(bytes, `postertiler-${kind}.pdf`);
+      setPdf(bytes); setStatus('ready'); setReadyDialog(true);
     } catch (e) { if (active !== token.current) return; setStatus(active.current || e.message === 'canceled' ? 'canceled' : 'failed'); if (e.message !== 'canceled') setError(e.message); }
   };
   const auxiliary = async type => { try { await (type === 'assembly' ? assembly(settings) : calibration(settings)); } catch { setError('The guide could not be prepared. Check your settings.'); } };
   const shown = result?.url || (life ? null : original);
-  return <main><div className="page-intro"><small>FREE LOCAL TOOL</small><h1>{life ? 'Life Size Poster Maker' : 'Halftone Poster Maker'}</h1><p>{life ? 'Select the subject bounds, set its physical height and print it over ordinary sheets.' : 'Make dot screens, black-and-white dithering or a CMYK-style screen, then download a tiled poster PDF.'}</p></div>
+  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name="postertiler-art-poster.pdf" onClose={()=>setReadyDialog(false)} onSubmit={()=>prepareGalleryDraft(result.url,settings)}/>}<div className="page-intro"><small>FREE LOCAL TOOL</small><h1>{life ? 'Life Size Poster Maker' : 'Halftone Poster Maker'}</h1><p>{life ? 'Select the subject bounds, set its physical height and print it over ordinary sheets.' : 'Make dot screens, black-and-white dithering or a CMYK-style screen, then download a tiled poster PDF.'}</p></div>
     <div className="document-editor creative-editor" data-clarity-mask="true"><section className="document-controls"><fieldset disabled={busy}>
       <h2>01 Choose an image</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!busy) choose([...e.dataTransfer.files]); }}><UploadSimple size={28} /><p>JPG, PNG or WebP · processed in your browser</p><B secondary onClick={() => input.current.click()}>Choose Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) choose([...e.target.files]); e.target.value = ''; }} /></div><button className="underlined" onClick={example}>Try an example</button>
       {file && <p className="file-label">{file.name} · {pixels.width} × {pixels.height} px</p>}<small>Up to 32 MB, 24 megapixels and 100 output sheets. Capacity depends on your device.</small>
@@ -113,7 +116,7 @@ export default function CreativePoster({ kind }) {
     {busy && <Alert><span aria-live="polite">{status === 'reading' ? 'Reading image…' : progress}</span><button onClick={() => { token.current.current = true; if (status === 'reading') { ++readVersion.current; setStatus('canceled'); } }}>Cancel</button></Alert>}
     {status === 'canceled' && <Alert>Preparation canceled. Your image and settings are still here.</Alert>}
     {status === 'failed' && <B secondary onClick={result ? download : process}>Try again</B>}
-    {status === 'ready' && pdf && <Alert tone="success">Your PDF is ready.<button onClick={() => saveBlob(pdf, `postertiler-${kind}.pdf`)}>Download again</button></Alert>}
+    {status === 'ready' && pdf && <Alert tone="success">Your PDF is ready.<button onClick={() => setReadyDialog(true)}>Download or share PDF</button></Alert>}
     </section><div className="document-preview"><Preview source={shown} settings={settings} pixels={result || currentPixels || { width: 1, height: 1 }} empty={!shown} /><p className="print-hint">{life ? 'The selected subject bounds set the physical height. Image quality and print scaling still affect the final result.' : result ? 'Preview and PDF use the same processed artwork.' : 'Apply the effect to update the artwork used for export.'}</p></div></div>
     <section className="section prose"><h2>{life ? 'How to make a life-size poster' : 'How to print halftone artwork'}</h2><p>{life ? 'Choose a full-length image with the whole subject visible. Move the bounds to the head and feet, then enter the real height. Apply the selection, choose your printer paper and review the page count. The selected image is enlarged proportionally without stretching.' : 'Choose an image and effect. Larger dot spacing gives a coarser screen; dither produces black-and-white pixels. Apply your changes, choose a sheet layout and review the preview before downloading.'}</p><p>Print at Actual Size / 100%, using the same paper as the PDF. The calibration page and assembly guide are separate downloads.</p><a href="/guides/how-to-assemble-a-tiled-poster">Read the assembly guide</a> · <a href="/tools">Browse all tools</a></section>
   </main>;

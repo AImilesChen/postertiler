@@ -1,3 +1,5 @@
+import {handleGallery,maintainGallery} from './gallery/handler.mjs';
+import {galleryPages} from './gallery/pages.mjs';
 import { handleAuth } from './auth.mjs';
 import { handleBilling,handleAiBilling } from './billing/handler.mjs';
 import { handleCloud } from './cloud/handler.mjs';
@@ -10,6 +12,7 @@ import { aiReady } from './ai/contract.mjs';
 export default {
   async fetch(request, env) {
     try {
+      const galleryResponse=await handleGallery(request,env)||await galleryPages(request,env);if(galleryResponse)return galleryResponse;
       const response = await handleAi(request,env) || await handleAiBilling(request,env) || await handleCloud(request, env) || await handleBilling(request, env) || await handleAuth(request, env);
       if (response) return response;
       const asset = await env.ASSETS.fetch(request);
@@ -36,5 +39,5 @@ export default {
       else await consumeCloud({...batch,messages:[message]},env);
     }
   },
-  async scheduled(controller,env,ctx) { ctx.waitUntil(Promise.all([maintainCloud(env),maintainAi(env)])); },
+  async scheduled(controller,env,ctx) { ctx.waitUntil(Promise.all([maintainCloud(env),maintainAi(env),maintainGallery(env)])); },
 };

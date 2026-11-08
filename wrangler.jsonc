@@ -3,6 +3,7 @@
   "main": "server/worker.mjs",
   "compatibility_date": "2026-11-04",
   "workers_dev": false,
+  "keep_vars": true,
   "preview_urls": false,
   "dev": { "ip": "127.0.0.1", "port": 4181, "host": "127.0.0.1:4181" },
   "routes": [
@@ -10,26 +11,27 @@
   ],
   "assets": {
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/account", "/account/*", "/account.html", "/cloud", "/cloud/*", "/cloud.html"],
+    "run_worker_first": ["/api/*", "/gallery", "/gallery/*", "/sitemap-gallery.xml", "/robots.txt", "/account", "/account/*", "/account.html", "/cloud", "/cloud/*", "/cloud.html"],
     "directory": "./dist",
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
   },
   "vars": {
     "AUTH_ORIGIN": "https://postertiler.com",
+    "GALLERY_ENABLED": "true",
     "BILLING_TEST_ENABLED": "true",
     "CLOUD_TEST_ENABLED": "true",
     "AI_TEST_ENABLED": "true",
     "AI_DAILY_BUDGET_CENTS": "500",
     "GOOGLE_CLIENT_ID": "125964364837-is10t52c9eqj7vo0momtk0l99a497jp2.apps.googleusercontent.com"
   },
-  "d1_databases": [{
+  "d1_databases": [{"binding":"GALLERY_DB","database_name":"postertiler-gallery","database_id":"59cbd842-6ed9-4fd4-98a2-fa462ad070fe","migrations_dir":"server/gallery/migrations"},{
     "binding": "BILLING_TEST_DB",
     "database_name": "postertiler-billing-test",
     "database_id": "33e54a3a-9dba-44f0-90bf-e7ae222be221",
     "migrations_dir": "server/billing/migrations"
   }],
-  "r2_buckets": [{ "binding":"CLOUD_TEST_FILES", "bucket_name":"postertiler-cloud-test" }],
+  "r2_buckets": [{"binding":"GALLERY_FILES","bucket_name":"postertiler-gallery"},{ "binding":"CLOUD_TEST_FILES", "bucket_name":"postertiler-cloud-test" }],
   "queues": {
     "producers": [{ "binding":"CLOUD_TEST_QUEUE", "queue":"postertiler-cloud-test" }],
     "consumers": [{ "queue":"postertiler-cloud-test", "max_batch_size":1, "max_batch_timeout":1, "max_retries":3, "max_concurrency":1, "retry_delay":60 }]

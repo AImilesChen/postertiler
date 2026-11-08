@@ -8,7 +8,7 @@ import BillingTestPanel from './BillingTestPanel';
 import AccountGate from './AccountGate';
 import './account-workspace.css';
 const views={overview:['Overview','Your next poster starts here.'],tasks:['Cloud tasks','Follow progress, find downloads and manage your tasks.'],billing:['Credits & orders','One-time cloud credits and your payment history.'],settings:['Account settings','Your Google profile and this browser’s sign-in.']};
-const accountLinks=[['overview','/account','Overview',House],['tasks','/account/tasks','Cloud tasks',FilePdf],['billing','/account/billing','Credits & orders',Receipt],['ai','/account/ai','AI studio',CloudArrowUp],['settings','/account/settings','Account settings',UserCircle]];
+const accountLinks=[['overview','/account','Overview',House],['tasks','/account/tasks','Cloud tasks',FilePdf],['billing','/account/billing','Credits & orders',Receipt],['ai','/account/ai','AI studio',CloudArrowUp],['submissions','/account/submissions','My submissions',FilePdf],['settings','/account/settings','Account settings',UserCircle]];
 export default function AccountDashboard({view='overview'}) {return <AccountGate returnTo={accountLinks.find(([v])=>v===view)?.[1]||'/account'}><Dashboard view={view}/></AccountGate>;}
 function Dashboard({view}) {
  const auth=useAuth(),[notice,setNotice]=useState('');

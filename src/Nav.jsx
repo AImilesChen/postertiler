@@ -67,7 +67,7 @@ export default function Nav() {
               <div className="nav-user-summary"><span>Signed in with Google</span><strong>{auth.user.name || 'Your account'}</strong><p>{auth.user.email}</p></div>
               <div ref={menu} id="account-menu" role="menu" aria-label="Account menu" onKeyDown={keyboard}>
                 <a role="menuitem" href="/account"><UserCircle size={18} aria-hidden="true"/>My account</a>
-                <a role="menuitem" href="/account/tasks">Cloud tasks</a>
+                <a role="menuitem" href="/account/tasks">Cloud tasks</a><a role="menuitem" href="/account/submissions">My submissions</a>
                 <a role="menuitem" href="/account/billing">Credits & orders</a>
                 <button role="menuitem" disabled={auth.signingOut} onClick={logout}><SignOut size={18} aria-hidden="true"/>{auth.signingOut ? 'Signing out…' : 'Sign out'}</button>
               </div>

@@ -8,6 +8,7 @@ import { makePoster, saveBlob, calibration, assembly, loadImage } from './export
 import homepageCopy from './homepage-copy.json';
 import Editor from './Editor';
 import PosterCalculator from './PosterCalculator';
+import {GalleryHub,GalleryDetail,GalleryWorkspace} from './Gallery';
 import Homepage from './Homepage';
 import { sampleSettings } from './example-links';
 import ImageToPdf from './ImageToPdf';
@@ -37,9 +38,12 @@ function SampleCards({featured=false}){const [category,setCategory]=useState('Al
 function GuideLinks(){return <div className="guide-list">{guides.map((g,i)=><a key={g.slug} href={'/guides/'+g.slug}><span className="muted">0{i+1}</span><div><small>{g.category}</small><h3>{g.title}</h3><p>{g.intro}</p></div><ArrowRight size={22}/></a>)}</div>;}
 function PageIntro({eyebrow,title,children}){return <div className="page-intro"><small>{eyebrow}</small><h1>{title}</h1>{children&&<p>{children}</p>}</div>;}
 const policyRaw=import.meta.glob('./policies/published/*.md',{query:'?raw',import:'default',eager:true});
-function Markdown({text}){return <ReactMarkdown remarkPlugins={[remarkGfm]} components={{h1:()=>null}}>{text}</ReactMarkdown>;}
+function Markdown({text}){return <ReactMarkdown remarkPlugins={[remarkGfm]} components={{h1:()=>null,h2:({children})=><h2 id={String(children).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}>{children}</h2>}}>{text}</ReactMarkdown>;}
 function Policy({route}){return <main className="policy-layout"><PageIntro eyebrow="POSTERTILER" title={route.title}/><article className="prose"><Markdown text={policyRaw[`./policies/published/${route.id}.en.md`]||'## Review required\nFinal product facts are required before publication.'}/></article></main>;}
 function OtherPage({route}) {
+ if(route.kind==='gallery')return <GalleryHub/>;
+ if(route.kind==='gallery-private')return <GalleryWorkspace view={route.view}/>;
+ if(route.kind==='gallery-item')return <GalleryDetail id={route.itemId}/>;
  if(route.kind==='guides')return <GuidesHub/>;
  if(route.kind==='account')return <Account view={route.view}/>;
  if(route.kind==='ai')return <AiStudio/>;
@@ -66,9 +70,10 @@ export function App({pathname}={}) {
  const [browserPath,setBrowserPath]=useState(()=>typeof location==='undefined'?'/':location.pathname);
  useEffect(()=>{const read=()=>setBrowserPath(location.pathname);window.addEventListener('popstate',read);return()=>window.removeEventListener('popstate',read);},[]);
  const path=(pathname||browserPath).replace(/\/$/,'')||'/';
- const route=appRouteSpecs.find(r=>r.path===path);
+ const galleryMatch=path.match(/^\/gallery\/([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i);
+ const route=appRouteSpecs.find(r=>r.path===path)||(galleryMatch?{kind:'gallery-item',title:'Gallery project',itemId:galleryMatch[1]}:null);
  useEffect(()=>{
-  if(route?.kind!=='ai')document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;
+  if(!['ai','gallery-item'].includes(route?.kind))document.title=path==='/'?homepageCopy.seo.title:`${route?.title||'Page not found'} | PosterTiler`;
   if(!['ai','ai-upscaler','ai-generator','ai-editor'].includes(route?.kind))return;
   const page=AI_PUBLIC_PAGES[aiPublicTask(path)],url='https://postertiler.com'+path;
   const description=page?.description||'Your private PosterTiler AI image workspace, tasks and available downloads.';

@@ -1,0 +1,24 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {build} from 'esbuild';
+import miniflare from 'miniflare';
+import {createCanvas} from '@napi-rs/canvas';
+import {DEFAULTS} from '../src/engine/geometry.ts';
+import {sha256,GALLERY_VERSION} from '../server/gallery/contract.mjs';
+const {Miniflare,convertV4MiniflareOptions}=miniflare;
+test('real workerd D1/R2 and HTMLRewriter keep pending files private, publish crawlable detail, and revoke it on withdrawal',async t=>{
+ const template='<!doctype html><html><head><title>Gallery</title><meta name="description" content="Gallery"><meta name="robots" content="index,follow"><link rel="canonical" href="https://postertiler.com/gallery"><meta property="og:title"><meta property="og:url"><meta property="og:image"><meta property="og:description"><script type="application/ld+json">{}</script></head><body><div id="root"><main class="gr-page"><section class="gr-community">Empty</section></main></div></body></html>';
+ const entry=`import {createGalleryHandler,maintainGallery} from './server/gallery/handler.mjs';import {galleryPages} from './server/gallery/pages.mjs';const handler=createGalleryHandler({authenticate:async r=>r.headers.has('x-fixture-user')?{id:r.headers.get('x-fixture-user'),email:r.headers.get('x-fixture-user')+'@example.invalid'}:null,makeModerator:()=>({async prompt(){},async image(){}})});export default {async fetch(r,e){e.ASSETS={fetch:async()=>new Response(${JSON.stringify(template)},{headers:{'Content-Type':'text/html'}})};return await handler(r,e)||await galleryPages(r,e)||new Response('not found',{status:404});}};`;
+ const bundle=await build({stdin:{contents:entry,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser'});
+ const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-11-04',cf:false,d1Databases:['GALLERY_DB'],r2Buckets:['GALLERY_FILES'],bindings:{AUTH_ORIGIN:'https://postertiler.com',GALLERY_ENABLED:'true',GALLERY_ADMIN_EMAILS:'admin@example.invalid',SIGHTENGINE_API_USER:'fixture',SIGHTENGINE_API_SECRET:'fixture'},outboundService:()=>{throw new Error('No real external calls allowed in test');}}));t.after(()=>mf.dispose());
+ const db=await mf.getD1Database('GALLERY_DB');const schema=await readFile(new URL('../server/gallery/migrations/0001_gallery.sql',import.meta.url),'utf8');for(const sql of schema.split(';').filter(x=>x.trim()))await db.prepare(sql).run();
+ const canvas=createCanvas(16,24);canvas.getContext('2d').fillRect(0,0,16,24);const jpeg=canvas.toBuffer('image/jpeg'),form=new FormData();form.set('source',new Blob([jpeg],{type:'image/jpeg'}),'fixture.jpg');form.set('submission',JSON.stringify({request_id:crypto.randomUUID(),title:'Workerd <fixture>',author:'Anonymous',description:'A local runtime fixture, not a customer project.',category:'Art',kind:'artwork',allow_remix:true,allow_pdf:true,settings:DEFAULTS,consent:GALLERY_VERSION,rights:true,source_hash:await sha256(jpeg)}));
+ const request=(path,init={})=>mf.dispatchFetch('https://postertiler.com'+path,{...init,headers:{Origin:'https://postertiler.com',...init.headers}});
+ const upload=new Request('https://postertiler.com/api/gallery/submissions',{method:'POST',body:form});const created=await request('/api/gallery/submissions',{method:'POST',headers:{'x-fixture-user':'owner','Content-Type':upload.headers.get('Content-Type')},body:await upload.arrayBuffer()});assert.equal(created.status,201);const {item}=await created.json();assert.equal(item.status,'pending');assert.equal(item.allow_pdf,true);
+ assert.equal((await request('/gallery/'+item.id)).status,404);assert.equal((await request('/api/gallery/items/'+item.id+'/media/source')).status,404);
+ const approve=await request('/api/gallery/admin/submissions/'+item.id+'/approve',{method:'POST',headers:{'x-fixture-user':'admin','Content-Type':'application/json'},body:JSON.stringify({note:'Local runtime fixture review.',reviewed_rights:true})});assert.equal(approve.status,200);
+ const page=await request('/gallery/'+item.id),html=await page.text();assert.equal(page.status,200);assert.match(html,/<h1>Workerd &lt;fixture&gt;<\/h1>/);assert.ok(html.includes('gallery-bootstrap'));assert.ok(html.includes('/gallery/'+item.id));assert.ok(!html.includes('owner@example.invalid'));assert.ok((await(await request('/sitemap-gallery.xml')).text()).includes(item.id));
+ assert.equal((await request('/api/gallery/items/'+item.id+'/pdf')).status,200);
+ assert.equal((await request('/api/gallery/submissions/'+item.id+'/withdraw',{method:'POST',headers:{'x-fixture-user':'owner'}})).status,200);assert.equal((await request('/gallery/'+item.id)).status,404);assert.equal((await request('/api/gallery/items/'+item.id+'/pdf')).status,404);assert.ok(!(await(await request('/sitemap-gallery.xml')).text()).includes(item.id));
+});

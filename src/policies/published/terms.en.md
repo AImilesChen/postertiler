@@ -1,6 +1,6 @@
 # Terms of Use
 
-Effective date: 6 November 2026
+Effective date: 8 November 2026
 
 ## The service and operator
 
@@ -57,6 +57,18 @@ PDF support has documented limits. Flatten unsupported layers, forms and printab
 Printer margins, source quality, scaling, ink, paper and assembly affect the physical result. Use matching paper and Actual Size / 100% printing, and follow the calibration and assembly guidance. The service does not guarantee an identical result on every printer. These practical limitations do not remove rights you have for a defect under applicable law.
 
 Keep copies of files you download. Before sharing, check both content permissions and private information in the source and output. The tools do not provide content-rights clearance or PDF sanitization.
+
+## Voluntary gallery publication
+
+Gallery submission is optional and separate from local PDF download or device sharing. You must own the submitted material or have the permissions needed to publish it and grant the uses you select, including appropriate permission for identifiable people. Do not submit unlawful, sexual, graphic, hateful, infringing or privacy-invasive content. Safety checks and manual review do not verify ownership or guarantee that material is suitable for every purpose.
+
+You retain your rights in your submission. By submitting, you grant PosterTiler a non-exclusive permission to store, check and review it and, only after approval, publicly display the selected project material and details. The permission lasts while the project remains submitted or published, subject to the retention described in our Privacy Policy.
+
+Personal artwork reuse and public PDF download are separate, optional choices. If selected, you permit visitors to use the gallery artwork to make personal posters and/or download and print the provided PDF. These choices do not grant resale, redistribution, commercial-use or additional third-party rights. Leave both off for display-only publication. Visible images can still be copied or captured; the controls communicate permission and do not provide copy protection.
+
+The public printable copy uses the checked gallery JPEG and submitted print settings. It may have different image resolution or file size from a PDF generated locally from your original. Review image quality and print a test before using it. A contributor's print photo and dimensions are their submission, not an independent physical-print certification by PosterTiler.
+
+We may decline, remove or restrict projects that fail checks, lack required permissions or receive a substantiated complaint. You can withdraw your own project from My submissions, which stops new public access and schedules server-file deletion. Withdrawal cannot recall files already saved by others. Report concerns using the project report form or support@postertiler.com. Submitting does not guarantee approval, a publication date or compensation.
 
 ## Privacy
 

@@ -1,15 +1,16 @@
 # Cookie and Analytics Policy
 
-Effective date: 5 November 2026
+Effective date: 8 November 2026
 
 PosterTiler is operated by **mileschen**, an individual based in **Mainland China**. Contact **[support@postertiler.com](mailto:support@postertiler.com)** with privacy questions.
 
 ## Current browser storage
 
-The free tools process selected images and PDFs in your browser. Their source files and previews are not saved to persistent browser storage by the application. Files you download remain wherever you choose to save them.
+The free tools process selected images and PDFs in your browser. Ordinary source files and previews are not saved to persistent browser storage. Choosing to prepare a gallery submission can save a separate local draft as described below. Files you download remain wherever you choose to save them.
 
 | Storage | Identifier | Purpose | Lifetime | Provider |
 |---|---|---|---|---|
+| IndexedDB | `postertiler-gallery-draft` | Preserve a gallery draft you choose to prepare | Expires after 24 hours; discarded on next access, submission or explicit discard | PosterTiler |
 | localStorage | `postertiler-analytics-consent-v2` | Remember a choice covering the four optional analytics providers | 180 days after the latest choice, or until you clear it | PosterTiler |
 | HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-oauth` | Protect a Google sign-in attempt with state, nonce and PKCE | Up to 10 minutes; removed when the callback is handled | PosterTiler |
 | HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-session` | Hold the encrypted basic profile for the sign-in you requested | Up to 7 days, or until sign-out or browser deletion | PosterTiler |
@@ -46,3 +47,7 @@ Google Search Console and Bing Webmaster Tools check indexing and search perform
 Our tool events exclude source images, PDFs, original file names, email addresses, support messages and private download links. Clarity uses explicit masking for file-related page content. Preparing a PDF is not recorded as proof of successful physical printing.
 
 For more information and requests, read the [Privacy Policy](/privacy) or email support@postertiler.com.
+
+## Optional gallery drafts
+
+When you choose Submit to Gallery from a PDF result, the browser can save a prepared image and print settings in IndexedDB (`postertiler-gallery-draft`) to preserve the draft through sign-in. This is functional storage, separate from visitor analytics. It expires after 24 hours and is discarded when next accessed; submitting or choosing Discard local draft removes it. It is not uploaded until you confirm and submit the gallery form.

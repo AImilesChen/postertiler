@@ -1,3 +1,4 @@
+import DownloadReady from './DownloadReady';
 import React, { useEffect, useRef, useState } from 'react';
 import { UploadSimple, ArrowUp, ArrowDown, ArrowClockwise, X, ArrowRight } from '@phosphor-icons/react';
 import { B, Field, Alert } from './ui';
@@ -33,6 +34,7 @@ function SheetPreview({ item, settings }) {
   return <div className="document-preview"><div className="document-preview-heading"><strong>{item ? 'Selected page preview' : 'Your combined PDF'}</strong><span>{item && model && `${model.geometry.pw} × ${model.geometry.ph} mm`}</span></div><div className="sheet-preview-stage">{error ? <Alert tone="error">{error}</Alert> : item ? <canvas ref={canvas} aria-label="Selected image on its PDF page" role="img" /> : <div className="empty-preview"><UploadSimple size={44} weight="thin" /><h2>One image per page</h2><p>Add images, arrange them, then download one PDF.</p></div>}</div><p className="print-hint">Transparency prints on white. Image proportions are preserved.</p></div>;
 }
 export default function ImageToPdf() {
+  const [readyDialog,setReadyDialog]=useState(false);
   const [items, setItems] = useState([]), [selected, setSelected] = useState(null), [settings, setSettings] = useState(MERGE_DEFAULTS);
   const [status, setStatus] = useState(''), [error, setError] = useState(''), [progress, setProgress] = useState(''), [pdf, setPdf] = useState(null);
   const input = useRef(), itemsRef = useRef([]), readId = useRef(0), cancel = useRef({ current: false });
@@ -81,10 +83,10 @@ export default function ImageToPdf() {
     const token = { current: false }; cancel.current = token; setError(''); setPdf(null); setStatus('exporting'); setProgress('Preparing your images…');
     try {
       const result = await documentJob('merge-images', { items: items.map(({ file, rotation }) => ({ file, rotation })), settings }, token, (page, total) => setProgress(`Preparing PDF: ${page} of ${total} steps`));
-      setPdf(result.bytes); saveBlob(result.bytes, 'postertiler-images.pdf'); setStatus('ready'); trackEvent('pdf_ready', { tool: 'image_pdf', paper: settings.paper, sheet_count: items.length });
+      setPdf(result.bytes); setReadyDialog(true); setStatus('ready'); trackEvent('pdf_ready', { tool: 'image_pdf', paper: settings.paper, sheet_count: items.length });
     } catch (e) { setStatus(e.message === 'canceled' ? 'canceled' : 'failed'); if (e.message !== 'canceled') setError(e.message); trackEvent(e.message === 'canceled' ? 'pdf_canceled' : 'pdf_failed', { tool: 'image_pdf' }); }
   };
-  return <main><div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>Image to PDF</h1><p>Combine multiple images into one PDF. Arrange the pages, rotate each image and choose your paper.</p></div>
+  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name="postertiler-images.pdf" onClose={()=>setReadyDialog(false)}/>}<div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>Image to PDF</h1><p>Combine multiple images into one PDF. Arrange the pages, rotate each image and choose your paper.</p></div>
     <div className="document-tool" data-clarity-mask="true"><section className="document-controls" aria-label="Image to PDF settings"><fieldset disabled={busy}>
       <h2>01 Choose images</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (e.dataTransfer.files.length) read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={28} /><p>Drop JPG, PNG or WebP images here</p><B onClick={() => input.current.click()}>Choose Images</B><input ref={input} hidden type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => { read(Array.from(e.target.files)); e.target.value = ''; }} /></div>
       <small>Up to 20 images, 64 MB and 48 MP combined. Each image: up to 32 MB / 24 MP / 12,000 px per side. Device capacity can be lower.</small>
@@ -102,7 +104,7 @@ export default function ImageToPdf() {
       {layoutError && <Alert tone="error">{layoutError}</Alert>}<B className="wide" disabled={!items.length || !!layoutError} onClick={exportPdf}>Download Combined PDF</B><small>Free. No watermark. No sign-up. Files stay in your browser.</small>
     </fieldset>
     {busy && <Alert>{progress}<button onClick={() => { if (status === 'reading') { ++readId.current; setStatus('canceled'); } else cancel.current.current = true; }}>Cancel</button></Alert>}
-    {error && <Alert tone="error">{error}</Alert>}{status === 'ready' && pdf && <Alert tone="success">Your combined PDF is ready.<button onClick={() => saveBlob(pdf, 'postertiler-images.pdf')}>Download again</button></Alert>}{status === 'canceled' && <Alert>Preparation canceled. Your existing images and settings are still here.</Alert>}
+    {error && <Alert tone="error">{error}</Alert>}{status === 'ready' && pdf && <Alert tone="success">Your combined PDF is ready.<button onClick={() => setReadyDialog(true)}>Download or share PDF</button></Alert>}{status === 'canceled' && <Alert>Preparation canceled. Your existing images and settings are still here.</Alert>}
     </section><SheetPreview item={active} settings={settings} /></div>
     <section className="section prose"><h2>One image per page, or one image across pages?</h2><p>This tool combines separate images into a single document, with one image on each page. To enlarge one image over several sheets, use the <a href="/">poster maker</a>. To split an existing PDF at its physical size, use <a href="/tools/pdf-poster-printer">PDF Poster Printer <ArrowRight size={15} /></a>.</p><h2>Before printing</h2><p>Match paper and orientation to the PDF. Automatic orientation is chosen for each image after rotation. Fit preserves the full picture; Fill crops its edges. Your source files and EXIF metadata are not attached to the combined document.</p></section>
   </main>;

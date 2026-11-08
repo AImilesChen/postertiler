@@ -2,6 +2,8 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 import { ArrowLeft, ArrowRight, ArrowSquareOut, CaretDown, CaretUp, UploadSimple, X, ArrowCounterClockwise, LockSimple, Sparkle } from '@phosphor-icons/react';
 import { B, Field, NumberInput, Alert } from './ui';
 import Preview from './Preview';
+import DownloadReady from './DownloadReady';
+import {prepareGalleryDraft} from './gallery-client';
 import { DEFAULTS, geometry, sizeText, MM_PER_UNIT, sanitizeSettings } from './geometry';
 import { samples, imagePath } from './data';
 import { loadImage, inspectFile, makePoster, saveBlob, calibration, assembly } from './export';
@@ -19,6 +21,7 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const [pixels, setPixels] = useState({ width: 1043, height: 1508 });
   const [step, setStep] = useState(1), [settings, setSettings] = useState({ ...DEFAULTS, locked: !calculator });
   const [error, setError] = useState(''), [status, setStatus] = useState(''), [progress, setProgress] = useState('');
+  const [readyDialog,setReadyDialog]=useState(false);
   const [reset, setReset] = useState(false), [pdf, setPdf] = useState(null);
   const [treatment,setTreatment] = useState({...TREATMENT_DEFAULTS}),[adjustmentTab,setAdjustmentTab] = useState('basic');
   const [aiImage,setAiImage]=useState(null),[sourceIsAi,setSourceIsAi]=useState(false);
@@ -62,7 +65,7 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const cloudLink = <a href="/cloud" onClick={()=>{try{sessionStorage.setItem('postertiler-cloud-settings',JSON.stringify(settings));}catch{}}}>Try optional cloud processing</a>;
   const alternativeOrientation = g.pw > g.ph ? 'Portrait' : 'Landscape';
   const alternative = geometry({ ...settings, mode: 'exact', width: g.width, height: g.height, orientation: alternativeOrientation });
-  const invalidate = () => { cancel.current.current = true; cancel.current = { current: false }; setPdf(null); setStatus(''); setError(''); };
+  const invalidate = () => { cancel.current.current = true; cancel.current = { current: false }; setPdf(null); setReadyDialog(false); setStatus(''); setError(''); };
   const change = fn => { invalidate(); setSettings(fn); };
   const editImage = value => { invalidate();setTreatment(value); };
   const focusEditor = () => requestAnimationFrame(() => {
@@ -113,6 +116,11 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     try { if (query.has('settings')) setSettings(sanitizeSettings(JSON.parse(query.get('settings')))); } catch { setError('Those shared settings could not be read. The defaults are ready to use.'); }
+    const galleryId=query.get('gallery');
+    if(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(galleryId||'')){
+      const id=++readId.current;setStatus('reading');
+      (async()=>{let url;try{const response=await fetch('/api/gallery/items/'+galleryId,{cache:'no-store'});if(!response.ok)throw new Error();const {item}=await response.json();if(!item.allow_remix)throw new Error();const file=await fetch('/api/gallery/items/'+galleryId+'/media/source',{cache:'no-store'});if(!file.ok)throw new Error();const blob=await file.blob();await inspectFile(blob);url=URL.createObjectURL(blob);const image=await loadImage(url);if(id!==readId.current){URL.revokeObjectURL(url);return;}setImage(url,'Gallery artwork.jpg',image);sourceKind.current='user';setSettings({...sanitizeSettings(item.settings),imageRatio:image.naturalWidth/image.naturalHeight});setStep(3);setStatus('');}catch{if(url)URL.revokeObjectURL(url);if(id===readId.current){setError('This gallery artwork is no longer available for reuse. Choose another image.');setStatus('');}}})();
+    }
     const look=lookFromQuery(location.search);
     const sample = samples.find(s => s.id === query.get('sample')) || (look?samples.find(s=>s.id==='geometry'):null);
     if (sample && !calculator) chooseSample(sample,look?'adjustments':Math.min(5,Math.max(1,Number(query.get('step'))||3)),!query.has('settings'),look||'original');
@@ -136,7 +144,7 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
     try {
       const bytes = await makePoster(adjusted.url, settings, (p, total) => setProgress(total ? `Preparing page ${p} of ${total}` : 'Preparing the image…'), token, adjusted.edited||aiActive||sourceIsAi||sourceIsEffect);
       if (cancel.current !== token) return;
-      setPdf(bytes); saveBlob(bytes, 'postertiler-poster.pdf'); setStatus('ready'); trackEvent('pdf_ready', { paper: settings.paper, sheet_count: g.count });
+      setPdf(bytes); setReadyDialog(true); setStatus('ready'); trackEvent('pdf_ready', { paper: settings.paper, sheet_count: g.count });
     } catch (e) {
       if (cancel.current !== token) return;
       const canceled = token.current || e.message === 'canceled'; setStatus(canceled ? 'canceled' : 'failed');
@@ -191,11 +199,11 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
   const adjustmentFeedback = source && adjusted.edited && !adjusted.ready ? adjusted.phase==='failed' ? <Alert tone="error">{adjusted.error||'The image could not be updated.'}<div className="button-row"><button onClick={adjusted.retry}>Retry preview</button><button onClick={()=>editImage({...TREATMENT_DEFAULTS})}>Restore original image</button></div></Alert> : adjusted.phase==='canceled' ? <Alert>Image update canceled. Your source is still here.<button onClick={adjusted.retry}>Retry preview</button></Alert> : <Alert>Updating your image…<button onClick={adjusted.cancel}>Cancel image update</button></Alert> : null;
   const feedback = <>{adjustmentFeedback}{error && <Alert tone="error">{error}</Alert>}{g.error && (calculator || step !== 1) && <Alert tone="error">{g.error}{g.count>100&&g.count<=400&&!geometry(settings,400).error&&<p>Cloud PDF supports up to 400 sheets for supported files. {cloudLink} · <a href="/pricing">Check file limits and prices</a></p>}</Alert>}{status === 'reading' && <Alert>Reading your image…</Alert>}
     {busy && <Alert><span aria-live="polite">{progress}</span><button onClick={() => { cancel.current.current = true; }}>Cancel</button></Alert>}
-    {status === 'ready' && pdf && <Alert tone="success"><strong>Your PDF is ready</strong><p>Print at Actual Size / 100%, then follow the assembly guide.</p><button onClick={() => saveBlob(pdf, 'postertiler-poster.pdf')}>Download again</button></Alert>}
+    {status === 'ready' && pdf && <Alert tone="success"><strong>Your PDF is ready</strong><p>Print at Actual Size / 100%, then follow the assembly guide.</p><button onClick={() => setReadyDialog(true)}>Download or share PDF</button></Alert>}
     {status === 'canceled' && <Alert>PDF preparation canceled. Your image and settings are still here.<button onClick={download}>Prepare PDF again</button></Alert>}
     {status === 'failed' && <Alert tone="error">The PDF could not be prepared.<button onClick={download}>Try again</button>{cloudLink}</Alert>}
   </>;
-  return <><div className="editor" id="poster-editor" data-clarity-mask="true"><aside className="settings-panel">{calculator ? <div className="calc-controls">{paperControls}{sizeControls}{printControls}{!g.error&&!alternative.error&&<Alert>For the same exact {sizeText(g,settings.unit)} canvas, {alternativeOrientation.toLowerCase()} uses {alternative.count} sheets with the same margins, overlap and label setting.{alternative.count<g.count&&<button onClick={()=>change(s=>({...s,mode:'exact',width:g.width,height:g.height,orientation:alternativeOrientation}))}>Use {alternativeOrientation.toLowerCase()} and save {g.count-alternative.count} sheets</button>}</Alert>}{feedback}<B disabled={!!g.error} onClick={() => { location.href = `/?settings=${encodeURIComponent(JSON.stringify(settings))}#poster-editor`; }}>Create Poster with These Settings <ArrowRight {...icon} /></B></div> : ['Upload', 'Paper Settings', 'Poster Size', 'Print Options', 'Download PDF'].map((title, i) => {
+  return <>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name={`postertiler-${settings.paper.toLowerCase().replaceAll(' ','-')}-${g.count}-pages.pdf`} summary={`${sizeText(g,settings.unit)} · ${g.count} ${settings.paper} sheets`} onClose={()=>setReadyDialog(false)} onSubmit={()=>prepareGalleryDraft(adjusted.url,settings)}/>}<div className="editor" id="poster-editor" data-clarity-mask="true"><aside className="settings-panel">{calculator ? <div className="calc-controls">{paperControls}{sizeControls}{printControls}{!g.error&&!alternative.error&&<Alert>For the same exact {sizeText(g,settings.unit)} canvas, {alternativeOrientation.toLowerCase()} uses {alternative.count} sheets with the same margins, overlap and label setting.{alternative.count<g.count&&<button onClick={()=>change(s=>({...s,mode:'exact',width:g.width,height:g.height,orientation:alternativeOrientation}))}>Use {alternativeOrientation.toLowerCase()} and save {g.count-alternative.count} sheets</button>}</Alert>}{feedback}<B disabled={!!g.error} onClick={() => { location.href = `/?settings=${encodeURIComponent(JSON.stringify(settings))}#poster-editor`; }}>Create Poster with These Settings <ArrowRight {...icon} /></B></div> : ['Upload', 'Paper Settings', 'Poster Size', 'Print Options', 'Download PDF'].map((title, i) => {
     const n = i + 1;
     return <React.Fragment key={title}><section className={`step ${step === n ? 'active' : ''}`}><button className="step-heading" aria-expanded={step === n} aria-controls={step === n ? `step-${n}` : undefined} disabled={busy} onClick={() => {
       if (n > 1 && !source) { setError('Choose an image to continue.'); setStep(1); } else { setStep(n); setError(''); }
