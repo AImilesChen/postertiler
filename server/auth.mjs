@@ -1,3 +1,4 @@
+import {recordProfile,isOperator} from './operations/core.mjs';
 import * as oauth from 'oauth4webapi';
 import { EncryptJWT, jwtDecrypt, base64url } from 'jose';
 
@@ -99,7 +100,8 @@ export function createAuthHandler(transport) {
     if (is('session')) {
       const session = config.available ? await openCookie(config, 'session', readCookie(request, cookieName(config, 'session'))) : null;
       const user = session?.user;
-      return json({ available: config.available, user: user && typeof user.id === 'string' && typeof user.email === 'string' ? user : null });
+      if(user?.id)try{await recordProfile(env,user);}catch{/* The encrypted login remains valid. */}
+      return json({ available: config.available, user: user && typeof user.id === 'string' && typeof user.email === 'string' ? user : null, admin: isOperator(env,user) });
     }
     if (is('signout')) {
       if (request.headers.get('Origin') !== config.origin) return json({ error: 'invalid_origin' }, 403);
@@ -129,6 +131,7 @@ export function createAuthHandler(transport) {
     }
     try {
       const user = await completeGoogle(config, env, url, flow, transport);
+      try{await recordProfile(env,user,true);}catch{/* Login remains available if operations storage is unavailable. */}
       const session = await sealCookie(config, 'session', { user }, SESSION_SECONDS);
       return redirect(config, safeReturnTo(flow.returnTo), [clearFlow, cookie(config, 'session', session, SESSION_SECONDS)]);
     } catch {
@@ -143,6 +146,6 @@ export const handleAuth = createAuthHandler();
 export function safeReturnTo(value) {
   if(typeof value==='string'&&/^\/account\/ai\?billing_order=[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))return value;
   if(typeof value==='string'&&/^\/gallery\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))return value;
-  const paths=['/account/submissions','/account/submissions/new','/account/gallery-review','/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor','/account/ai','/account/ai?task=upscale','/account/ai?task=generate','/account/ai?task=edit','/account/ai?billing_canceled=1','/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
+  const paths=['/admin','/admin/gallery','/admin/feedback','/admin/users','/admin/orders','/admin/refunds','/admin/analytics','/admin/tasks','/admin/logs','/admin/settings','/account/feedback','/account/refunds','/account/submissions','/account/submissions/new','/account/gallery-review','/tools/ai-image-upscaler','/tools/ai-image-generator','/tools/ai-image-editor','/account/ai','/account/ai?task=upscale','/account/ai?task=generate','/account/ai?task=edit','/account/ai?billing_canceled=1','/account','/account/tasks','/account/billing','/account/settings','/cloud','/account/billing?plan=single','/account/billing?plan=pack5'];
   return paths.includes(value)?value:'/account';
 }

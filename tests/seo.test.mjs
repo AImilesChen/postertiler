@@ -5,8 +5,8 @@ import { routeSpecs, appRouteSpecs } from '../src/data.js';
 const domain = 'https://postertiler.com';
 const release = process.env.POSTERTILER_TEST_RELEASE === 'true';
 const htmlPath = pathname => `dist${pathname === '/' ? '/index' : pathname}.html`;
-test('28 released routes include public Pricing with unique metadata and real prerendered content', async () => {
-  assert.equal(routeSpecs.length, 28); const titles = new Set(), descriptions = new Set();
+test('29 released routes include public Pricing with unique metadata and real prerendered content', async () => {
+  assert.equal(routeSpecs.length, 29); const titles = new Set(), descriptions = new Set();
   for (const route of routeSpecs) {
     const html = await readFile(htmlPath(route.path), 'utf8');
     const title = html.match(/<title>(.*?)<\/title>/s)?.[1], description = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
@@ -20,14 +20,14 @@ test('28 released routes include public Pricing with unique metadata and real pr
       assert.ok(appRouteSpecs.some(r => r.path === target), `${route.path} links to unavailable ${target}`);
     }
   }
-  assert.equal(titles.size, 28); assert.equal(descriptions.size, 28);
+  assert.equal(titles.size, 29); assert.equal(descriptions.size, 29);
   await access('dist/assets/brand/og-image.png');
 });
 test('Sitemap contains only public final-domain routes and robots matches the expected build mode', async () => {
   const sitemap = await readFile('dist/sitemap.xml', 'utf8'), robots = await readFile('dist/robots.txt', 'utf8');
-  assert.equal((sitemap.match(/<loc>/g) || []).length, 28);
+  assert.equal((sitemap.match(/<loc>/g) || []).length, 29);
   assert.ok(sitemap.includes('https://postertiler.com/pricing'));
-  assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|_design/.test(sitemap));
+  assert.ok(!/localhost|127\.0\.0\.1|\/cloud|\/account|\/admin|_design/.test(sitemap));
   assert.ok(robots.includes(release?'Allow: /':'Disallow: /'));
   if(release)assert.ok(robots.includes('Sitemap: '+domain+'/sitemap.xml'));
   assert.ok((await readFile('dist/404.html', 'utf8')).includes('This page is not here'));

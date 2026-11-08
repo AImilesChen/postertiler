@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ status: 'loading', user: null, available: false });
+  const [state, setState] = useState({ status: 'loading', user: null, available: false, admin:false });
   const [signingOut, setSigningOut] = useState(false);
   const pending = useRef(null), epoch = useRef(0), channel = useRef(null), alive = useRef(true), lastCheck = useRef(0);
   const refresh = useCallback(() => {
@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
         if (!response.ok) throw new Error();
         const result = await response.json();
         if (typeof result.available !== 'boolean' || !(result.user === null || (typeof result.user?.id === 'string' && typeof result.user?.email === 'string'))) throw new Error();
-        if (alive.current && version === epoch.current) setState({ status: 'ready', user: result.user, available: result.available });
+        if (alive.current && version === epoch.current) setState({ status: 'ready', user: result.user, available: result.available, admin:result.admin===true });
       } catch {
         if (alive.current && version === epoch.current) setState(current => ({ ...current, status: 'error' }));
       } finally {
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       const response = await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(10000) });
       if (!response.ok) throw new Error('Sign-out failed');
       epoch.current += 1; pending.current?.controller.abort(); pending.current = null;
-      if (alive.current) setState(current => ({ ...current, status: 'ready', user: null }));
+      if (alive.current) setState(current => ({ ...current, status: 'ready', user: null, admin:false }));
       channel.current?.postMessage({ type: 'session-changed' });
     } finally { if (alive.current) setSigningOut(false); }
   }, []);

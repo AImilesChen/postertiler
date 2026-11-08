@@ -30,6 +30,7 @@ const descriptions = {
   about: 'Meet PosterTiler, a free browser-based tool for turning one image into a large poster printed on ordinary paper.',
   privacy: 'Read how PosterTiler handles local image processing, website delivery, optional analytics and privacy requests.',
   terms: 'Terms for using the free PosterTiler image tiling tool, including image rights, local processing and printing conditions.',
+  feedback: 'Send PosterTiler a suggestion, report a tool problem or share printing feedback. Optional screenshots and private account updates.',
   contact: 'Contact information and the details to include when asking for help with a PosterTiler print.',
   cookies: 'Understand optional analytics and local cookie preferences in PosterTiler. Rejecting analytics does not affect free PDF export.',
 };

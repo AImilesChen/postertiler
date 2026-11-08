@@ -43,7 +43,7 @@ function provider(getFlow, overrides = {}, signingKey = keys.privateKey) {
 test('missing server secrets leave sign-in unavailable without exposing configuration', async () => {
   const handler = createAuthHandler();
   const response = await handler(req('/api/auth/session'), {});
-  assert.deepEqual(await response.json(), { available: false, user: null });
+  assert.deepEqual(await response.json(), { available: false, user: null, admin:false });
   assert.match(response.headers.get('Cache-Control'), /no-store/);
   assert.equal((await handler(req('/api/auth/google'), {})).headers.get('Location'), origin + '/account?error=unavailable');
 });
@@ -68,7 +68,7 @@ test('valid signed Google result produces an encrypted session; replay cannot mi
   const session = cookies.find(c => c.startsWith('__Host-postertiler-session='));
   assert.match(session, new RegExp(`Max-Age=${SESSION_SECONDS}`)); assert.ok(!session.includes(fixtureUser.email));
   const current = await handler(req('/api/auth/session', session.split(';')[0]), env);
-  assert.deepEqual(await current.json(), { available: true, user: fixtureUser });
+  assert.deepEqual(await current.json(), { available: true, user: fixtureUser, admin:false });
   assert.match(current.headers.get('X-Robots-Tag'), /noindex/);
   assert.ok(!session.includes('access_token'));
   const replay = await handler(req(callback, flow.cookie), env);

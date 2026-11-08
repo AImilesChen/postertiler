@@ -10,6 +10,7 @@ export default function AccountGate({children,returnTo='/account',cloud=false}) 
   function updateDestination(){
   const query=new URLSearchParams(location.search);setNotice(errors[query.get('error')]||'');
   setDestination(returnTo);
+  if(location.pathname==='/account'&&/^\/admin(?:\/(?:gallery|feedback|users|orders|refunds|analytics|tasks|logs|settings))?$/.test(query.get('return_to')||''))setDestination(query.get('return_to'));
   if(returnTo==='/account/billing'&&['single','pack5'].includes(query.get('plan')))setDestination(returnTo+'?plan='+query.get('plan'));
   if(location.pathname==='/account'&&location.hash==='#cloud-processing'){setDestination('/cloud');if(auth.user)location.replace('/cloud');}
   }

@@ -10,7 +10,7 @@ function harness(env = all, address = {}) {
   const location = { pathname: '/', hostname: 'postertiler.com', search: '', hash: '', reload: () => sent.push('reload'), ...address };
   const window = { addEventListener: (name, fn) => { listeners[name] = fn; } };
   const context = vm.createContext({ document, location, window, routeSpecs: [{ path: '/' }, { path: '/gallery' }, {path:'/tools/ai-image-upscaler'},{path:'/tools/ai-image-generator'},{path:'/tools/ai-image-editor'},{path:'/tools/dithering-tool'}], URL, Date, Set, Map, localStorage: { getItem: k => values.get(k), setItem: (k, v) => values.set(k, v) } });
-  const transformed = source.replace("import { routeSpecs } from './data';", '').replace(/import\.meta\.env\.([A-Z0-9_]+)/g, (_, key) => JSON.stringify(env[key] || '')).replaceAll('export ', '');
+  const transformed = source.replace("import {setSiteMetrics,recordSiteMetric} from './site-metrics';",'const setSiteMetrics=()=>{},recordSiteMetric=()=>{};').replace("import { routeSpecs } from './data';", '').replace(/import\.meta\.env\.([A-Z0-9_]+)/g, (_, key) => JSON.stringify(env[key] || '')).replaceAll('export ', '');
   vm.runInContext(transformed + '\nglobalThis.api={applyConsent,initializeAnalytics,trackEvent,readConsent,CONSENT_KEY};', context);
   return { api: context.api, window, document, location, loaded, sent, values, listeners, removed };
 }

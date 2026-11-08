@@ -1,0 +1,19 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {build} from 'esbuild';
+import miniflare from 'miniflare';
+import {OPS_CONSENT} from '../src/operations-contract.js';
+const {Miniflare,convertV4MiniflareOptions}=miniflare;
+test('operations runs on workerd D1 with private feedback, atomic replies, signed measurement and protected admin HTML',async t=>{
+ const entry=`import {createOperationsHandler} from './server/operations/handler.mjs';const h=createOperationsHandler({authenticate:async r=>r.headers.has('x-fixture-user')?{id:r.headers.get('x-fixture-user'),email:r.headers.get('x-fixture-user')+'@example.invalid'}:null});export default {async fetch(r,e,c){e.ASSETS={fetch:async()=>new Response('<h1>Private management</h1>')};return await h(r,e,c)||new Response('not found',{status:404})}};`;
+ const bundle=await build({stdin:{contents:entry,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser'});
+ const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-11-04',cf:false,d1Databases:['GALLERY_DB'],r2Buckets:['GALLERY_FILES'],bindings:{AUTH_ORIGIN:'https://postertiler.com',AUTH_COOKIE_KEY:'local-fixture-key-not-a-production-secret',GALLERY_ADMIN_EMAILS:'admin@example.invalid'},outboundService:()=>{throw new Error('No external calls in runtime test');}}));t.after(()=>mf.dispose());
+ const db=await mf.getD1Database('GALLERY_DB');for(const file of ['0001_gallery.sql','0002_operations.sql'])for(const sql of (await readFile(new URL('../server/gallery/migrations/'+file,import.meta.url),'utf8')).replace(/^--.*$/gm,'').split(';').filter(s=>s.trim()))await db.prepare(sql).run();
+ const request=(path,method='GET',data,user=null,cookie=null)=>mf.dispatchFetch('https://postertiler.com'+path,{method,redirect:'manual',headers:{Origin:'https://postertiler.com',...(data?{'Content-Type':'application/json'}:{}),...(user?{'x-fixture-user':user}:{}),...(cookie?{Cookie:cookie}:{})},...(data?{body:JSON.stringify(data)}:{})});
+ assert.equal((await request('/admin.html')).status,303);assert.equal((await request('/admin','GET',null,'member')).status,403);assert.equal((await request('/admin','GET',null,'admin')).status,200);
+ const data={request_id:crypto.randomUUID(),category:'bug',area:'poster',message:'Local runtime acceptance fixture.',consent:true,wants_reply:false};const r=await request('/api/ops/feedback','POST',data,'member');assert.equal(r.status,201);const {id}=await r.json();assert.equal((await request('/api/ops/feedback','POST',data,'member')).status,201);assert.equal((await db.prepare('SELECT COUNT(*) n FROM ops_feedback').first()).n,1);
+ const change={revision:0,status:'resolved',priority:'normal',internal_note:'private runtime note',response:'Public runtime reply',archived:false};assert.equal((await request('/api/admin/feedback/'+id,'POST',change,'admin')).status,200);assert.equal((await request('/api/admin/feedback/'+id,'POST',change,'admin')).status,409);
+ const own=await(await request('/api/ops/feedback','GET',null,'member')).json();assert.equal(own.items[0].response,change.response);assert.ok(!JSON.stringify(own).includes(change.internal_note));assert.equal((await db.prepare('SELECT COUNT(*) n FROM ops_audit').first()).n,1);
+ const metric={id:crypto.randomUUID(),session:crypto.randomUUID(),consent:OPS_CONSENT,event:'page_view',path:'/',source:'direct',seconds:0};const m=await request('/api/ops/metrics','POST',metric);assert.equal(m.status,200);const cookie=m.headers.get('Set-Cookie').split(';')[0];assert.match(cookie,/__Host-postertiler-metrics=/);assert.equal((await request('/api/ops/metrics','POST',metric,null,cookie)).status,200);assert.equal((await db.prepare('SELECT SUM(page_views) n FROM ops_visits').first()).n,1);
+});

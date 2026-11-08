@@ -1,3 +1,4 @@
+import {FeedbackTrigger} from './Feedback';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ArrowSquareOut, CaretDown, CaretUp, UploadSimple, X, ArrowCounterClockwise, LockSimple, Sparkle } from '@phosphor-icons/react';
 import { B, Field, NumberInput, Alert } from './ui';
@@ -197,7 +198,7 @@ export default forwardRef(function Editor({ calculator = false, homepage = false
     <Alert>Print at Actual Size / 100%. Turn off Fit to page.</Alert>
   </>;
   const adjustmentFeedback = source && adjusted.edited && !adjusted.ready ? adjusted.phase==='failed' ? <Alert tone="error">{adjusted.error||'The image could not be updated.'}<div className="button-row"><button onClick={adjusted.retry}>Retry preview</button><button onClick={()=>editImage({...TREATMENT_DEFAULTS})}>Restore original image</button></div></Alert> : adjusted.phase==='canceled' ? <Alert>Image update canceled. Your source is still here.<button onClick={adjusted.retry}>Retry preview</button></Alert> : <Alert>Updating your image…<button onClick={adjusted.cancel}>Cancel image update</button></Alert> : null;
-  const feedback = <>{adjustmentFeedback}{error && <Alert tone="error">{error}</Alert>}{g.error && (calculator || step !== 1) && <Alert tone="error">{g.error}{g.count>100&&g.count<=400&&!geometry(settings,400).error&&<p>Cloud PDF supports up to 400 sheets for supported files. {cloudLink} · <a href="/pricing">Check file limits and prices</a></p>}</Alert>}{status === 'reading' && <Alert>Reading your image…</Alert>}
+  const feedback = <>{adjustmentFeedback}{error && <Alert tone="error">{error}<FeedbackTrigger label="Send feedback" area="poster"/></Alert>}{g.error && (calculator || step !== 1) && <Alert tone="error">{g.error}{g.count>100&&g.count<=400&&!geometry(settings,400).error&&<p>Cloud PDF supports up to 400 sheets for supported files. {cloudLink} · <a href="/pricing">Check file limits and prices</a></p>}</Alert>}{status === 'reading' && <Alert>Reading your image…</Alert>}
     {busy && <Alert><span aria-live="polite">{progress}</span><button onClick={() => { cancel.current.current = true; }}>Cancel</button></Alert>}
     {status === 'ready' && pdf && <Alert tone="success"><strong>Your PDF is ready</strong><p>Print at Actual Size / 100%, then follow the assembly guide.</p><button onClick={() => setReadyDialog(true)}>Download or share PDF</button></Alert>}
     {status === 'canceled' && <Alert>PDF preparation canceled. Your image and settings are still here.<button onClick={download}>Prepare PDF again</button></Alert>}

@@ -6,12 +6,14 @@ PosterTiler is operated by **mileschen**, an individual based in **Mainland Chin
 
 ## Current browser storage
 
+Optional first-party analytics also use `__Host-postertiler-metrics`, a signed HttpOnly cookie lasting up to 30 days, and `postertiler-metric-session` in sessionStorage, refreshed during consented use with a 30-minute session timeout. These identify consenting browsers/sessions for approximate daily traffic and active-time reports, not verified people. They are not used for advertising. Rejecting analytics clears this cookie/session identifier and stops reporting. The consent preference is now `postertiler-analytics-consent-v3`; older choices do not opt you into the added measurement.
+
 The free tools process selected images and PDFs in your browser. Ordinary source files and previews are not saved to persistent browser storage. Choosing to prepare a gallery submission can save a separate local draft as described below. Files you download remain wherever you choose to save them.
 
 | Storage | Identifier | Purpose | Lifetime | Provider |
 |---|---|---|---|---|
 | IndexedDB | `postertiler-gallery-draft` | Preserve a gallery draft you choose to prepare | Expires after 24 hours; discarded on next access, submission or explicit discard | PosterTiler |
-| localStorage | `postertiler-analytics-consent-v2` | Remember a choice covering the four optional analytics providers | 180 days after the latest choice, or until you clear it | PosterTiler |
+| localStorage | `postertiler-analytics-consent-v3` | Remember a choice covering first-party measurement and the four optional analytics providers | 180 days after the latest choice, or until you clear it | PosterTiler |
 | HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-oauth` | Protect a Google sign-in attempt with state, nonce and PKCE | Up to 10 minutes; removed when the callback is handled | PosterTiler |
 | HttpOnly, Secure, SameSite=Lax cookie | `__Host-postertiler-session` | Hold the encrypted basic profile for the sign-in you requested | Up to 7 days, or until sign-out or browser deletion | PosterTiler |
 

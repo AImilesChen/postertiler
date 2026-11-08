@@ -6,6 +6,17 @@ Effective date: 8 November 2026
 
 PosterTiler is operated by **mileschen**, an individual based in **Mainland China**, trading as PosterTiler. For support, privacy questions and requests about your information, contact **[support@postertiler.com](mailto:support@postertiler.com)**.
 
+## Feedback, account records and site management
+
+When you choose Feedback, we store your message, category, selected tool, sanitized page path and coarse browser/device category. A reply email and a screenshot are optional. Screenshots are converted to JPEG and stored privately; your source image, PDF and AI prompt are not attached automatically. Signed-in feedback is linked to your account so you can see the response. Internal operator notes are not shown to other users. Closed/resolved feedback and its screenshot are normally removed after one year; unresolved support or payment matters may need to be retained until handled. Contact support for privacy requests.
+
+We keep a private account record after successful Google sign-in or observation of an existing verified session: a pseudonymous identity key, email, display name, first recorded date and recent login/seen dates. Historical registration dates were not previously recorded and are not reconstructed. Refund requests are linked to orders you own; a request or approval does not itself issue a refund. Verified payment data and request-review status are shown separately.
+
+Only the designated operator can access management records, moderation queues and action logs. Management pages are excluded from search indexing and analytics tags. Optional email delivery, when configured, sends operator notifications and requested support replies through the configured email service; saving feedback does not depend on email delivery.
+
+With analytics consent, our own site measurement records an anonymous browser identifier, session identifier, public page path, country-level network location, coarse source channel, tool events and foreground active time. It does not store raw IP addresses, source files, screenshots, message text or prompts in analytics. Traffic reports are estimates and exclude the operator and recognizable bots. Measurement stops when the page is hidden or idle; reports use UTC. Visit/event records are retained for up to 90 days, heartbeat deduplication records for seven days, and management audit records for one year. See the Cookie Policy for browser storage and withdrawal.
+
+
 ## Images, PDFs and local processing
 
 The free tools process your selected images and PDFs in your browser. They use file contents, dimensions, orientation, page information and your settings to prepare previews and downloadable files. The tools do not upload these files to PosterTiler, Cloudflare, Google or an AI service. No account is required.
@@ -32,7 +43,7 @@ Test checkout sends Stripe the plan, amount and pseudonymous order/account refer
 
 You can choose to sign in with Google. We request only your basic identity information: Google's account identifier, verified email address and display name. Google authenticates you under its own [Privacy Policy](https://policies.google.com/privacy). We do not receive your Google password or request access to Gmail, Drive, contacts or calendars.
 
-Our Cloudflare Worker uses this information to verify your identity and maintain your requested sign-in. The current version does not create a permanent account database or save Google access or refresh tokens. Your basic profile is held in an encrypted, HttpOnly first-party session cookie for up to 7 days, then expires. Signing out removes the session cookie on that browser. Other browsers have separate sessions. A temporary security cookie for an authentication attempt expires after 10 minutes and is removed when the callback is handled.
+Our Cloudflare Worker uses this information to verify your identity and maintain your requested sign-in. We maintain the private account record described above; we do not save Google access or refresh tokens. Your basic profile is held in an encrypted, HttpOnly first-party session cookie for up to 7 days, then expires. Signing out removes the session cookie on that browser. Other browsers have separate sessions. A temporary security cookie for an authentication attempt expires after 10 minutes and is removed when the callback is handled.
 
 Signing in does not upload your poster files or enable analytics. You can use all free tools without signing in. Clearing the session cookie removes the profile stored by this release on that browser; downloaded files, support correspondence, Google's own records and hosting/security records are separate. See the [Cookie Policy](/cookies). The legal basis, where applicable, is providing the sign-in you request, together with our legitimate interests in authenticating securely and preventing misuse.
 
@@ -40,7 +51,7 @@ Signing in does not upload your poster files or enable analytics. You can use al
 
 Cloudflare delivers and protects the website. Website requests involve technical information such as IP address, request time, browser information and security events. Cloudflare processes this information to deliver pages and protect its infrastructure and our website.
 
-The poster application does not operate an additional visitor database or custom application-log store. Optional cloud files and pseudonymous task/payment records are described above. Hosting and security records are handled by Cloudflare under its service settings and [Privacy Policy](https://www.cloudflare.com/privacypolicy/). These infrastructure records are separate from your locally processed poster files. We do not sell personal information or use this release for behavioral advertising.
+Our consented site measurements and private management records are described above, alongside optional cloud files and pseudonymous task/payment records. Hosting and security records are handled by Cloudflare under its service settings and [Privacy Policy](https://www.cloudflare.com/privacypolicy/). These infrastructure records are separate from your locally processed poster files. We do not sell personal information or use this release for behavioral advertising.
 
 ## Browser storage and analytics
 
@@ -54,7 +65,7 @@ Ahrefs and Shipsolo/Plausible provide aggregated traffic and event reports. Our 
 
 Tags that independently read page addresses and referrers are omitted on parameterized addresses and contexts we cannot safely classify. All visitor tags are excluded from account, API and unknown/private paths. Tool events do not include images, PDFs, original file names, Google identity information, support messages, private object URLs or download tokens. The Clarity masking and these exclusions are separate from your ability to use the local tools.
 
-If you make a choice in Cookie settings, the application saves that preference in localStorage for 180 days. You can remove it through your browser or change it in the footer. An older GA4-only choice does not authorize the newly added providers. Withdrawal removes analytics cookies under our control and reloads the page to unload third-party code; it does not erase information already held by a provider. Provider-side report and recording retention follows the relevant account settings and service practices; contact us about deletion requests. See the [Cookie Policy](/cookies).
+If you make a choice in Cookie settings, the application saves that preference in localStorage for 180 days. You can remove it through your browser or change it in the footer. An older consent choice does not authorize newly added first-party measurement or providers. Withdrawal removes analytics cookies under our control and reloads the page to unload third-party code; it does not erase information already held by a provider. Provider-side report and recording retention follows the relevant account settings and service practices; contact us about deletion requests. See the [Cookie Policy](/cookies).
 
 Google Search Console and Bing Webmaster Tools are used for public-page verification, Sitemap submission and search visibility reports. Their verification records do not install visitor recordings or upload your poster files. A verified site or accepted Sitemap does not guarantee search indexing or rankings.
 

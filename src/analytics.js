@@ -1,3 +1,4 @@
+import {setSiteMetrics,recordSiteMetric} from './site-metrics';
 import { routeSpecs } from './data';
 const gaId = import.meta.env.VITE_GA4_ID || '';
 const clarityId = import.meta.env.VITE_CLARITY_ID || '';
@@ -13,7 +14,7 @@ const config = {
 export const ANALYTICS_ENABLED = Object.values(config).some(Boolean);
 export const canShowAnalyticsChoice = () => typeof location !== 'undefined' && productionPage();
 // Previous GA4-only acceptance does not opt someone into the added providers.
-export const CONSENT_KEY = 'postertiler-analytics-consent-v2';
+export const CONSENT_KEY = 'postertiler-analytics-consent-v3';
 const DURATION = 180 * 24 * 60 * 60 * 1000;
 const scripts = new Map(), ahrefsQueue = [];
 let allowed = false, initialized = false;
@@ -71,6 +72,7 @@ export function applyConsent(choice, persist = true) {
   const previouslyAllowed = allowed;
   if (persist) try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ choice, expires: Date.now() + DURATION })); } catch { /* Tools work without storage. */ }
   allowed = choice === 'accepted' && ANALYTICS_ENABLED && productionPage();
+  setSiteMetrics(allowed,choice==='rejected');
   if (config.ga4) window[`ga-disable-${gaId}`] = !allowed;
   if (!allowed) {
     if (previouslyAllowed) window.clarity?.('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
@@ -114,6 +116,7 @@ export function applyConsent(choice, persist = true) {
 export function trackEvent(name, parameters = {}) {
   if (!allowed || !productionPage() || !events.has(name)) return;
   const properties = safeProperties(parameters);
+  recordSiteMetric(name,properties);
   if (config.ga4) window.gtag?.('event', name, { page_location: pageUrl(), page_referrer: referrerOrigin(), ...properties });
   if (!safeAutomaticContext()) return;
   if (scripts.has('ahrefs')) {

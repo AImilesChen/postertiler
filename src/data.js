@@ -37,6 +37,7 @@ const designRouteSpecs = [
   ['about','/about','V1','About PosterTiler','about'],
   ['privacy','/privacy','V1','Privacy Policy','policy'],
   ['terms','/terms','V1','Terms of Service','policy'],
+  ['feedback','/feedback','V1','Feedback — Share a problem or suggestion','feedback'],
   ['contact','/contact','V1','Contact','contact'],
   ['cookies','/cookies','V1','Cookie Policy','policy'],
   ['ai-upscaler','/tools/ai-image-upscaler','V1.1','AI Image Upscaler — Enlarge Images for Printing','ai-upscaler'],
@@ -92,6 +93,9 @@ export const stateSpecs = [
 
 export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone','pricing'].includes(route.id));
 export const appRouteSpecs = [...routeSpecs,
+  ...['','gallery','feedback','users','orders','refunds','analytics','tasks','logs','settings'].map(view=>({id:'admin-'+(view||'overview'),path:'/admin'+(view?'/'+view:''),stage:'Operations',title:'PosterTiler management',kind:'admin',view,private:true})),
+  {id:'my-feedback',path:'/account/feedback',stage:'Operations',title:'My feedback',kind:'feedback',private:true},
+  {id:'my-refunds',path:'/account/refunds',stage:'Operations',title:'Orders & refund requests',kind:'refund-requests',private:true},
   {id:'gallery-new',path:'/account/submissions/new',stage:'Gallery',title:'Submit a project',kind:'gallery-private',view:'new',private:true},
   {id:'gallery-submissions',path:'/account/submissions',stage:'Gallery',title:'My submissions',kind:'gallery-private',view:'list',private:true},
   {id:'gallery-review',path:'/account/gallery-review',stage:'Gallery',title:'Gallery review',kind:'gallery-private',view:'review',private:true},

@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import {q as opsQuery,ready as opsReady} from '../operations/core.mjs';
 import { getSessionUser } from '../auth.mjs';
 import { TEST_CATALOG, validTestPrice } from './catalog.mjs';
 import { BillingStore, ORDER_FILTERS } from './store.mjs';
@@ -190,6 +191,10 @@ async function webhook(request, env, makeStripe) {
   if (!validateSession(session, order)) return json({ error: 'payment_mismatch' }, 400);
   if (session.payment_status === 'paid' && !objectId(session.payment_intent)) return json({ error: 'invalid_payment' }, 400);
   await store.apply(event, order, session, refund);
+  if(opsReady(env)&&session.payment_status==='paid'&&refund===null)try{
+    const kind=session.metadata?.billing_scope==='ai'?'ai':'cloud';
+    await opsQuery(env,'INSERT OR IGNORE INTO ops_payment_facts(mode,kind,order_id,paid_at) VALUES(?,?,?,?)','test',kind,order.id,Number.isInteger(event.created)?event.created*1000:Date.now()).run();
+  }catch{/* Billing confirmation must survive optional reporting outages. */}
   return json({ received: true });
 }
 export const handleBilling = createBillingHandler();

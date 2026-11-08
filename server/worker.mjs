@@ -1,3 +1,4 @@
+import {handleOperations,maintainOperations} from './operations/handler.mjs';
 import {handleGallery,maintainGallery} from './gallery/handler.mjs';
 import {galleryPages} from './gallery/pages.mjs';
 import { handleAuth } from './auth.mjs';
@@ -10,8 +11,9 @@ import { AiStore } from './ai/store.mjs';
 import { aiReady } from './ai/contract.mjs';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     try {
+      const operations=await handleOperations(request,env,ctx);if(operations)return operations;
       const galleryResponse=await handleGallery(request,env)||await galleryPages(request,env);if(galleryResponse)return galleryResponse;
       const response = await handleAi(request,env) || await handleAiBilling(request,env) || await handleCloud(request, env) || await handleBilling(request, env) || await handleAuth(request, env);
       if (response) return response;
@@ -39,5 +41,5 @@ export default {
       else await consumeCloud({...batch,messages:[message]},env);
     }
   },
-  async scheduled(controller,env,ctx) { ctx.waitUntil(Promise.all([maintainCloud(env),maintainAi(env),maintainGallery(env)])); },
+  async scheduled(controller,env,ctx) { ctx.waitUntil(Promise.all([maintainCloud(env),maintainAi(env),maintainGallery(env),maintainOperations(env)])); },
 };
