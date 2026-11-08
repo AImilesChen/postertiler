@@ -1,6 +1,6 @@
 import { AI_LIMITS,AI_VERSION,MODERATION_VERSION } from './contract.mjs';
 const ACTIVE="'awaiting_upload','queued','submitting','processing'";
-const GRANTED="(SELECT COALESCE(SUM(credits-refunded_credits),0) FROM ai_test_orders WHERE user_key=? AND paid=1)";
+const GRANTED="(SELECT COALESCE(SUM(credits-refunded_credits),0)-(SELECT COALESCE(SUM(hold_units),0) FROM billing_refund_reviews WHERE user_key=? AND kind='ai' AND status='approved') FROM ai_test_orders WHERE user_key=? AND paid=1)";
 const USED=`(SELECT COALESCE(SUM(credits),0) FROM ai_test_jobs WHERE user_key=? AND (charged=1 OR status IN (${ACTIVE})))`;
 export class AiStore {
  constructor(db,now=()=>Date.now()){this.db=db;this.now=now;}
@@ -9,8 +9,9 @@ export class AiStore {
  async balance(owner){
   const grant=await this.db.prepare('SELECT COALESCE(SUM(credits-refunded_credits),0) AS n FROM ai_test_orders WHERE user_key=? AND paid=1').bind(owner).first();
   const use=await this.db.prepare(`SELECT COALESCE(SUM(CASE WHEN charged=1 THEN credits ELSE 0 END),0) AS used,COALESCE(SUM(CASE WHEN status IN (${ACTIVE}) THEN credits ELSE 0 END),0) AS reserved FROM ai_test_jobs WHERE user_key=?`).bind(owner).first();
-  const n=Number(grant.n)-Number(use.used)-Number(use.reserved);
-  return {granted:Number(grant.n),used:Number(use.used),reserved:Number(use.reserved),available:Math.max(0,n),debt:Math.max(0,-n)};
+  const h=await this.db.prepare("SELECT COALESCE(SUM(hold_units),0) n FROM billing_refund_reviews WHERE user_key=? AND kind='ai' AND status='approved'").bind(owner).first();
+  const n=Number(grant.n)-Number(use.used)-Number(use.reserved)-h.n;
+  return {refund_reserved:h.n,granted:Number(grant.n),used:Number(use.used),reserved:Number(use.reserved),available:Math.max(0,n),debt:Math.max(0,-n)};
  }
  async list(owner){return (await this.db.prepare('SELECT * FROM ai_test_jobs WHERE user_key=? ORDER BY created_at DESC,id DESC LIMIT 20').bind(owner).all()).results;}
  async create(owner,body,spec,fingerprint){
@@ -19,7 +20,7 @@ export class AiStore {
    SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE ${GRANTED}-${USED}>=?
    AND NOT EXISTS(SELECT 1 FROM ai_test_jobs WHERE user_key=? AND status IN (${ACTIVE}))
    AND (SELECT COUNT(*) FROM ai_test_jobs WHERE user_key=? AND created_at>?)<12
-   ON CONFLICT(user_key,request_id) DO NOTHING`).bind(id,owner,body.request_id,fingerprint,JSON.stringify({...spec,price_version:AI_VERSION,moderation_consent:body.moderation_consent===MODERATION_VERSION?MODERATION_VERSION:null}),spec.credits,spec.budget_cents,body.source_hash||null,body.source_size||null,body.source_type||null,spec.kind==='generate'?'queued':'awaiting_upload',n,n,n+AI_LIMITS.retentionMs,owner,owner,spec.credits,owner,owner,n-3600000).run();
+   ON CONFLICT(user_key,request_id) DO NOTHING`).bind(id,owner,body.request_id,fingerprint,JSON.stringify({...spec,price_version:AI_VERSION,moderation_consent:body.moderation_consent===MODERATION_VERSION?MODERATION_VERSION:null}),spec.credits,spec.budget_cents,body.source_hash||null,body.source_size||null,body.source_type||null,spec.kind==='generate'?'queued':'awaiting_upload',n,n,n+AI_LIMITS.retentionMs,owner,owner,owner,spec.credits,owner,owner,n-3600000).run();
   return this.request(owner,body.request_id);
  }
  async uploaded(id){await this.db.prepare("UPDATE ai_test_jobs SET status='queued',updated_at=? WHERE id=? AND status='awaiting_upload'").bind(this.now(),id).run();return this.find(id);}
@@ -43,7 +44,7 @@ export class AiStore {
  async cancel(id){await this.db.prepare(`UPDATE ai_test_jobs SET status='canceled',error_code=NULL,lease=NULL,lease_until=0,updated_at=? WHERE id=? AND status IN (${ACTIVE})`).bind(this.now(),id).run();return this.find(id);}
  async finish(job,key,image){
   await this.db.prepare(`UPDATE ai_test_jobs SET status='succeeded',charged=1,result_key=?,width=?,height=?,lease=NULL,lease_until=0,updated_at=?
-   WHERE id=? AND lease=? AND status='processing' AND expires_at>? AND json_extract(spec_json,'$.moderation_output') LIKE ? AND ${GRANTED}-${USED}>=0`).bind(key,image.width,image.height,this.now(),job.id,job.lease,this.now(),MODERATION_VERSION+':%',job.user_key,job.user_key).run();return this.find(job.id);
+   WHERE id=? AND lease=? AND status='processing' AND expires_at>? AND json_extract(spec_json,'$.moderation_output') LIKE ? AND ${GRANTED}-${USED}>=0`).bind(key,image.width,image.height,this.now(),job.id,job.lease,this.now(),MODERATION_VERSION+':%',job.user_key,job.user_key,job.user_key).run();return this.find(job.id);
  }
  async pending(){return (await this.db.prepare("SELECT * FROM ai_test_jobs WHERE status IN ('queued','processing') AND lease_until<=? LIMIT 30").bind(this.now()).all()).results;}
  async recover(){

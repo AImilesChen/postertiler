@@ -126,3 +126,7 @@ Rights and exceptions depend on the circumstances and applicable law. You may al
 This is a general-purpose printing tool. Minors should use it with the involvement and permission of a parent, guardian or responsible educator as required by applicable law. The tool does not request dates of birth or children's profiles. Contact us if a child's personal information has been included in support correspondence and needs attention.
 
 We will update this policy when the service or data practices change and show the effective date above. Changes to live payments, account records, cloud processing or AI services will be reflected in this policy before they become available.
+
+## Refund review records
+
+Refund review data, order-level credit allocations, approved amounts, corresponding credit holds and financial review audit records are stored in the billing database for ownership, support and duplicate-adjustment protection. These records do not contain card numbers or change the separate 24-hour lifetime of working files. The management interface shows verified payment adjustments separately from review decisions.

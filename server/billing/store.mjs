@@ -55,8 +55,8 @@ export class BillingStore {
     } else if (session.payment_status === 'paid') {
       const pi = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
       update = this.prepare(`UPDATE billing_test_orders SET paid = 1, session_id = ?, payment_intent_id = ?,
-        status = CASE WHEN refunded_amount >= amount THEN 'refunded' WHEN refunded_amount > 0 THEN 'partially_refunded' ELSE 'paid' END,
-        updated_at = ? WHERE id = ? AND (session_id IS NULL OR session_id = ?)`).bind(session.id, pi, now, order.id, session.id);
+        paid_at = COALESCE(paid_at,?), status = CASE WHEN refunded_amount >= amount THEN 'refunded' WHEN refunded_amount > 0 THEN 'partially_refunded' ELSE 'paid' END,
+        updated_at = ? WHERE id = ? AND (session_id IS NULL OR session_id = ?)`).bind(session.id, pi, Number.isInteger(event.created)?event.created*1000:null, now, order.id, session.id);
     } else {
       const status = event.type === 'checkout.session.expired' ? 'expired' : event.type === 'checkout.session.async_payment_failed' ? 'failed' : 'pending';
       update = this.prepare(`UPDATE billing_test_orders SET status = CASE WHEN paid = 1 OR refunded_amount > 0 THEN status ELSE ? END,

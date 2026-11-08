@@ -12,7 +12,7 @@ import {falProvider,mediaUrl,queueUrl} from '../server/ai/provider.mjs';
 import {ownerKey,sha256} from '../server/cloud/contract.mjs';
 import {createBillingHandler} from '../server/billing/handler.mjs';
 const origin='https://postertiler.com',base='/api/ai/test';
-const schemas=await Promise.all(['0001_billing_test.sql','0002_cloud_jobs.sql','0003_ai_test.sql'].map(n=>readFile(new URL('../server/billing/migrations/'+n,import.meta.url),'utf8')));
+const schemas=await Promise.all(['0001_billing_test.sql','0002_cloud_jobs.sql','0003_ai_test.sql','0004_refund_ledger.sql'].map(n=>readFile(new URL('../server/billing/migrations/'+n,import.meta.url),'utf8')));
 const canvas=createCanvas(8,8),ctx=canvas.getContext('2d');ctx.fillStyle='#123456';ctx.fillRect(0,0,8,8);const jpeg=canvas.toBuffer('image/jpeg');
 function png(w=16,h=16){const c=createCanvas(w,h);const x=c.getContext('2d');x.fillStyle='#2468aa';x.fillRect(0,0,w,h);return new Uint8Array(c.toBuffer('image/png'));}
 function d1(db){return {prepare(sql){let args=[];const s={bind(...values){args=values;return s;},async first(){return db.prepare(sql).get(...args)||null;},async all(){return {results:db.prepare(sql).all(...args)};},async run(){return {meta:db.prepare(sql).run(...args)};}};return s;},async batch(statements){db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());db.exec('COMMIT');return a;}catch(e){db.exec('ROLLBACK');throw e;}}};}

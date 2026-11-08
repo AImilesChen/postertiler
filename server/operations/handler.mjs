@@ -1,3 +1,4 @@
+import {importLegacyRefunds} from './refunds.mjs';
 import {getSessionUser} from '../auth.mjs';
 import {boundedBytes} from '../ai/provider.mjs';
 import {isOperator,ready,OpsError,q,rows,ownerKey,rateLimit,dateRange,listing,text,audit} from './core.mjs';
@@ -46,8 +47,10 @@ export function createOperationsHandler({authenticate=getSessionUser,transport=f
   if(!admin)throw new OpsError('admin_required',user?403:401);
   const r=dateRange(url.searchParams),db=env.GALLERY_DB;
   if(path==='/api/admin/summary'&&request.method==='GET'){
-   const [traffic,payments,users,todo,started]=await Promise.all([metricsReport(env,r),paymentSummary(env,r),q(env,'SELECT COUNT(*) total,SUM(CASE WHEN first_recorded>=? AND first_recorded<? THEN 1 ELSE 0 END) new_records FROM ops_users WHERE is_operator=0',r.start,r.end).first(),q(env,`SELECT (SELECT COUNT(*) FROM ops_feedback WHERE status IN ('new','in_progress','awaiting_user') AND archived=0) feedback,(SELECT COUNT(*) FROM ops_refund_requests WHERE status IN ('received','reviewing','approved')) refunds,(SELECT COUNT(*) FROM gallery_entries WHERE status='pending') gallery,(SELECT COUNT(*) FROM ops_outbox WHERE status='attention') notification_errors`).first(),q(env,"SELECT value FROM ops_meta WHERE key='started_at'").first()]);
-   return json({traffic,payments,users,todo,started_at:Number(started?.value),timezone:'UTC',updated_at:now()});
+   await importLegacyRefunds(env);
+   const refundTodo=await env.BILLING_TEST_DB.prepare("SELECT COUNT(*) n FROM billing_refund_reviews r JOIN billing_refund_orders o ON o.kind=r.kind AND o.id=r.order_id WHERE r.status IN ('received','reviewing') OR (r.status='approved' AND o.refunded_amount<r.baseline_refunded+r.approved_amount)").first();
+   const [traffic,payments,users,todo,started]=await Promise.all([metricsReport(env,r),paymentSummary(env,r),q(env,'SELECT COUNT(*) total,SUM(CASE WHEN first_recorded>=? AND first_recorded<? THEN 1 ELSE 0 END) new_records FROM ops_users WHERE is_operator=0',r.start,r.end).first(),q(env,`SELECT (SELECT COUNT(*) FROM ops_feedback WHERE status IN ('new','in_progress','awaiting_user') AND archived=0) feedback,0 refunds,(SELECT COUNT(*) FROM gallery_entries WHERE status='pending') gallery,(SELECT COUNT(*) FROM ops_outbox WHERE status='attention') notification_errors`).first(),q(env,"SELECT value FROM ops_meta WHERE key='started_at'").first()]);
+   todo.refunds=refundTodo.n;return json({traffic,payments,users,todo,started_at:Number(started?.value),timezone:'UTC',updated_at:now()});
   }
   if(path==='/api/admin/analytics'&&request.method==='GET')return json(await metricsReport(env,r));
   if(path==='/api/admin/orders'&&request.method==='GET')return json(await orderList(env,url.searchParams));

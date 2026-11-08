@@ -91,7 +91,7 @@ export const stateSpecs = [
   ['refund-pending','Your refund request is being reviewed. Follow its status in your order details.','loading',5]
 ].map(([id,message,tone,step])=>({id,message,tone,step,stage:['permission','cloud-queued','cloud-failed','signed-out','credits-empty','refund-pending'].includes(id)?'V2':'V1'}));
 
-export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone','pricing'].includes(route.id));
+export const routeSpecs = designRouteSpecs.filter(route => ['V1', 'V1.1'].includes(route.stage) || ['life-size','halftone','pricing','refunds'].includes(route.id));
 export const appRouteSpecs = [...routeSpecs,
   ...['','gallery','feedback','users','orders','refunds','analytics','tasks','logs','settings'].map(view=>({id:'admin-'+(view||'overview'),path:'/admin'+(view?'/'+view:''),stage:'Operations',title:'PosterTiler management',kind:'admin',view,private:true})),
   {id:'my-feedback',path:'/account/feedback',stage:'Operations',title:'My feedback',kind:'feedback',private:true},

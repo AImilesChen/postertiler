@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-const files = ['privacy', 'terms', 'cookies', 'contact'];
+const files = ['privacy', 'terms', 'cookies', 'contact', 'refunds'];
 let missing = 0;
 for (const id of files) {
   const text = await readFile(`src/policies/published/${id}.en.md`, 'utf8');

@@ -32,6 +32,7 @@ const descriptions = {
   terms: 'Terms for using the free PosterTiler image tiling tool, including image rights, local processing and printing conditions.',
   feedback: 'Send PosterTiler a suggestion, report a tool problem or share printing feedback. Optional screenshots and private account updates.',
   contact: 'Contact information and the details to include when asking for help with a PosterTiler print.',
+  refunds: 'Review unused-credit refund calculations, service-failure exceptions, request status and the current Stripe test-payment release.',
   cookies: 'Understand optional analytics and local cookie preferences in PosterTiler. Rejecting analytics does not affect free PDF export.',
 };
 const manifest = [];

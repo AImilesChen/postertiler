@@ -8,7 +8,8 @@ export class CloudStore {
   same(user,fingerprint) {return this.db.prepare("SELECT * FROM cloud_test_jobs WHERE user_key=? AND fingerprint=? AND status IN ('awaiting_upload','queued','processing','succeeded') AND expires_at>?").bind(user,fingerprint,this.now()).first();}
   async balance(user) {
     const b=await this.db.prepare('SELECT granted,reserved,used FROM cloud_test_balances WHERE user_key=?').bind(user).first() || {granted:0,reserved:0,used:0};
-    return {...b,available:Math.max(0,b.granted-b.reserved-b.used),debt:Math.max(0,b.used+b.reserved-b.granted)};
+    const h=await this.db.prepare("SELECT COALESCE(SUM(hold_units),0) n FROM billing_refund_reviews WHERE user_key=? AND kind='cloud' AND status='approved'").bind(user).first();
+    return {...b,refund_reserved:h.n,available:Math.max(0,b.granted-b.reserved-b.used-h.n),debt:Math.max(0,b.used+b.reserved-b.granted)};
   }
   async list(user) {return (await this.db.prepare('SELECT * FROM cloud_test_jobs WHERE user_key=? ORDER BY created_at DESC LIMIT 30').bind(user).all()).results;}
   async listPage(user,params) {
@@ -23,10 +24,10 @@ export class CloudStore {
     await this.db.prepare(`INSERT OR IGNORE INTO cloud_test_jobs
       (id,user_key,request_id,fingerprint,source_hash,source_size,source_type,settings_json,status,credit_state,page_count,created_at,updated_at,expires_at,upload_until,deadline)
       SELECT ?,?,?,?,?,?,?,?,'awaiting_upload','held',?,?,?,?,?,?
-      WHERE COALESCE((SELECT granted-reserved-used FROM cloud_test_balances WHERE user_key=?),0)>0
+      WHERE COALESCE((SELECT granted-reserved-used FROM cloud_test_balances WHERE user_key=?),0)>(SELECT COALESCE(SUM(hold_units),0) FROM billing_refund_reviews WHERE user_key=? AND kind='cloud' AND status='approved')
       AND (SELECT COUNT(*) FROM cloud_test_jobs WHERE user_key=? AND credit_state='held')=0
       AND (SELECT COUNT(*) FROM cloud_test_jobs WHERE user_key=? AND created_at>?)<20`)
-      .bind(id,user,body.request_id,fingerprint,body.source_hash,body.source_size,body.source_type,JSON.stringify(settings),pages,now,now,now+CLOUD_LIMITS.retentionMs,now+CLOUD_LIMITS.uploadMs,now+CLOUD_LIMITS.taskMs,user,user,user,now-3600000).run();
+      .bind(id,user,body.request_id,fingerprint,body.source_hash,body.source_size,body.source_type,JSON.stringify(settings),pages,now,now,now+CLOUD_LIMITS.retentionMs,now+CLOUD_LIMITS.uploadMs,now+CLOUD_LIMITS.taskMs,user,user,user,user,now-3600000).run();
     return this.findRequest(user,body.request_id) || null;
   }
   async uploaded(id,settings,pages) {
@@ -61,10 +62,10 @@ export class CloudStore {
     const now=this.now();
     await this.db.prepare(`UPDATE cloud_test_jobs SET status='queued',credit_state='held',attempts=0,retries=retries+1,error_code=NULL,retryable=0,deadline=?,updated_at=?
       WHERE id=? AND user_key=? AND status='failed' AND retryable=1 AND source_ready=1 AND expires_at>? AND retries<3
-      AND COALESCE((SELECT granted-reserved-used FROM cloud_test_balances WHERE user_key=?),0)>0
+      AND COALESCE((SELECT granted-reserved-used FROM cloud_test_balances WHERE user_key=?),0)>(SELECT COALESCE(SUM(hold_units),0) FROM billing_refund_reviews WHERE user_key=? AND kind='cloud' AND status='approved')
       AND (SELECT COUNT(*) FROM cloud_test_jobs WHERE user_key=? AND credit_state='held')=0
       AND NOT EXISTS(SELECT 1 FROM cloud_test_jobs j WHERE j.user_key=cloud_test_jobs.user_key AND j.fingerprint=cloud_test_jobs.fingerprint AND j.id!=cloud_test_jobs.id AND j.status IN ('awaiting_upload','queued','processing','succeeded'))`)
-      .bind(Math.min(now+CLOUD_LIMITS.taskMs,now+CLOUD_LIMITS.retentionMs),now,id,user,now+CLOUD_LIMITS.taskMs,user,user).run();return this.find(id);
+      .bind(Math.min(now+CLOUD_LIMITS.taskMs,now+CLOUD_LIMITS.retentionMs),now,id,user,now+CLOUD_LIMITS.taskMs,user,user,user).run();return this.find(id);
   }
   async recover() {
     const now=this.now();

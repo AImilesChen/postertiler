@@ -83,3 +83,7 @@ We may maintain, update or temporarily interrupt the service and restrict abusiv
 Email support@postertiler.com with a description of the issue or rights concern. Include only the information needed to investigate it. Applicable mandatory laws and the courts with jurisdiction remain available; these terms do not require you to waive non-waivable consumer protections or use private arbitration.
 
 We will show an effective date for updated terms. Future paid-service terms will be explained before purchase and will not silently change the free-service promise.
+
+## Refund review and credit allocation
+
+The [Processing and Refund Policy](/refunds) explains the 14-day voluntary unused-credit calculation, service-failure exceptions and the current sandbox status. Credit use is allocated to purchase orders; an approved refund holds the relevant available credits until verified payment adjustments or operator release. Request approval does not itself transfer money.

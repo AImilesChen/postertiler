@@ -8,7 +8,7 @@ import { TEST_CATALOG, validTestPrice } from '../server/billing/catalog.mjs';
 import worker from '../server/worker.mjs';
 
 const origin = 'https://postertiler.com', base = '/api/billing/test';
-const schema = await readFile(new URL('../server/billing/migrations/0001_billing_test.sql', import.meta.url), 'utf8');
+const schema=(await Promise.all(['0001_billing_test.sql','0002_cloud_jobs.sql','0003_ai_test.sql','0004_refund_ledger.sql'].map(p=>readFile(new URL('../server/billing/migrations/'+p,import.meta.url),'utf8')))).join('\n');
 const signer = new Stripe('sk_test_fixtureOnly');
 function sqliteD1(db) {
   function prepare(sql) {
