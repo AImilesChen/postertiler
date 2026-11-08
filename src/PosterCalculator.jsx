@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowCounterClockwise, Ruler, Printer } from '@phosphor-icons/react';
-import { DEFAULTS, geometry, sizeText, MM_PER_UNIT } from './geometry';
+import { DEFAULTS, PRINT_DEFAULTS, geometry, sizeText, MM_PER_UNIT } from './geometry';
 import Preview from './Preview';
 import { Field, NumberInput } from './ui';
 import './calculator.css';
 
 export default function PosterCalculator() {
-  const [settings, setSettings] = useState({ ...DEFAULTS, locked: false });
+  const [settings, setSettings] = useState({ ...PRINT_DEFAULTS, locked: false });
   const update = (key, value) => setSettings(s => ({ ...s, [key]: value }));
   const g = geometry(settings), factor = MM_PER_UNIT[settings.unit];
   const alternativeOrientation = g.pw > g.ph ? 'Portrait' : 'Landscape';
@@ -20,7 +20,7 @@ export default function PosterCalculator() {
     {settings.separateMargins && <div className="pc-fields">{['Top','Right','Bottom','Left'].map(side => <React.Fragment key={side}>{number(`${side} margin`, `margin${side}`)}</React.Fragment>)}</div>}
     <label className="checkbox"><input type="checkbox" checked={settings.locked} onChange={e => update('locked', e.target.checked)} />Lock aspect ratio for exact dimensions</label><Field label="Image placement in poster maker"><select value={settings.placement} onChange={e => update('placement', e.target.value)}><option value="fit">Fit whole image</option><option value="fill">Fill and crop</option></select></Field><p>Placement is applied after you choose an image; it does not change this paper count.</p><Field label="Poster layout"><select value={settings.layoutMode} onChange={e => setSettings(s => ({ ...s, layoutMode: e.target.value, mode: e.target.value === 'framed' ? 'sheets' : s.mode }))}><option value="continuous">Continuous poster</option><option value="framed">Framed Grid</option></select></Field>
     <p>Framed Grid uses sheet counts and a deliberate gap between panels. Continuous posters join into one image.</p>
-    <label className="checkbox"><input type="checkbox" checked={settings.labels} onChange={e => update('labels', e.target.checked)} />Printed page labels</label><p>Labels reserve a removable 5 mm band, reducing the image height on each sheet.</p>
+    <label className="checkbox"><input type="checkbox" checked={settings.labels} onChange={e => update('labels', e.target.checked)} />Printed page labels</label><p>Position, page number and TOP ↑ print in a removable 5 mm band, reducing the image height on each sheet.</p>
     <label className="checkbox"><input type="checkbox" checked={settings.cutGuides} onChange={e => update('cutGuides', e.target.checked)} />Cut guides</label>
     {select('Page order', 'pageOrder', [['row-major','Left to right, top to bottom'],['column-major','Top to bottom, left to right']])}
   </div></details>;

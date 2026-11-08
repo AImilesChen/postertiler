@@ -4,6 +4,7 @@ import { pagePlans, pt, type Settings } from './geometry.ts';
 import { imageSheetLayout, pdfGroups, type PdfInfo } from './tools-model.ts';
 import { readPdf, ToolError } from './pdf-input.ts';
 import { assemblyPdf } from './pdf.ts';
+import { drawSheetLabel } from './print-labels.ts';
 async function document(title: string) {
   const pdf = await PDFDocument.create(); pdf.setTitle(title); pdf.setCreator('PosterTiler');
   pdf.catalog.getOrCreateViewerPreferences().setPrintScaling(PrintScaling.None); return pdf;
@@ -50,10 +51,7 @@ export async function tilePdf(bytes: Uint8Array, settings: Settings, range: stri
       page.pushOperators(popGraphicsState());
       if (settings.cutGuides) page.drawRectangle({ x: pt(g.margins.left) + .125, y: pt(g.ph - g.margins.top - tile.height) + .125,
         width: Math.max(0, pt(tile.width) - .25), height: Math.max(0, pt(tile.height) - .25), borderWidth: .25, borderColor: rgb(.5, .5, .5), borderDashArray: [2, 2] });
-      if (settings.labels) {
-        const inset = Math.min(.7, g.printableW / 10), size = Math.min(7, pt(g.printableW - 2 * inset) / font.widthOfTextAtSize(label, 1));
-        page.drawText(label, { x: pt(g.margins.left + inset), y: pt(g.ph - g.margins.top - g.printableH - 3.3), size, font });
-      }
+      drawSheetLabel(page, font, g, label, done, model.count);
       progress(++done, model.count); await new Promise(resolve => setTimeout(resolve, 0));
     }
   }

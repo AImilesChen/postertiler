@@ -1,7 +1,7 @@
 import DownloadReady from './DownloadReady';
 import React, { useEffect, useRef, useState } from 'react';
 import { UploadSimple } from '@phosphor-icons/react';
-import { DEFAULTS, sizeText } from './geometry';
+import { PRINT_DEFAULTS, sizeText } from './geometry';
 import { pdfGroups, TOOL_LIMITS } from './engine/tools-model.ts';
 import { B, Field, NumberInput, Alert } from './ui';
 import ToolControls from './ToolControls';
@@ -49,7 +49,7 @@ function usePdfPreview(file, pageIndex) {
 }
 export default function PdfPoster() {
   const [readyDialog,setReadyDialog]=useState(false);
-  const [file, setFile] = useState(null), [info, setInfo] = useState(null), [settings, setSettings] = useState({ ...DEFAULTS });
+  const [file, setFile] = useState(null), [info, setInfo] = useState(null), [settings, setSettings] = useState({ ...PRINT_DEFAULTS });
   const [range, setRange] = useState('1'), [scaleMode, setScaleMode] = useState('actual'), [percent, setPercent] = useState(100), [previewIndex, setPreviewIndex] = useState(0);
   const [status, setStatus] = useState(''), [error, setError] = useState(''), [progress, setProgress] = useState(''), [pdf, setPdf] = useState(null);
   const input = useRef(), cancel = useRef({ current: false }), requestId = useRef(0);
@@ -86,7 +86,7 @@ export default function PdfPoster() {
       else { const { pdfAssembly } = await import('./engine/document-tools.ts'); saveBlob(await pdfAssembly(info, settings, range, scale), 'postertiler-pdf-assembly.pdf'); }
     } catch { setError('This guide could not be prepared. Check the settings and try again.'); }
   };
-  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name="postertiler-tiled-pdf.pdf" onClose={()=>setReadyDialog(false)}/>}<div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>PDF Poster Printer</h1><p>Split a PDF over ordinary sheets at its intended physical size. Keep existing text and vector paths in the exported PDF.</p></div>
+  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} printedLabels={settings.labels} name="postertiler-tiled-pdf.pdf" onClose={()=>setReadyDialog(false)}/>}<div className="page-intro"><small>LOCAL PDF TOOLS</small><h1>PDF Poster Printer</h1><p>Split a PDF over ordinary sheets at its intended physical size. Keep existing text and vector paths in the exported PDF.</p></div>
     <div className="document-tool" data-clarity-mask="true"><section className="document-controls" aria-label="PDF poster settings"><fieldset disabled={busy}>
       <h2>01 Choose a PDF</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); read(Array.from(e.dataTransfer.files)); }}><UploadSimple size={28} /><p>Drop a PDF here</p><B onClick={() => input.current.click()}>Choose PDF</B><input ref={input} hidden type="file" accept="application/pdf,.pdf" onChange={e => { if (e.target.files.length) read(Array.from(e.target.files)); e.target.value = ''; }} /></div><small>Local processing. Up to 64 MB / 100 source pages / 100 output sheets. Source images above 24 MP, encrypted PDFs and optional layers are not supported.</small>
       {file && <p className="file-label">{file.name} · {info.pages.length} source page{info.pages.length === 1 ? '' : 's'}</p>}
@@ -96,7 +96,7 @@ export default function PdfPoster() {
       {scaleMode === 'custom' && <NumberInput label="Scale" value={percent} unit="%" min={1} onChange={value => { invalidate(); setPercent(value); }} />}
       <NumberInput label="Overlap" value={settings.overlap} unit="mm" onChange={value => { invalidate(); setSettings(s => ({ ...s, overlap: value })); }} />
       <label className="check"><input type="checkbox" checked={settings.cutGuides} onChange={e => { invalidate(); setSettings(s => ({ ...s, cutGuides: e.target.checked })); }} />Cut guides</label>
-      <label className="check"><input type="checkbox" checked={settings.labels} onChange={e => { invalidate(); setSettings(s => ({ ...s, labels: e.target.checked })); }} />Printed page labels</label><small>Printed labels reserve a removable 5 mm band. PDF page labels and separate assembly maps are always available.</small>
+      <label className="check"><input type="checkbox" checked={settings.labels} onChange={e => { invalidate(); setSettings(s => ({ ...s, labels: e.target.checked })); }} />Printed page labels</label><small>Prints source / position, page number and TOP ↑ in a removable 5 mm band. Exact source dimensions stay unchanged; the reserved band can require additional sheets.</small>
       <Field label="Page order"><select value={settings.pageOrder} onChange={e => { invalidate(); setSettings(s => ({ ...s, pageOrder: e.target.value })); }}><option value="row-major">Left to right, top to bottom</option><option value="column-major">Top to bottom, left to right</option></select></Field>
       <h2>03 Review and download</h2>{model && <><dl className="metrics"><dt>Source pages selected</dt><dd>{model.groups.length}</dd><dt>Poster PDF sheets</dt><dd>{model.count}</dd><dt>Scale</dt><dd>{scale}%</dd></dl><ul className="source-page-summary">{model.groups.map(group => <li key={group.sourceIndex}>Source {group.sourceIndex + 1}: {sizeText(group.geometry, settings.unit)} · {group.geometry.count} sheets</li>)}</ul></>}
       {modelError && <Alert tone="error">{modelError}</Alert>}

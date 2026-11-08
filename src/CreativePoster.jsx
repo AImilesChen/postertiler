@@ -5,7 +5,7 @@ import { UploadSimple } from '@phosphor-icons/react';
 import { B, Field, NumberInput, Alert } from './ui';
 import ToolControls from './ToolControls';
 import Preview from './Preview';
-import { DEFAULTS, geometry, sizeText, MM_PER_UNIT } from './geometry';
+import { PRINT_DEFAULTS, geometry, sizeText, MM_PER_UNIT } from './geometry';
 import { FULL_CROP, cropRect, lifeSettings, validateEffect } from './engine/creative.ts';
 import { loadImage, inspectFile, makePoster, saveBlob, assembly, calibration } from './export';
 import { creativeJob } from './creative-job';
@@ -17,7 +17,7 @@ export default function CreativePoster({ kind }) {
   const life = kind === 'life-size';
   const [file, setFile] = useState(null), [original, setOriginal] = useState(null), [pixels, setPixels] = useState(null);
   const [crop, setCrop] = useState({ ...FULL_CROP }), [height, setHeight] = useState(1800), [unit, setUnit] = useState('cm');
-  const [paper, setPaper] = useState({ ...DEFAULTS }), [effect, setEffect] = useState({ effect: 'dots', cell: 12, colour: false, contrast: 1, invert: false });
+  const [paper, setPaper] = useState({ ...PRINT_DEFAULTS }), [effect, setEffect] = useState({ effect: 'dots', cell: 12, colour: false, contrast: 1, invert: false });
   const [result, setResult] = useState(null), [pdf, setPdf] = useState(null), [status, setStatus] = useState(''), [error, setError] = useState(''), [progress, setProgress] = useState('');
   const input = useRef(), token = useRef({ current: false }), readVersion = useRef(0);
   const busy = ['reading', 'processing', 'exporting'].includes(status);
@@ -80,7 +80,7 @@ export default function CreativePoster({ kind }) {
   };
   const auxiliary = async type => { try { await (type === 'assembly' ? assembly(settings) : calibration(settings)); } catch { setError('The guide could not be prepared. Check your settings.'); } };
   const shown = result?.url || (life ? null : original);
-  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} name="postertiler-art-poster.pdf" onClose={()=>setReadyDialog(false)} onSubmit={()=>prepareGalleryDraft(result.url,settings)}/>}<div className="page-intro"><small>FREE LOCAL TOOL</small><h1>{life ? 'Life Size Poster Maker' : 'Halftone Poster Maker'}</h1><p>{life ? 'Select the subject bounds, set its physical height and print it over ordinary sheets.' : 'Make dot screens, black-and-white dithering or a CMYK-style screen, then download a tiled poster PDF.'}</p></div>
+  return <main>{readyDialog&&pdf&&<DownloadReady bytes={pdf} printedLabels={settings.labels} name="postertiler-art-poster.pdf" onClose={()=>setReadyDialog(false)} onSubmit={()=>prepareGalleryDraft(result.url,settings)}/>}<div className="page-intro"><small>FREE LOCAL TOOL</small><h1>{life ? 'Life Size Poster Maker' : 'Halftone Poster Maker'}</h1><p>{life ? 'Select the subject bounds, set its physical height and print it over ordinary sheets.' : 'Make dot screens, black-and-white dithering or a CMYK-style screen, then download a tiled poster PDF.'}</p></div>
     <div className="document-editor creative-editor" data-clarity-mask="true"><section className="document-controls"><fieldset disabled={busy}>
       <h2>01 Choose an image</h2><div className="tool-dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!busy) choose([...e.dataTransfer.files]); }}><UploadSimple size={28} /><p>JPG, PNG or WebP · processed in your browser</p><B secondary onClick={() => input.current.click()}>Choose Image</B><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { if (e.target.files.length) choose([...e.target.files]); e.target.value = ''; }} /></div><button className="underlined" onClick={example}>Try an example</button>
       {file && <p className="file-label">{file.name} · {pixels.width} × {pixels.height} px</p>}<small>Up to 32 MB, 24 megapixels and 100 output sheets. Capacity depends on your device.</small>
@@ -106,7 +106,7 @@ export default function CreativePoster({ kind }) {
       {!life && <div className="field-pair">{[['columns', 'Sheets across'], ['rows', 'Sheets down']].map(([key, label]) => <NumberInput key={key} label={label} min={1} value={paper[key]} onChange={value => { invalidate(); setPaper(s => ({ ...s, [key]: value })); }} />)}</div>}
       <NumberInput label="Overlap" value={paper.overlap} unit="mm" onChange={value => { invalidate(); setPaper(s => ({ ...s, overlap: value })); }} />
       {['cutGuides', 'labels'].map((key, i) => <label className="check" key={key}><input type="checkbox" checked={paper[key]} onChange={e => { invalidate(); setPaper(s => ({ ...s, [key]: e.target.checked })); }} />{i ? 'Printed page labels' : 'Cut guides'}</label>)}
-      <small>Printed labels use a removable 5 mm band. PDF reader labels and the separate assembly map are always available.</small>
+      <small>Position, page number and TOP ↑ print in a removable 5 mm band outside the artwork. The preview and finished dimensions include this band’s effect on the image area.</small>
       <Field label="Page order"><select value={paper.pageOrder} onChange={e => { invalidate(); setPaper(s => ({ ...s, pageOrder: e.target.value })); }}><option value="row-major">Left to right, top to bottom</option><option value="column-major">Top to bottom, left to right</option></select></Field>
       {!outputError && <dl className="metrics"><dt>Finished size</dt><dd>{sizeText(g, unit)}</dd><dt>Poster sheets</dt><dd>{g.count}</dd>{!life && effect.effect !== 'dither' && pixels && <><dt>Approx. dot spacing on paper</dt><dd>{(effect.cell * g.width / pixels.width).toFixed(2)} mm</dd></>}</dl>}
       <h2>04 Download</h2><B className="wide" disabled={!result || !!outputError} onClick={download}>Download Printable PDF</B><small>{result ? 'Full rendered pixels embedded losslessly. Free, no watermark and no sign-up.' : `Choose an image and ${life ? 'apply subject bounds' : 'apply the effect'} to enable export.`}</small>

@@ -15,6 +15,9 @@ export const DEFAULTS: Settings = {
   mode: 'sheets', columns: 2, rows: 2, width: 390, height: 564,
   placement: 'fit', locked: true, cutGuides: true, labels: false, pageOrder: 'row-major', layoutMode: 'continuous', gap: 10,
 };
+// New print jobs opt in to physical assembly labels. DEFAULTS stays stable for
+// previously shared settings, saved gallery plans and documented no-label cases.
+export const PRINT_DEFAULTS: Settings = { ...DEFAULTS, labels: true };
 const numeric = (v: unknown) => v === '' || v === null || v === undefined ? NaN : Number(v);
 export const pt = (mm: number) => mm * 72 / 25.4;
 export function geometry(s: Settings, pageLimit = LIMITS.pages) {

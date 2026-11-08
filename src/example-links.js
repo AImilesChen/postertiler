@@ -1,5 +1,5 @@
 import { samples } from './data.js';
-import { DEFAULTS } from './geometry.js';
+import { PRINT_DEFAULTS } from './geometry.js';
 
 // Only bundled artwork and existing effects can be initialized from a URL.
 export function creativeExample(search, kind) {
@@ -10,5 +10,5 @@ export function creativeExample(search, kind) {
   return { sample: kind === 'life-size' ? (sample?.id === 'portrait' || sample?.lifeSize === true ? sample : null) : sample, effect };
 }
 
-export const sampleSettings = sample => ({ ...DEFAULTS, ...(sample.orientation ? {orientation:sample.orientation} : {}), columns: sample.columns, rows: sample.rows,
+export const sampleSettings = sample => ({ ...PRINT_DEFAULTS, ...(sample.orientation ? {orientation:sample.orientation} : {}), columns: sample.columns, rows: sample.rows,
   imageRatio: sample.width / sample.height });

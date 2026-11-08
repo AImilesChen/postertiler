@@ -1,6 +1,7 @@
 import { PDFDocument, PDFName, PDFString, StandardFonts, PrintScaling, rgb,
   pushGraphicsState, popGraphicsState, rectangle, clip, endPath, concatTransformationMatrix } from 'pdf-lib';
 import { geometry, imagePlacement, pagePlans, pt, rowLabel, type Settings } from './geometry.ts';
+import { drawSheetLabel } from './print-labels.ts';
 const ink = rgb(.08, .08, .08), grey = rgb(.5, .5, .5);
 async function document(title: string) {
   const pdf = await PDFDocument.create();
@@ -29,12 +30,7 @@ export async function posterPdf(jpeg: Uint8Array, settings: Settings, progress: 
     page.pushOperators(concatTransformationMatrix(w*a,h*b,w*c,h*d,pt(left + placement.x - plan.x)+w*e,pt(g.ph-top-placement.y+plan.y-placement.height)+h*f));
     page.drawImage(image, { x: 0, y: 0, width: 1, height: 1 });
     page.pushOperators(popGraphicsState());
-    if (settings.labels) {
-      const text = g.printableW >= 80 ? `${plan.label}  |  ${plan.index + 1} of ${g.count}  |  trim this guide band` : plan.label;
-      const inset = Math.min(.7, g.printableW / 10);
-      const size = Math.min(7, pt(g.printableW - 2 * inset) / font.widthOfTextAtSize(text, 1));
-      page.drawText(text, { x: pt(left + inset), y: pt(g.ph - top - g.printableH - 3.3), size, font, color: ink });
-    }
+    drawSheetLabel(page, font, g, plan.label, plan.index, g.count);
     if (settings.cutGuides) {
       // The edge itself is the trim reference; no diagonal lines across art.
       page.drawRectangle({ x: pt(left) + .125, y: pt(g.ph - top - plan.height) + .125, width: Math.max(0, pt(plan.width) - .25), height: Math.max(0, pt(plan.height) - .25),
